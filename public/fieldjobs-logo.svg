@@ -1,0 +1,40 @@
+<svg width="200" height="50" viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF6B35"/>
+      <stop offset="100%" style="stop-color:#FF8C42"/>
+    </linearGradient>
+    <linearGradient id="gearGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8C42"/>
+      <stop offset="100%" style="stop-color:#FF6B35"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background for better visibility -->
+  <rect width="200" height="50" fill="transparent"/>
+  
+  <!-- Gear icon - larger and more prominent -->
+  <g transform="translate(25, 25)">
+    <!-- Main gear body -->
+    <circle cx="0" cy="0" r="18" fill="url(#gearGradient)"/>
+    
+    <!-- Gear teeth - more prominent -->
+    <path d="M 0,-22 L 4,-20 L 4,-16 L 0,-18 L -4,-16 L -4,-20 Z" fill="url(#gearGradient)"/>
+    <path d="M 15.56,-15.56 L 20,-4 L 16,-4 L 12.73,-12.73 L 15.56,-15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    <path d="M 22,0 L 20,4 L 16,4 L 18,0 L 16,-4 L 20,-4 Z" fill="url(#gearGradient)"/>
+    <path d="M 15.56,15.56 L 4,20 L 4,16 L 12.73,12.73 L 15.56,15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    <path d="M 0,22 L -4,20 L -4,16 L 0,18 L 4,16 L 4,20 Z" fill="url(#gearGradient)"/>
+    <path d="M -15.56,15.56 L -20,4 L -16,4 L -12.73,12.73 L -15.56,15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    <path d="M -22,0 L -20,-4 L -16,-4 L -18,0 L -16,4 L -20,4 Z" fill="url(#gearGradient)"/>
+    <path d="M -15.56,-15.56 L -4,-20 L -4,-16 L -12.73,-12.73 L -15.56,-15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    
+    <!-- Center hole -->
+    <circle cx="0" cy="0" r="7" fill="white"/>
+    <circle cx="0" cy="0" r="5" fill="#333"/>
+  </g>
+  
+  <!-- Company name - larger and bolder -->
+  <text x="58" y="32" font-family="'Segoe UI', Arial, sans-serif" font-size="24" font-weight="800" fill="white">
+    Field<tspan fill="url(#orangeGradient)">Jobs</tspan>
+  </text>
+</svg>
