@@ -1,0 +1,1638 @@
+'use client'
+
+import { useAuth } from '@/hooks/useAuth'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+export default function HomePage() {
+  const { user } = useAuth()
+  const router = useRouter()
+  
+  // Job data and filtering
+  const [jobs, setJobs] = useState([])
+  const [filteredJobs, setFilteredJobs] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [jobsPerPage] = useState(10)
+  const [sortBy, setSortBy] = useState('recent')
+  
+  // Search and filters (matching HTML demo)
+  const [searchInput, setSearchInput] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
+  const [compensationFilter, setCompensationFilter] = useState('')
+  const [jobTypeFilter, setJobTypeFilter] = useState('')
+  const [classificationFilter, setClassificationFilter] = useState('')
+  const [dateFilter, setDateFilter] = useState('')
+  
+  // Industry filters (matching HTML demo exactly)
+  const [activeFilters, setActiveFilters] = useState([])
+  
+  // Job seeker features
+  const [savedJobs, setSavedJobs] = useState([])
+  const [appliedJobs, setAppliedJobs] = useState([])
+  const [expandedJobs, setExpandedJobs] = useState([])
+  
+  // Modals
+  const [showAlertModal, setShowAlertModal] = useState(false)
+  const [showApplicationModal, setShowApplicationModal] = useState(false)
+  const [showJobDetailModal, setShowJobDetailModal] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [selectedJob, setSelectedJob] = useState(null)
+  
+  // NEW: Employer banner state variables
+  const [showEmployerBanner, setShowEmployerBanner] = useState(true)
+  const [freeJobEligible, setFreeJobEligible] = useState(false)
+  const [checkingEligibility, setCheckingEligibility] = useState(false)
+  
+  // Forms
+  const [applicationForm, setApplicationForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    classification: '',
+  })
+  
+  const [alertForm, setAlertForm] = useState({
+    name: '',
+    keywords: '',
+    region: '',
+    industry: '',
+    classification: '',
+    salary: '',
+    frequency: 'daily'
+  })
+
+  useEffect(() => {
+    loadJobs()
+    if (user) {
+      loadSavedJobs()
+      loadAppliedJobs()
+    }
+  }, [user])
+
+  useEffect(() => {
+    filterAndSortJobs()
+  }, [jobs, searchInput, locationFilter, compensationFilter, jobTypeFilter, classificationFilter, dateFilter, activeFilters, sortBy])
+
+  // NEW: Check free job eligibility when user logs in
+  useEffect(() => {
+    const checkFreeJobEligibility = async () => {
+      if (!user?.id) return
+
+      try {
+        setCheckingEligibility(true)
+        const response = await fetch(`/api/free-job/check-eligibility?userId=${user.id}`)
+        const data = await response.json()
+
+        if (data.success) {
+          setFreeJobEligible(data.eligible)
+        }
+      } catch (error) {
+        console.error('Error checking free job eligibility:', error)
+      } finally {
+        setCheckingEligibility(false)
+      }
+    }
+
+    if (user?.id) {
+      checkFreeJobEligibility()
+    }
+  }, [user?.id])
+
+  // UPDATED: Load jobs function with free job filtering
+  const loadJobs = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Load real jobs from database with featured/urgent fields
+      const response = await fetch('/api/jobs?limit=100')
+      if (response.ok) {
+        const data = await response.json()
+        let allJobs = data.jobs || data // Handle both {jobs: []} and [] formats
+        
+        // Filter out expired free jobs for public view
+        allJobs = allJobs.filter(job => {
+          if (job.is_free_job && job.free_job_expires_at) {
+            const expirationDate = new Date(job.free_job_expires_at)
+            const now = new Date()
+            return expirationDate > now && job.status === 'active'
+          }
+          return job.status === 'active'
+        })
+        
+        setJobs(allJobs)
+        setFilteredJobs(allJobs)
+      } else {
+        console.error('Failed to load jobs')
+        setJobs([])
+        setFilteredJobs([])
+      }
+    } catch (error) {
+      console.error('Error loading jobs:', error)
+      setJobs([])
+      setFilteredJobs([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const loadSavedJobs = async () => {
+    try {
+      if (!user) return
+      
+      const response = await fetch(`/api/saved-jobs?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        const savedJobIds = data.savedJobs.map(saved => saved.job_id)
+        setSavedJobs(savedJobIds)
+      }
+    } catch (error) {
+      console.error('Error loading saved jobs:', error)
+    }
+  }
+
+  const loadAppliedJobs = async () => {
+    try {
+      if (!user) return
+      
+      const response = await fetch(`/api/applied-jobs?userId=${user.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        // Extract just the job IDs for the appliedJobs array
+        const appliedJobIds = data.appliedJobs.map(app => app.jobs.id)
+        setAppliedJobs(appliedJobIds)
+      }
+    } catch (error) {
+      console.error('Error loading applied jobs:', error)
+    }
+  }
+
+  // NEW: Handle employer banner clicks
+  const handleEmployerBannerClick = () => {
+    if (!user) {
+      // Not logged in - redirect to account creation
+      router.push('/auth/signup?redirect=free_job&type=employer')
+      return
+    }
+
+    // Check if user is employer by looking at multiple possible locations
+    const isEmployer = 
+      user.user_metadata?.account_type === 'employer' ||
+      user.app_metadata?.account_type === 'employer' ||
+      user.user_metadata?.accountType === 'employer' ||
+      user.account_type === 'employer'
+
+    if (!isEmployer) {
+      // Logged in but not employer - go to create employer account
+      router.push('/auth/signup?type=employer&redirect=free_job')
+      return
+    }
+
+    // Logged in employer - check free job eligibility
+    if (freeJobEligible) {
+      router.push('/employer?action=post-free-job')
+    } else {
+      router.push('/employer')
+    }
+  }
+
+  // NEW: Logic for showing thin banner
+  const shouldShowThinBanner = () => {
+    if (!showEmployerBanner) return false // User closed it
+    
+    if (!user) return true // Show to non-logged in users
+    
+    // Check if user is employer by looking at multiple possible locations
+    const isEmployer = 
+      user.user_metadata?.account_type === 'employer' ||
+      user.app_metadata?.account_type === 'employer' ||
+      user.user_metadata?.accountType === 'employer' ||
+      user.account_type === 'employer'
+    
+    if (user && isEmployer && freeJobEligible) {
+      return true // Show to eligible employers
+    }
+    
+    return false // Hide for everyone else
+  }
+
+  // Check if a feature is still active (works with both old and new field names)
+  const isFeatureActive = (featureUntil) => {
+    if (!featureUntil) return false
+    return new Date(featureUntil) > new Date()
+  }
+
+  // Get feature status for a job
+  const getJobFeatureStatus = (job) => {
+    const isFeatured = job.is_featured && isFeatureActive(job.featured_until)
+    const isUrgent = job.is_urgent && isFeatureActive(job.urgent_until)
+    
+    // Fallback to old field names if new ones don't exist
+    const legacyFeatured = job.isFeatured || (job.badges && job.badges.includes('featured'))
+    const legacyUrgent = job.badges && job.badges.includes('urgent')
+    
+    return {
+      isFeatured: isFeatured || legacyFeatured,
+      isUrgent: isUrgent || legacyUrgent
+    }
+  }
+
+  const toggleJobDescription = (jobId) => {
+    if (expandedJobs.includes(jobId)) {
+      setExpandedJobs(prev => prev.filter(id => id !== jobId))
+    } else {
+      setExpandedJobs(prev => [...prev, jobId])
+    }
+  }
+
+  const filterAndSortJobs = () => {
+    let filtered = jobs.filter(job => {
+      // Search input filter
+      const matchesSearch = !searchInput || 
+        job.title.toLowerCase().includes(searchInput.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchInput.toLowerCase()) ||
+        job.description.toLowerCase().includes(searchInput.toLowerCase())
+      
+      // Location filter - handle both location and region fields
+      const jobLocation = job.location || job.region || ''
+      const matchesLocation = !locationFilter || jobLocation.toLowerCase().includes(locationFilter.toLowerCase())
+      
+      // Compensation filter - handle both hourly_rate and hourlyRate fields
+      const jobRate = job.hourly_rate || job.hourlyRate || job.salary_range || ''
+      const matchesCompensation = !compensationFilter || checkCompensationMatch(jobRate, compensationFilter)
+
+      // Job type filter - handle both jobType and job_type
+      const jobType = job.jobType || job.job_type || ''
+      const matchesJobType = !jobTypeFilter || jobType === jobTypeFilter
+      
+      // Classification filter
+      const matchesClassification = !classificationFilter || job.classification === classificationFilter
+      
+      // Industry filters - handle both type and category
+      const jobIndustry = job.type || job.category || ''
+      const matchesIndustry = activeFilters.length === 0 || activeFilters.includes(jobIndustry)
+      
+      // Date filter
+      const postedDays = job.postedDays || calculateDaysAgo(job.created_at)
+      const matchesDate = !dateFilter || checkDateMatch(postedDays, dateFilter)
+      
+      return matchesSearch && matchesLocation && matchesCompensation && matchesJobType && matchesClassification && matchesIndustry && matchesDate
+    })
+    
+    // Sort jobs - featured jobs should stay at top regardless of sort
+    filtered.sort((a, b) => {
+      const aFeatures = getJobFeatureStatus(a)
+      const bFeatures = getJobFeatureStatus(b)
+      
+      // Always prioritize featured jobs first
+      if (aFeatures.isFeatured && !bFeatures.isFeatured) return -1
+      if (!aFeatures.isFeatured && bFeatures.isFeatured) return 1
+      
+      // Then prioritize urgent jobs
+      if (aFeatures.isUrgent && !bFeatures.isUrgent) return -1
+      if (!aFeatures.isUrgent && bFeatures.isUrgent) return 1
+      
+      // If both or neither are featured/urgent, apply the selected sort
+      switch(sortBy) {
+        case 'recent':
+          const aDate = new Date(a.created_at || a.createdAt)
+          const bDate = new Date(b.created_at || b.createdAt)
+          return bDate - aDate
+        case 'salary-high':
+          return extractMaxSalary(b.hourly_rate || b.hourlyRate || b.salary_range || '') - extractMaxSalary(a.hourly_rate || a.hourlyRate || a.salary_range || '')
+        case 'salary-low':
+          return extractMaxSalary(a.hourly_rate || a.hourlyRate || a.salary_range || '') - extractMaxSalary(b.hourly_rate || b.hourlyRate || b.salary_range || '')
+          case 'company':
+          return a.company.localeCompare(b.company)
+        case 'title':
+          return a.title.localeCompare(b.title)
+        default:
+          return 0
+      }
+    })
+    
+    setFilteredJobs(filtered)
+    setCurrentPage(1) // Reset to first page when filtering
+  }
+
+  const calculateDaysAgo = (dateString) => {
+    if (!dateString) return 0
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now - date)
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  }
+
+  const extractMaxSalary = (hourlyRate) => {
+    if (!hourlyRate) return 0
+    const matches = hourlyRate.match(/\$?(\d+)(?:k|,000)?(?:\s*-\s*\$?(\d+)(?:k|,000)?)?/i)
+    if (!matches) return 0
+    
+    const max = matches[2] ? parseInt(matches[2]) : parseInt(matches[1])
+    return max * (hourlyRate.includes('k') || hourlyRate.includes(',000') ? 1000 : 1)
+  }
+
+  const checkCompensationMatch = (jobRate, filterRange) => {
+    if (!jobRate) return false
+    
+    const matches = jobRate.match(/\$?(\d+)(?:k|,000)?(?:\s*-\s*\$?(\d+)(?:k|,000)?)?/i)
+    if (!matches) return false
+    
+    const jobMin = parseInt(matches[1]) * (jobRate.includes('k') || jobRate.includes(',000') ? 1000 : 1)
+    const jobMax = matches[2] ? parseInt(matches[2]) * (jobRate.includes('k') || jobRate.includes(',000') ? 1000 : 1) : jobMin
+    
+    // Convert hourly to annual for comparison if needed
+    const annualMin = jobRate.includes('/hr') || jobRate.includes('hour') ? jobMin * 2080 : jobMin
+    const annualMax = jobRate.includes('/hr') || jobRate.includes('hour') ? jobMax * 2080 : jobMax
+    
+    switch(filterRange) {
+      case '0-25': return jobMax <= 25
+      case '25-35': return jobMin >= 25 && jobMax <= 35
+      case '35-50': return jobMin >= 35 && jobMax <= 50
+      case '50-75': return jobMin >= 50 && jobMax <= 75
+      case '75+': return jobMin >= 75
+      default: return true
+    }
+  }
+
+  const checkDateMatch = (postedDays, filterDays) => {
+    const days = parseInt(filterDays)
+    return postedDays <= days
+  }
+
+  const toggleFilter = (industry) => {
+    if (activeFilters.includes(industry)) {
+      setActiveFilters(prev => prev.filter(f => f !== industry))
+    } else {
+      setActiveFilters(prev => [...prev, industry])
+    }
+  }
+
+  const performSearch = () => {
+    filterAndSortJobs()
+  }
+
+  const toggleSaveJob = async (jobId) => {
+    try {
+      if (!user) {
+        setShowAuthModal(true)
+        return
+      }
+      
+      const job = jobs.find(j => j.id === jobId)
+      if (!job) {
+        alert('Job not found')
+        return
+      }
+      
+      if (savedJobs.includes(jobId)) {
+        // Remove from saved
+        const response = await fetch(`/api/saved-jobs?userId=${user.id}&jobId=${jobId}`, {
+          method: 'DELETE',
+        })
+        
+        if (response.ok) {
+          setSavedJobs(prev => prev.filter(id => id !== jobId))
+          alert('Job removed from saved jobs')
+        } else {
+          const error = await response.json()
+          alert('Error removing job: ' + error.error)
+        }
+      } else {
+        // Add to saved
+        const response = await fetch('/api/saved-jobs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            jobId: jobId,
+            jobData: job
+          }),
+        })
+        
+        if (response.ok) {
+          setSavedJobs(prev => [...prev, jobId])
+          alert('Job saved successfully! View it in your dashboard.')
+        } else {
+          const error = await response.json()
+          if (error.error === 'Job already saved') {
+            setSavedJobs(prev => [...prev, jobId])
+            alert('Job was already saved!')
+          } else {
+            alert('Error saving job: ' + error.error)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling save job:', error)
+      alert('Error saving job')
+    }
+  }
+
+  const applyToJob = (job) => {
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+    
+    if (appliedJobs.includes(job.id)) {
+      alert('You have already applied to this job!')
+      return
+    }
+    
+    setSelectedJob(job)
+    setApplicationForm({
+      firstName: '',
+      lastName: '',
+      email: user.email || '',
+      phone: '',
+      classification: '',
+    })
+    setShowApplicationModal(true)
+  }
+
+  const submitApplication = async (e) => {
+    e.preventDefault()
+    
+    try {
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: selectedJob.id,
+          userId: user.id,
+          firstName: applicationForm.firstName,
+          lastName: applicationForm.lastName,
+          email: applicationForm.email,
+          phone: applicationForm.phone,
+          classification: applicationForm.classification,
+        }),
+      })
+      
+      if (response.ok) {
+        setAppliedJobs(prev => [...prev, selectedJob.id])
+        alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
+        setShowApplicationModal(false)
+        setSelectedJob(null)
+        setApplicationForm({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          classification: '',
+        })
+      } else {
+        const error = await response.json()
+        
+        // Handle duplicate application error specifically
+        if (response.status === 409) {
+          alert('❌ You have already applied to this job! Check your dashboard to see your application status.')
+          setAppliedJobs(prev => [...prev, selectedJob.id])  // Add to local state
+          setShowApplicationModal(false)
+          setSelectedJob(null)
+        } else {
+          alert('Error submitting application: ' + error.error)
+        }
+      }
+    } catch (error) {
+      console.error('Error submitting application:', error)
+      alert('Error submitting application')
+    }
+  }
+
+  const createJobAlert = async (e) => {
+    e.preventDefault()
+    
+    if (!user) {
+      setShowAuthModal(true)
+      return
+    }
+    
+    try {
+      const response = await fetch('/api/job-alerts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          name: alertForm.name,
+          keywords: alertForm.keywords,
+          region: alertForm.region,
+          industry: alertForm.industry,
+          classification: alertForm.classification,
+          salary: alertForm.salary,
+          frequency: alertForm.frequency
+        }),
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        alert('🎉 ' + data.message)
+        setAlertForm({
+          name: '',
+          keywords: '',
+          region: '',
+          industry: '',
+          classification: '',
+          salary: '',
+          frequency: 'daily'
+        })
+        setShowAlertModal(false)
+      } else {
+        const error = await response.json()
+        alert('Error creating job alert: ' + error.error)
+      }
+    } catch (error) {
+      console.error('Error creating job alert:', error)
+      alert('Error creating job alert')
+    }
+  }
+
+  const showJobDetails = (job) => {
+    setSelectedJob(job)
+    setShowJobDetailModal(true)
+  }
+
+  const getPostedText = (job) => {
+    const days = job.postedDays || calculateDaysAgo(job.created_at)
+    if (days === 1) return 'Posted 1 day ago'
+    if (days < 7) return `Posted ${days} days ago`
+    if (days < 30) return `Posted ${Math.floor(days/7)} week${Math.floor(days/7) > 1 ? 's' : ''} ago`
+    return 'Posted over a month ago'
+  }
+
+  const getBadgeText = (badge) => {
+    switch(badge) {
+      case 'featured': return 'Featured'
+      case 'urgent': return 'Urgent'
+      case 'high-pay': return 'High Pay'
+      case 'popular': return 'Popular'
+      default: return badge
+    }
+  }
+
+  const clearFilters = () => {
+    setSearchInput('')
+    setLocationFilter('')
+    setCompensationFilter('')
+    setJobTypeFilter('')
+    setClassificationFilter('')
+    setDateFilter('')
+    setActiveFilters([])
+  }
+
+  // Pagination
+  const indexOfLastJob = currentPage * jobsPerPage
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob)
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  return (
+    <div style={{ margin: 0, padding: 0, boxSizing: 'border-box', fontFamily: 'Arial, sans-serif', background: '#f5f5f5' }}>
+      {/* Thin Free Job Notification Bar */}
+      {shouldShowThinBanner() && freeJobEligible && user && (
+        <div style={{ 
+          background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', 
+          color: 'white', 
+          padding: '0.75rem 2rem', 
+          textAlign: 'center',
+          position: 'relative',
+          fontSize: '0.9rem',
+          fontWeight: '500'
+        }}>
+          🎁 Post Your First Job Free - 30 days of visibility at no cost
+          <button
+            onClick={handleEmployerBannerClick}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '4px',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              marginLeft: '1rem',
+              cursor: 'pointer'
+            }}
+          >
+            Get Started
+          </button>
+          <button
+            onClick={() => setShowEmployerBanner(false)}
+            style={{
+              position: 'absolute',
+              right: '1rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              opacity: 0.7
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* For non-logged in users */}
+      {shouldShowThinBanner() && !user && (
+        <div style={{ 
+          background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', 
+          color: 'white', 
+          padding: '0.75rem 2rem', 
+          textAlign: 'center',
+          position: 'relative',
+          fontSize: '0.9rem',
+          fontWeight: '500'
+        }}>
+          🎁 Employers: Post Your First Job Free - 30 days of visibility, no credit card required
+          <button
+            onClick={handleEmployerBannerClick}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '4px',
+              fontSize: '0.8rem',
+              fontWeight: '600',
+              marginLeft: '1rem',
+              cursor: 'pointer'
+            }}
+          >
+            Sign Up Free
+          </button>
+          <button
+            onClick={() => setShowEmployerBanner(false)}
+            style={{
+              position: 'absolute',
+              right: '1rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              color: 'white',
+              fontSize: '1.2rem',
+              cursor: 'pointer',
+              opacity: 0.7
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Search Hero */}
+      <div style={{ background: '#1a1a1a', color: 'white', padding: '4rem 2rem', textAlign: 'center', marginBottom: '3rem' }}>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', margin: 0 }}>Find Your Next Technical Opportunity</h1>
+        <p style={{ margin: '1rem 0 2rem 0' }}>Connect with top employers in nuclear, energy, aerospace, defense, and technical industries</p>
+        
+        {/* Enhanced Search Fields */}
+        <div style={{ display: 'flex', gap: '1rem', maxWidth: '800px', margin: '2rem auto 0', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && performSearch()}
+            placeholder="Job title, company, or keywords"
+            style={{ 
+              flex: 1, 
+              padding: '0.75rem', 
+              border: '3px solid #ff6b35',
+              borderRadius: '5px', 
+              fontSize: '1rem', 
+              minWidth: '200px',
+              outline: 'none',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+              backgroundColor: 'white',
+              color: 'black'
+            }}
+          />
+          <select
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            style={{ 
+              flex: 1, 
+              padding: '0.75rem', 
+              border: '3px solid #ff6b35',
+              borderRadius: '5px', 
+              fontSize: '1rem', 
+              minWidth: '200px',
+              outline: 'none',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+              backgroundColor: 'white',
+              color: 'black'
+            }}
+          >
+            <option value="">All Regions</option>
+            <option value="northeast">Northeast US</option>
+            <option value="southeast">Southeast US</option>
+            <option value="midwest">Midwest US</option>
+            <option value="southwest">Southwest US</option>
+            <option value="west">West US</option>
+            <option value="canada">Canada</option>
+            <option value="mexico">Mexico</option>
+            <option value="nationwide">US Nationwide</option>
+            <option value="international">International</option>
+          </select>
+          <select
+            value={compensationFilter}
+            onChange={(e) => setCompensationFilter(e.target.value)}
+            style={{ 
+              flex: 1, 
+              padding: '0.75rem', 
+              border: '3px solid #ff6b35',
+              borderRadius: '5px', 
+              fontSize: '1rem', 
+              minWidth: '200px',
+              outline: 'none',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+              backgroundColor: 'white',
+              color: 'black'
+            }}
+          >
+            <option value="">All Compensation</option>
+            <option value="0-25">Under $25/hr</option>
+            <option value="25-35">$25 - $35/hr</option>
+            <option value="35-50">$35 - $50/hr</option>
+            <option value="50-75">$50 - $75/hr</option>
+            <option value="75+">$75+/hr</option>
+            <option value="project">Project Rate</option>
+          </select>
+          <button
+            onClick={performSearch}
+            style={{ 
+              padding: '0.75rem 2rem', 
+              background: '#ff6b35', 
+              color: 'white', 
+              border: '3px solid #ff6b35',
+              borderRadius: '5px', 
+              cursor: 'pointer', 
+              fontSize: '1rem',
+              fontWeight: '600',
+              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            Search Jobs
+          </button>
+        </div>        
+        
+        {/* UPDATED: Search hero buttons section */}
+        <div style={{ marginTop: '2rem' }}>
+          <p style={{ marginBottom: '1rem' }}>Want jobs delivered to your inbox?</p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button
+              onClick={() => setShowAlertModal(true)}
+              style={{ background: '#28a745', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+            >
+              📧 Set Up Job Alerts
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        {/* Filters Container */}
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+          {/* Industry Filters */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            {[
+              { key: 'nuclear', label: 'Nuclear Power' },
+              { key: 'power-generation', label: 'Power Generation' },
+              { key: 'petrochem', label: 'Petro-Chem/Fossil/Offshore' },
+              { key: 'alt-energy', label: 'Alt Energy' },
+              { key: 'electric-td', label: 'Electric T&D' },
+              { key: 'construction', label: 'Construction' },
+              { key: 'homeland', label: 'Homeland/DoD/Fed Gov' },
+              { key: 'shipyard', label: 'Shipyard/Marine' },
+              { key: 'computer', label: 'Computer/Telecom' },
+              { key: 'aerospace', label: 'Aerospace' },
+              { key: 'overseas', label: 'Overseas' },
+              { key: 'medical', label: 'Medical/Pharma' },
+              { key: 'manufacturing', label: 'Manufacturing' }
+            ].map((industry) => (
+              <button
+                key={industry.key}
+                onClick={() => toggleFilter(industry.key)}
+                style={{
+                  padding: '0.75rem',
+                  background: activeFilters.includes(industry.key) ? '#ff6b35' : 'white',
+                  color: activeFilters.includes(industry.key) ? 'white' : 'black',
+                  border: `2px solid ${activeFilters.includes(industry.key) ? '#ff6b35' : '#ddd'}`,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'all 0.3s ease',
+                  fontWeight: '500',
+                  fontSize: '0.9rem'
+                }}
+              >
+                {industry.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Advanced Filters */}
+          <div style={{ borderTop: '1px solid #eee', paddingTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Job Type</label>
+              <select
+                value={jobTypeFilter}
+                onChange={(e) => setJobTypeFilter(e.target.value)}
+                style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
+              >
+                <option value="">All Types</option>
+                <option value="in-house">In-house</option>
+                <option value="project-hire">Project Hire</option>
+                <option value="1099">1099 Contract</option>
+                <option value="temp-perm">Temp-to-Perm</option>
+                <option value="full-time">Full Time</option>
+                <option value="part-time">Part Time</option>
+                <option value="contract">Contract</option>
+                <option value="freelance">Freelance</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Classification</label>
+              <select
+                value={classificationFilter}
+                onChange={(e) => setClassificationFilter(e.target.value)}
+                style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
+              >
+                <option value="">All Classifications</option>
+                <option value="junior">Junior (0-5 years)</option>
+                <option value="intermediate">Intermediate (5-10 years)</option>
+                <option value="senior">Senior (10-15 years)</option>
+                <option value="expert">Expert (15+ years)</option>
+                <option value="specialist">Specialist</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Posted Date</label>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
+              >
+                <option value="">Any Time</option>
+                <option value="1">Last 24 hours</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+              </select>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>&nbsp;</label>
+              <button
+                onClick={clearFilters}
+                style={{ padding: '0.5rem', background: 'transparent', color: '#ff6b35', border: '2px solid #ff6b35', borderRadius: '5px', cursor: 'pointer', width: '100%' }}
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Header with Sort */}
+        <div style={{ background: 'white', padding: '1.5rem 2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.5rem' }}>
+              {isLoading ? 'Loading Jobs...' : `${filteredJobs.length} Jobs Found`}
+            </h2>
+            <p style={{ margin: '0.5rem 0 0 0', color: '#666' }}>
+              Showing {indexOfFirstJob + 1}-{Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length} results
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <label style={{ fontWeight: '500', color: '#333' }}>Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
+            >
+              <option value="recent">Most Recent</option>
+              <option value="salary-high">Compensation: High to Low</option>
+              <option value="salary-low">Compensation: Low to High</option>
+              <option value="company">Company A-Z</option>
+              <option value="title">Job Title A-Z</option>
+            </select>
+          </div>
+        </div>
+
+        {/* UPDATED: Job Listings with Enhanced Featured Display and Free Job Badges */}
+        <div style={{ display: 'grid', gap: '1.5rem' }}>
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
+              <div>Loading the latest job opportunities...</div>
+            </div>
+          ) : filteredJobs.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+              <h3>No jobs found</h3>
+              <p style={{ color: '#666', marginBottom: '1.5rem' }}>Try adjusting your search criteria or filters</p>
+              <button
+                onClick={() => setShowAlertModal(true)}
+                style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+              >
+                Create Job Alert for These Criteria
+              </button>
+            </div>
+          ) : (
+            currentJobs.map(job => {
+              const features = getJobFeatureStatus(job)
+              const { isFeatured, isUrgent } = features
+              const isFreeJob = job.is_free_job && job.free_job_expires_at
+              
+              return (
+                <div
+                  key={job.id}
+                  style={{
+                    background: isFeatured 
+                      ? 'linear-gradient(135deg, #fff5f0 0%, #ffffff 100%)' 
+                      : isFreeJob
+                        ? 'linear-gradient(135deg, #f0fff4 0%, #ffffff 100%)'
+                        : 'white',
+                    border: isFeatured 
+                      ? '3px solid #ffd700' 
+                      : isUrgent 
+                        ? '2px solid #ff4444' 
+                        : isFreeJob
+                          ? '2px solid #22c55e'
+                          : '1px solid #e0e0e0',
+                    borderRadius: '12px',
+                    padding: '1.5rem',
+                    boxShadow: isFeatured 
+                      ? '0 12px 30px rgba(255, 215, 0, 0.3)' 
+                      : isUrgent 
+                        ? '0 8px 25px rgba(255, 68, 68, 0.2)' 
+                        : isFreeJob
+                          ? '0 8px 25px rgba(34, 197, 94, 0.2)'
+                          : '0 2px 10px rgba(0,0,0,0.1)',
+                    transition: 'all 0.3s ease',
+                    position: 'relative',
+                    transform: isFeatured ? 'translateY(-2px)' : isUrgent ? 'translateY(-1px)' : 'none'
+                  }}
+                >
+                  
+                  {/* NEW: Add free job badge */}
+                  {isFreeJob && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-12px',
+                      left: isFeatured ? '120px' : '20px',
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      color: 'white',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '15px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      boxShadow: '0 4px 15px rgba(34, 197, 94, 0.4)',
+                      border: '2px solid #fff'
+                    }}>
+                      🎁 NEW EMPLOYER
+                    </div>
+                  )}
+                  
+                  {/* Featured Badge */}
+                  {isFeatured && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-15px',
+                      left: '20px',
+                      background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                      color: '#b8860b',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '20px',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
+                      border: '2px solid #fff'
+                    }}>
+                      ⭐ FEATURED
+                    </div>
+                  )}
+                  
+                  {/* Urgent Badge */}
+                  {isUrgent && (
+                    <div style={{
+                      position: 'absolute',
+                      top: isFeatured ? '-15px' : '-12px',
+                      right: '20px',
+                      background: 'linear-gradient(135deg, #ff4444 0%, #ff6b6b 100%)',
+                      color: 'white',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '15px',
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      boxShadow: '0 4px 15px rgba(255, 68, 68, 0.4)',
+                      border: '2px solid #fff',
+                      animation: 'pulse 2s infinite'
+                    }}>
+                      🚨 URGENT
+                    </div>
+                  )}
+                  
+                  <div style={{ marginBottom: '1rem', marginTop: (isFeatured || isUrgent || isFreeJob) ? '1rem' : '0' }}>
+                    {/* Legacy badges support */}
+                    {job.badges?.filter(badge => badge !== 'featured' && badge !== 'urgent').map(badge => (
+                      <span
+                        key={badge}
+                        style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '20px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          marginRight: '0.5rem',
+                          background: badge === 'high-pay' ? '#00d4aa' : '#1a1a1a',
+                          color: 'white'
+                        }}
+                      >
+                        {getBadgeText(badge)}
+                      </span>
+                    ))}
+                    {appliedJobs.includes(job.id) && (
+                      <span style={{
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '20px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500',
+                        marginRight: '0.5rem',
+                        background: '#28a745',
+                        color: 'white'
+                      }}>
+                        Applied
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div style={{ 
+                    fontSize: isFeatured ? '1.4rem' : '1.3rem', 
+                    fontWeight: 'bold', 
+                    marginBottom: '0.5rem', 
+                    color: '#1a1a1a',
+                    textShadow: isFeatured ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
+                  }}>
+                    {job.title}
+                  </div>
+                  <div style={{ 
+                    fontSize: '1rem', 
+                    color: '#666', 
+                    marginBottom: '1rem',
+                    fontWeight: isFeatured ? '500' : 'normal'
+                  }}>
+                    {job.company}
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                    <div style={{ fontWeight: isFeatured ? '600' : 'normal' }}>
+                      💰 {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
+                    </div>
+                    <div>📍 {job.region || job.location}</div>
+                    <div>📅 {getPostedText(job)}</div>
+                    <div>💼 {job.jobType || job.job_type || 'Full Time'}</div>
+                  </div>
+                  
+                  <div style={{ margin: '1rem 0', padding: '0.75rem 0', color: '#666', lineHeight: 1.5, fontSize: '0.95rem', borderTop: '1px solid #f0f0f0' }}>
+                    {expandedJobs.includes(job.id) ? (
+                      <>
+                        {job.description}
+                        <span
+                          onClick={() => toggleJobDescription(job.id)}
+                          style={{ color: '#ff6b35', cursor: 'pointer', fontWeight: '500', textDecoration: 'none', marginLeft: '0.5rem' }}
+                        >
+                          See less
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {job.description.substring(0, 200)}...
+                        <span
+                          onClick={() => toggleJobDescription(job.id)}
+                          style={{ color: '#ff6b35', cursor: 'pointer', fontWeight: '500', textDecoration: 'none', marginLeft: '0.5rem' }}
+                        >
+                          See more
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    <button 
+                      onClick={() => applyToJob(job)}
+                      disabled={appliedJobs.includes(job.id)}
+                      style={{ 
+                        background: appliedJobs.includes(job.id) 
+                          ? '#6c757d' 
+                          : isFeatured 
+                            ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
+                            : '#ff6b35', 
+                        color: appliedJobs.includes(job.id) 
+                          ? 'white' 
+                          : isFeatured 
+                            ? '#b8860b' 
+                            : 'white',
+                        padding: '0.6rem 1.2rem', 
+                        border: 'none', 
+                        borderRadius: '8px', 
+                        cursor: appliedJobs.includes(job.id) ? 'not-allowed' : 'pointer', 
+                        fontWeight: '600',
+                        fontSize: '0.9rem',
+                        opacity: appliedJobs.includes(job.id) ? 0.6 : 1,
+                        boxShadow: isFeatured ? '0 3px 10px rgba(255, 215, 0, 0.3)' : '0 2px 8px rgba(255, 107, 53, 0.2)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {appliedJobs.includes(job.id) ? 'Applied' : 'Apply Now'}
+                    </button>
+                    <button
+                      onClick={() => toggleSaveJob(job.id)}
+                      style={{
+                        background: savedJobs.includes(job.id) ? '#ff6b35' : 'transparent',
+                        color: savedJobs.includes(job.id) ? 'white' : '#ff6b35',
+                        border: '2px solid #ff6b35',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
+                    </button>
+                    <button
+                      onClick={() => showJobDetails(job)}
+                      style={{
+                        background: 'transparent',
+                        color: '#007bff',
+                        border: '2px solid #007bff',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '2rem', padding: '2rem' }}>
+            <button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              style={{
+                padding: '0.5rem 1rem',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                background: currentPage === 1 ? '#f5f5f5' : 'white',
+                opacity: currentPage === 1 ? 0.6 : 1
+              }}
+            >
+              Previous
+            </button>
+            
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => paginate(pageNum)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid #ddd',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    background: currentPage === pageNum ? '#ff6b35' : 'white',
+                    color: currentPage === pageNum ? 'white' : 'black',
+                    fontWeight: currentPage === pageNum ? 'bold' : 'normal'
+                  }}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            
+            <button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              style={{
+                padding: '0.5rem 1rem',
+                border: '1px solid #ddd',
+                borderRadius: '5px',
+                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                background: currentPage === totalPages ? '#f5f5f5' : 'white',
+                opacity: currentPage === totalPages ? 0.6 : 1
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Add CSS animation for urgent badge pulse */}
+      <style jsx>{`
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
+
+      {/* All existing modals remain the same... */}
+      {/* Enhanced Job Alert Modal */}
+      {showAlertModal && (
+        <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ backgroundColor: 'white', margin: '5% auto', padding: '2rem', borderRadius: '10px', width: '90%', maxWidth: '700px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ margin: 0 }}>Create Job Alert</h2>
+              <button
+                onClick={() => setShowAlertModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+            <p style={{ color: '#666', marginBottom: '1.5rem' }}>Get notified when jobs matching your preferences are posted!</p>
+            
+            <form onSubmit={createJobAlert}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Alert Name *</label>
+                <input
+                  type="text"
+                  value={alertForm.name}
+                  onChange={(e) => setAlertForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Senior Engineering Roles"
+                  required
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Keywords</label>
+                  <input
+                    type="text"
+                    value={alertForm.keywords}
+                    onChange={(e) => setAlertForm(prev => ({ ...prev, keywords: e.target.value }))}
+                    placeholder="engineer, drilling, offshore"
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Region</label>
+                  <select
+                    value={alertForm.region}
+                    onChange={(e) => setAlertForm(prev => ({ ...prev, region: e.target.value }))}
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  >
+                    <option value="">Any Region</option>
+                    <option value="northeast">Northeast US</option>
+                    <option value="southeast">Southeast US</option>
+                    <option value="midwest">Midwest US</option>
+                    <option value="southwest">Southwest US</option>
+                    <option value="west">West US</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Industry</label>
+                  <select
+                    value={alertForm.industry}
+                    onChange={(e) => setAlertForm(prev => ({ ...prev, industry: e.target.value }))}
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  >
+                    <option value="">Any Industry</option>
+                    <option value="nuclear">Nuclear Power</option>
+                    <option value="petrochem">Petro-Chem</option>
+                    <option value="alt-energy">Alt Energy</option>
+                    <option value="power-generation">Power Generation</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Experience</label>
+                  <select
+                    value={alertForm.classification}
+                    onChange={(e) => setAlertForm(prev => ({ ...prev, classification: e.target.value }))}
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  >
+                    <option value="">Any Level</option>
+                    <option value="junior">Junior</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="senior">Senior</option>
+                    <option value="expert">Expert</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Frequency *</label>
+                  <select
+                    value={alertForm.frequency}
+                    onChange={(e) => setAlertForm(prev => ({ ...prev, frequency: e.target.value }))}
+                    required
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="immediate">Immediate</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'end', gap: '1rem', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAlertModal(false)}
+                  style={{ padding: '0.75rem 1.5rem', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', background: 'white' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}
+                >
+                  Create Alert
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Application Modal */}
+      {showApplicationModal && selectedJob && (
+        <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ backgroundColor: 'white', margin: '5% auto', padding: '2rem', borderRadius: '10px', width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ margin: 0 }}>Apply for: {selectedJob.title}</h2>
+              <button
+                onClick={() => setShowApplicationModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '5px', marginBottom: '1.5rem' }}>
+              <div style={{ fontWeight: 'bold' }}>{selectedJob.company}</div>
+              <div style={{ color: '#666', fontSize: '0.9rem' }}>
+                {selectedJob.region || selectedJob.location} • {selectedJob.hourlyRate || selectedJob.salary_range}
+              </div>
+            </div>
+            
+            <form onSubmit={submitApplication}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>First Name *</label>
+                  <input
+                    type="text"
+                    value={applicationForm.firstName}
+                    onChange={(e) => setApplicationForm(prev => ({ ...prev, firstName: e.target.value }))}
+                    required
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Last Name *</label>
+                  <input
+                    type="text"
+                    value={applicationForm.lastName}
+                    onChange={(e) => setApplicationForm(prev => ({ ...prev, lastName: e.target.value }))}
+                    required
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Email *</label>
+                <input
+                  type="email"
+                  value={applicationForm.email}
+                  onChange={(e) => setApplicationForm(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                />
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Phone *</label>
+                <input
+                  type="tel"
+                  value={applicationForm.phone}
+                  onChange={(e) => setApplicationForm(prev => ({ ...prev, phone: e.target.value }))}
+                  required
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+
+              {/* Resume Status Indicator */}
+              <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8f9fa', borderRadius: '5px', fontSize: '0.9rem' }}>
+                📄 Resume: <span style={{ color: '#007bff', fontWeight: '500' }}>Will be automatically attached from your profile</span>
+                <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
+                  No resume on file? <Link href="/dashboard?tab=profile" style={{ color: '#ff6b35' }}>Upload one in your dashboard</Link>
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Experience Level *</label>
+                <select
+                  value={applicationForm.classification}
+                  onChange={(e) => setApplicationForm(prev => ({ ...prev, classification: e.target.value }))}
+                  required
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
+                >
+                  <option value="">Select Experience Level</option>
+                  <option value="junior">Junior (0-5 years)</option>
+                  <option value="intermediate">Intermediate (5-10 years)</option>
+                  <option value="senior">Senior (10-15 years)</option>
+                  <option value="expert">Expert (15+ years)</option>
+                  <option value="specialist">Specialist</option>
+                </select>
+              </div>
+                            
+              <div style={{ display: 'flex', justifyContent: 'end', gap: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowApplicationModal(false)}
+                  style={{ padding: '0.75rem 1.5rem', border: '1px solid #ddd', borderRadius: '5px', cursor: 'pointer', background: 'white' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}
+                >
+                  Submit Application
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Job Details Modal */}
+      {showJobDetailModal && selectedJob && (
+        <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ backgroundColor: 'white', margin: '5% auto', padding: '2rem', borderRadius: '10px', width: '90%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ margin: 0 }}>{selectedJob.title}</h2>
+              <button
+                onClick={() => setShowJobDetailModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ background: '#f8f9fa', padding: '1.5rem', borderRadius: '5px', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                <div><strong>Company:</strong> {selectedJob.company}</div>
+                <div><strong>Location:</strong> {selectedJob.location || selectedJob.region}</div>
+                <div><strong>Hourly Rate:</strong> {selectedJob.hourly_rate || selectedJob.hourlyRate || selectedJob.salary_range}</div>
+                <div><strong>Job Type:</strong> {selectedJob.jobType || selectedJob.job_type}</div>
+                <div><strong>Experience:</strong> {selectedJob.classification}</div>
+                <div><strong>Posted:</strong> {getPostedText(selectedJob)}</div>
+              </div>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3>Job Description</h3>
+              <p style={{ lineHeight: 1.6, color: '#555' }}>{selectedJob.description}</p>
+            </div>
+            
+            {selectedJob.requirements && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3>Requirements</h3>
+                <pre style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: '#555' }}>{selectedJob.requirements}</pre>
+              </div>
+            )}
+            
+            {selectedJob.benefits && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3>Benefits</h3>
+                <pre style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: '#555' }}>{selectedJob.benefits}</pre>
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+              <button 
+                onClick={() => {
+                  setShowJobDetailModal(false)
+                  applyToJob(selectedJob)
+                }}
+                disabled={appliedJobs.includes(selectedJob.id)}
+                style={{ 
+                  background: appliedJobs.includes(selectedJob.id) ? '#6c757d' : '#ff6b35', 
+                  color: 'white', 
+                  padding: '0.75rem 1.5rem', 
+                  border: 'none', 
+                  borderRadius: '5px', 
+                  cursor: appliedJobs.includes(selectedJob.id) ? 'not-allowed' : 'pointer', 
+                  fontWeight: '500',
+                  opacity: appliedJobs.includes(selectedJob.id) ? 0.6 : 1
+                }}
+              >
+                {appliedJobs.includes(selectedJob.id) ? 'Applied' : 'Apply Now'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowJobDetailModal(false)
+                  toggleSaveJob(selectedJob.id)
+                }}
+                style={{
+                  background: savedJobs.includes(selectedJob.id) ? '#ff6b35' : 'transparent',
+                  color: savedJobs.includes(selectedJob.id) ? 'white' : '#ff6b35',
+                  border: '2px solid #ff6b35',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                {savedJobs.includes(selectedJob.id) ? 'Saved' : 'Save Job'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div style={{ position: 'fixed', zIndex: 1000, left: 0, top: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '10px', width: '90%', maxWidth: '400px', textAlign: 'center' }}>
+            <h2 style={{ marginBottom: '1rem' }}>Login Required</h2>
+            <p style={{ color: '#666', marginBottom: '1.5rem' }}>Please log in to save jobs and apply for positions.</p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <Link href="/auth/login" style={{ textDecoration: 'none' }}>
+                <button style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}>
+                  Login
+                </button>
+              </Link>
+              <Link href="/auth/signup" style={{ textDecoration: 'none' }}>
+                <button style={{ background: 'transparent', color: '#ff6b35', border: '2px solid #ff6b35', padding: '0.75rem 1.5rem', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}>
+                  Sign Up
+                </button>
+              </Link>
+            </div>
+            <button
+              onClick={() => setShowAuthModal(false)}
+              style={{ background: 'none', border: 'none', color: '#666', marginTop: '1rem', cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
