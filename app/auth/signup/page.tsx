@@ -44,11 +44,11 @@ export default function SignupPage() {
   const [website, setWebsite] = useState('')
   const [companySize, setCompanySize] = useState('')
   const [yearEstablished, setYearEstablished] = useState('')
-  const [companyIndustries, setCompanyIndustries] = useState([])
+  const [companyIndustries, setCompanyIndustries] = useState<string[]>([])
   const [companyLinkedin, setCompanyLinkedin] = useState('')
   const [companyDescription, setCompanyDescription] = useState('')
   const [ein, setEin] = useState('')
-  const [logoFile, setLogoFile] = useState(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
   
   // Terms and preferences
   const [agreeToTerms, setAgreeToTerms] = useState(false)
