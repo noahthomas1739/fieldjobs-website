@@ -25,7 +25,7 @@ export default function LoginPage() {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  const handleEmailLogin = async (e) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
@@ -125,14 +125,13 @@ export default function LoginPage() {
             {isLoading ? 'Signing in...' : 'Continue with Google'}
           </button>
 
-          {/* LinkedIn Sign In */}
+          {/* LinkedIn Sign In - Coming Soon */}
           <button
-            onClick={handleLinkedInLogin}
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-[#0077B5] hover:bg-[#006399] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+            disabled={true}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed mb-6"
           >
             <LinkedInIcon />
-            {isLoading ? 'Signing in...' : 'Continue with LinkedIn'}
+            LinkedIn Login Coming Soon
           </button>
 
           <div className="relative my-6">
