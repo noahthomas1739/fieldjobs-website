@@ -26,15 +26,15 @@ export default function SignupPage() {
   const [location, setLocation] = useState('')
   const [classification, setClassification] = useState('')
   const [willingToTravel, setWillingToTravel] = useState('')
-  const [industries, setIndustries] = useState([])
-  const [skills, setSkills] = useState([])
+  const [industries, setIndustries] = useState<string[]>([])
+  const [skills, setSkills] = useState<string[]>([])
   const [yearsExperience, setYearsExperience] = useState('')
   const [desiredRate, setDesiredRate] = useState('')
   const [availabilityDate, setAvailabilityDate] = useState('')
   const [hasSecurityClearance, setHasSecurityClearance] = useState('no')
   const [clearanceLevel, setClearanceLevel] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
-  const [resumeFile, setResumeFile] = useState(null)
+  const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [resumeParsing, setResumeParsing] = useState(false)
   
   // Employer fields
