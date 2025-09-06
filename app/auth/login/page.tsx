@@ -81,13 +81,10 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      const { error } = await signInWithGoogle()
-      if (error) {
-        setError(error.message)
-      }
+      await signInWithGoogle()
       // Google will redirect to account-type page after successful login
-    } catch (err) {
-      setError('An unexpected error occurred')
+    } catch (err: any) {
+      setError(err?.message || 'Google login failed')
       console.error('Google login error:', err)
     } finally {
       setIsLoading(false)
