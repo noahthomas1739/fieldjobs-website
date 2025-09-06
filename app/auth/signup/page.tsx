@@ -57,8 +57,8 @@ export default function SignupPage() {
   const [enable2FA, setEnable2FA] = useState(false)
 
   // Handle resume upload and parsing
-  const handleResumeUpload = async (event) => {
-    const file = event.target.files[0]
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
     
     setResumeFile(file)
@@ -89,7 +89,7 @@ export default function SignupPage() {
   }
 
   // Industry toggle handler
-  const toggleIndustry = (industry, isEmployer = false) => {
+  const toggleIndustry = (industry: string, isEmployer = false) => {
     if (isEmployer) {
       setCompanyIndustries(prev => 
         prev.includes(industry) 
@@ -162,7 +162,7 @@ export default function SignupPage() {
       // Create profile based on account type
       if (accountType === 'job_seeker') {
         const profileData = {
-          user_id: authData.user.id,
+          user_id: authData.user?.id,
           email,
           first_name: firstName,
           last_name: lastName,
@@ -191,7 +191,7 @@ export default function SignupPage() {
         if (profileError) throw profileError
         
         // Upload resume if provided
-        if (resumeFile) {
+        if (resumeFile && authData.user?.id) {
           const fileExt = resumeFile.name.split('.').pop()
           const fileName = `${authData.user.id}/resume.${fileExt}`
           
@@ -205,7 +205,7 @@ export default function SignupPage() {
       } else {
         // Employer profile
         const profileData = {
-          id: authData.user.id,
+          id: authData.user?.id,
           email,
           company_name: companyName,
           contact_name: contactName,
@@ -230,7 +230,7 @@ export default function SignupPage() {
         if (profileError) throw profileError
         
         // Upload logo if provided
-        if (logoFile) {
+        if (logoFile && authData.user?.id) {
           const fileExt = logoFile.name.split('.').pop()
           const fileName = `${authData.user.id}/logo.${fileExt}`
           
@@ -248,7 +248,7 @@ export default function SignupPage() {
       // Redirect to appropriate dashboard
       router.push(accountType === 'job_seeker' ? '/dashboard' : '/employer')
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Signup error:', error)
       setError(error.message || 'An error occurred during signup')
     } finally {
@@ -841,7 +841,7 @@ export default function SignupPage() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setLogoFile(e.target.files[0])}
+                        onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
                         className="w-full"
                       />
                     </div>
