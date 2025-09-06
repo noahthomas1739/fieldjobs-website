@@ -41,9 +41,9 @@ export default function AuthCallback() {
             
             // Redirect after a short delay
             setTimeout(() => {
-              if (!data.user.user_metadata?.account_type) {
+              if (!data.user?.user_metadata?.account_type) {
                 router.push('/auth/account-type')
-              } else if (data.user.user_metadata.account_type === 'employer') {
+              } else if (data.user?.user_metadata?.account_type === 'employer') {
                 router.push('/employer')
               } else {
                 router.push('/dashboard')
@@ -77,9 +77,9 @@ export default function AuthCallback() {
             
             // Redirect after a short delay
             setTimeout(() => {
-              if (!data.user.user_metadata?.account_type) {
+              if (!data.user?.user_metadata?.account_type) {
                 router.push('/auth/account-type')
-              } else if (data.user.user_metadata.account_type === 'employer') {
+              } else if (data.user?.user_metadata?.account_type === 'employer') {
                 router.push('/employer')
               } else {
                 router.push('/dashboard')
