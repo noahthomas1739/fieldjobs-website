@@ -69,6 +69,8 @@ export default function JobSeekerDashboard() {
     }, [])
 
   const loadDashboardData = async () => {
+    if (!user?.id) return // Add null check
+    
     try {
       setIsLoading(true)
       
@@ -204,6 +206,8 @@ export default function JobSeekerDashboard() {
   }
 
   const saveProfile = async () => {
+    if (!user?.id) return // Add null check
+    
     try {
       const response = await fetch('/api/profile', {
         method: 'PUT',
@@ -233,62 +237,64 @@ export default function JobSeekerDashboard() {
     }
   }
 
-  const updateProfile = (field, value) => {
+  const updateProfile = (field: string, value: string) => {
     setProfile(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleResumeUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !user?.id) return
 
-  // Validate file type
-  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-  if (!allowedTypes.includes(file.type)) {
-    alert('Please upload a PDF or Word document (.pdf, .doc, .docx)')
-    return
-  }
-
-  // Validate file size (5MB max)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('File size must be less than 5MB')
-    return
-  }
-
-  setIsUploading(true)
-
-  try {
-    const formData = new FormData()
-    formData.append('resume', file)
-    formData.append('userId', user.id)
-
-    const response = await fetch('/api/upload-resume', {
-      method: 'POST',
-      body: formData
-    })
-
-    if (response.ok) {
-      const data = await response.json()
-      // Update profile state
-      setProfile(prev => ({
-        ...prev,
-        resumeUploaded: true,
-        resumeUrl: data.resumeUrl
-      }))
-      alert('✅ Resume uploaded successfully!')
-    } else {
-      const error = await response.json()
-      alert('Error uploading resume: ' + error.error)
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload a PDF or Word document (.pdf, .doc, .docx)')
+      return
     }
-  } catch (error) {
-    console.error('Error uploading resume:', error)
-    alert('Error uploading resume')
-  } finally {
-    setIsUploading(false)
-  }
-}
 
-  const createJobAlert = async (e) => {
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB')
+      return
+    }
+
+    setIsUploading(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('resume', file)
+      formData.append('userId', user.id)
+
+      const response = await fetch('/api/upload-resume', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Update profile state
+        setProfile(prev => ({
+          ...prev,
+          resumeUploaded: true,
+          resumeUrl: data.resumeUrl
+        }))
+        alert('✅ Resume uploaded successfully!')
+      } else {
+        const error = await response.json()
+        alert('Error uploading resume: ' + error.error)
+      }
+    } catch (error) {
+      console.error('Error uploading resume:', error)
+      alert('Error uploading resume')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const createJobAlert = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!user?.id) return // Add null check
     
     try {
       const response = await fetch('/api/job-alerts', {
@@ -349,7 +355,9 @@ export default function JobSeekerDashboard() {
     }
   }
 
-  const deleteJobAlert = async (alertId) => {
+  const deleteJobAlert = async (alertId: number) => {
+    if (!user?.id) return // Add null check
+    
     if (!confirm('Are you sure you want to delete this job alert?')) {
       return
     }
@@ -373,7 +381,9 @@ export default function JobSeekerDashboard() {
     }
   }
 
-  const toggleJobAlert = async (alertId, currentActive) => {
+  const toggleJobAlert = async (alertId: number, currentActive: boolean) => {
+    if (!user?.id) return // Add null check
+    
     try {
       const response = await fetch('/api/job-alerts', {
         method: 'PUT',
@@ -406,33 +416,35 @@ export default function JobSeekerDashboard() {
   }
 
   const loadAppliedJobs = async () => {
-  if (!user) return
-  
-  try {
-    const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
-    if (appliedResponse.ok) {
-      const appliedData = await appliedResponse.json()
-      const realAppliedJobs = appliedData.appliedJobs.map(app => ({
-        id: app.jobs.id,
-        title: app.jobs.title,
-        company: app.jobs.company,
-        region: app.jobs.region,
-        hourlyRate: app.jobs.hourly_rate,
-        appliedDate: new Date(app.created_at).toLocaleDateString(),
-        status: app.status,
-        applicationStatus: app.status === 'new' ? 'Under Review' : 
-                          app.status === 'shortlisted' ? 'Shortlisted' :
-                          app.status === 'interviewed' ? 'Interview Scheduled' :
-                          app.status === 'rejected' ? 'Not Selected' : 'Under Review'
-      }))
-      setAppliedJobs(realAppliedJobs)
+    if (!user?.id) return // Add null check
+    
+    try {
+      const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
+      if (appliedResponse.ok) {
+        const appliedData = await appliedResponse.json()
+        const realAppliedJobs = appliedData.appliedJobs.map(app => ({
+          id: app.jobs.id,
+          title: app.jobs.title,
+          company: app.jobs.company,
+          region: app.jobs.region,
+          hourlyRate: app.jobs.hourly_rate,
+          appliedDate: new Date(app.created_at).toLocaleDateString(),
+          status: app.status,
+          applicationStatus: app.status === 'new' ? 'Under Review' : 
+                            app.status === 'shortlisted' ? 'Shortlisted' :
+                            app.status === 'interviewed' ? 'Interview Scheduled' :
+                            app.status === 'rejected' ? 'Not Selected' : 'Under Review'
+        }))
+        setAppliedJobs(realAppliedJobs)
+      }
+    } catch (error) {
+      console.error('Error loading applied jobs:', error)
     }
-  } catch (error) {
-    console.error('Error loading applied jobs:', error)
   }
-}
 
-  const removeSavedJob = async (jobId) => {
+  const removeSavedJob = async (jobId: number) => {
+    if (!user?.id) return // Add null check
+    
     if (!confirm('Remove this job from your saved jobs?')) {
       return
     }
@@ -455,7 +467,7 @@ export default function JobSeekerDashboard() {
     }
   }
 
-  const applyToSavedJob = (jobId) => {
+  const applyToSavedJob = (jobId: number) => {
     // Find the job details from saved jobs
     const job = savedJobs.find(j => j.id === jobId)
     if (!job) {
