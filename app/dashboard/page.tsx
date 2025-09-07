@@ -13,12 +13,12 @@ export default function JobSeekerDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [isLoading, setIsLoading] = useState(true)
   
-  // Data states
-  const [savedJobs, setSavedJobs] = useState([])
-  const [appliedJobs, setAppliedJobs] = useState([])
-  const [jobAlerts, setJobAlerts] = useState([])
-  const [profile, setProfile] = useState({})
-  const [messages, setMessages] = useState([])
+  // Data states with proper types
+  const [savedJobs, setSavedJobs] = useState<any[]>([])
+  const [appliedJobs, setAppliedJobs] = useState<any[]>([])
+  const [jobAlerts, setJobAlerts] = useState<any[]>([])
+  const [profile, setProfile] = useState<any>({})
+  const [messages, setMessages] = useState<any[]>([])
   
   // Modal states
   const [showAlertModal, setShowAlertModal] = useState(false)
@@ -75,12 +75,12 @@ export default function JobSeekerDashboard() {
       setIsLoading(true)
       
       // Load real saved jobs from API
-      let realSavedJobs = []
+      let realSavedJobs: any[] = []
       try {
         const response = await fetch(`/api/saved-jobs?userId=${user.id}`)
         if (response.ok) {
           const data = await response.json()
-          realSavedJobs = data.savedJobs.map(saved => ({
+          realSavedJobs = data.savedJobs.map((saved: any) => ({
             id: saved.jobs.id,
             title: saved.jobs.title,
             company: saved.jobs.company,
@@ -96,12 +96,12 @@ export default function JobSeekerDashboard() {
       }
       
       // Load real applied jobs from API
-      let realAppliedJobs = []
+      let realAppliedJobs: any[] = []
       try {
         const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
         if (appliedResponse.ok) {
           const appliedData = await appliedResponse.json()
-          realAppliedJobs = appliedData.appliedJobs.map(app => ({
+          realAppliedJobs = appliedData.appliedJobs.map((app: any) => ({
             id: app.jobs.id,
             title: app.jobs.title,
             company: app.jobs.company,
@@ -121,12 +121,12 @@ export default function JobSeekerDashboard() {
       }
       
       // Load real job alerts from API
-      let realJobAlerts = []
+      let realJobAlerts: any[] = []
       try {
         const alertsResponse = await fetch(`/api/job-alerts?userId=${user.id}`)
         if (alertsResponse.ok) {
           const alertsData = await alertsResponse.json()
-          realJobAlerts = alertsData.jobAlerts.map(alert => ({
+          realJobAlerts = alertsData.jobAlerts.map((alert: any) => ({
             id: alert.id,
             name: alert.name,
             keywords: alert.keywords,
@@ -238,7 +238,7 @@ export default function JobSeekerDashboard() {
   }
 
   const updateProfile = (field: string, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }))
+    setProfile((prev: any) => ({ ...prev, [field]: value }))
   }
 
   const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,7 +273,7 @@ export default function JobSeekerDashboard() {
       if (response.ok) {
         const data = await response.json()
         // Update profile state
-        setProfile(prev => ({
+        setProfile((prev: any) => ({
           ...prev,
           resumeUploaded: true,
           resumeUrl: data.resumeUrl
@@ -333,7 +333,7 @@ export default function JobSeekerDashboard() {
           totalSent: 0
         }
         
-        setJobAlerts(prev => [...prev, newAlertData])
+        setJobAlerts((prev: any[]) => [...prev, newAlertData])
         
         alert('🎉 ' + data.message)
         setNewAlert({
@@ -369,7 +369,7 @@ export default function JobSeekerDashboard() {
       
       if (response.ok) {
         // Remove from local state
-        setJobAlerts(prev => prev.filter(alert => alert.id !== alertId))
+        setJobAlerts((prev: any[]) => prev.filter((alert: any) => alert.id !== alertId))
         alert('Job alert deleted successfully')
       } else {
         const error = await response.json()
@@ -399,7 +399,7 @@ export default function JobSeekerDashboard() {
       
       if (response.ok) {
         // Update local state
-        setJobAlerts(prev => prev.map(alert => 
+        setJobAlerts((prev: any[]) => prev.map((alert: any) => 
           alert.id === alertId 
             ? { ...alert, active: !currentActive }
             : alert
@@ -455,7 +455,7 @@ export default function JobSeekerDashboard() {
       })
       
       if (response.ok) {
-        setSavedJobs(prev => prev.filter(job => job.id !== jobId))
+        setSavedJobs((prev: any[]) => prev.filter((job: any) => job.id !== jobId))
         alert('Job removed from saved jobs')
       } else {
         const error = await response.json()
@@ -469,14 +469,14 @@ export default function JobSeekerDashboard() {
 
   const applyToSavedJob = (jobId: number) => {
     // Find the job details from saved jobs
-    const job = savedJobs.find(j => j.id === jobId)
+    const job = savedJobs.find((j: any) => j.id === jobId)
     if (!job) {
       alert('Job not found')
       return
     }
     
     // Check if already applied
-    if (appliedJobs.some(app => app.id === jobId)) {
+    if (appliedJobs.some((app: any) => app.id === jobId)) {
       alert('You have already applied to this job!')
       return
     }
@@ -521,12 +521,12 @@ export default function JobSeekerDashboard() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-green-500">{appliedJobs.length}</div>
-<div className="text-sm text-gray-600">Applications</div>
-{appliedJobs.filter(job => job.applicationStatus === 'Shortlisted' || job.applicationStatus === 'Interview Scheduled').length > 0 && (
-  <div className="text-xs text-green-600 font-medium">
-    {appliedJobs.filter(job => job.applicationStatus === 'Shortlisted' || job.applicationStatus === 'Interview Scheduled').length} Active
-  </div>
-)}
+              <div className="text-sm text-gray-600">Applications</div>
+              {appliedJobs.filter((job: any) => job.applicationStatus === 'Shortlisted' || job.applicationStatus === 'Interview Scheduled').length > 0 && (
+                <div className="text-xs text-green-600 font-medium">
+                  {appliedJobs.filter((job: any) => job.applicationStatus === 'Shortlisted' || job.applicationStatus === 'Interview Scheduled').length} Active
+                </div>
+              )}
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-blue-500">{jobAlerts.length}</div>
@@ -573,7 +573,7 @@ export default function JobSeekerDashboard() {
               {/* Recent Saved Jobs */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-3">Recently Saved Jobs</h3>
-                {savedJobs.slice(0, 3).map(job => (
+                {savedJobs.slice(0, 3).map((job: any) => (
                   <div key={job.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
                     <div className="font-semibold">{job.title}</div>
                     <div className="text-gray-600 text-sm">{job.company} • {job.region} • {job.hourlyRate}</div>
@@ -588,26 +588,26 @@ export default function JobSeekerDashboard() {
               {/* Recent Applications */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-3">Recent Applications</h3>
-                {appliedJobs.slice(0, 3).map(job => (
-  <div key={job.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
-    <div className="flex justify-between items-start">
-      <div className="flex-1">
-        <div className="font-semibold">{job.title}</div>
-        <div className="text-gray-600 text-sm">{job.company} • {job.region}</div>
-        <div className="text-gray-500 text-xs">Applied on {job.appliedDate}</div>
-      </div>
-      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-        job.applicationStatus === 'Under Review' ? 'bg-yellow-100 text-yellow-800' : 
-        job.applicationStatus === 'Shortlisted' ? 'bg-green-100 text-green-800' :
-        job.applicationStatus === 'Interview Scheduled' ? 'bg-blue-100 text-blue-800' :
-        job.applicationStatus === 'Not Selected' ? 'bg-red-100 text-red-800' :
-        'bg-gray-100 text-gray-800'
-      }`}>
-        {job.applicationStatus}
-      </div>
-    </div>
-  </div>
-))}
+                {appliedJobs.slice(0, 3).map((job: any) => (
+                  <div key={job.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-semibold">{job.title}</div>
+                        <div className="text-gray-600 text-sm">{job.company} • {job.region}</div>
+                        <div className="text-gray-500 text-xs">Applied on {job.appliedDate}</div>
+                      </div>
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        job.applicationStatus === 'Under Review' ? 'bg-yellow-100 text-yellow-800' : 
+                        job.applicationStatus === 'Shortlisted' ? 'bg-green-100 text-green-800' :
+                        job.applicationStatus === 'Interview Scheduled' ? 'bg-blue-100 text-blue-800' :
+                        job.applicationStatus === 'Not Selected' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {job.applicationStatus}
+                      </div>
+                    </div>
+                  </div>
+                ))}
                 {appliedJobs.length === 0 && (
                   <p className="text-gray-500 italic">No applications yet. <Link href="/" className="text-orange-500">Find jobs</Link> to apply to!</p>
                 )}
@@ -616,14 +616,14 @@ export default function JobSeekerDashboard() {
               {/* Active Alerts */}
               <div>
                 <h3 className="text-lg font-semibold mb-3">Active Job Alerts</h3>
-                {jobAlerts.filter(alert => alert.active).map(alert => (
+                {jobAlerts.filter((alert: any) => alert.active).map((alert: any) => (
                   <div key={alert.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
                     <div className="font-semibold">{alert.name}</div>
                     <div className="text-gray-600 text-sm">Keywords: {alert.keywords}</div>
                     <div className="text-gray-500 text-xs">{alert.matchesCount} matches found • {alert.totalSent} alerts sent</div>
                   </div>
                 ))}
-                {jobAlerts.filter(alert => alert.active).length === 0 && (
+                {jobAlerts.filter((alert: any) => alert.active).length === 0 && (
                   <p className="text-gray-500 italic">No active job alerts. <button onClick={() => setShowAlertModal(true)} className="text-orange-500 underline">Create one now</button>!</p>
                 )}
               </div>
@@ -651,7 +651,7 @@ export default function JobSeekerDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {savedJobs.map(job => (
+                  {savedJobs.map((job: any) => (
                     <div key={job.id} className="border border-gray-200 p-6 rounded-lg flex justify-between items-center">
                       <div className="flex-1">
                         <div className="font-semibold text-lg mb-2">{job.title}</div>
@@ -697,7 +697,7 @@ export default function JobSeekerDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {appliedJobs.map(job => (
+                  {appliedJobs.map((job: any) => (
                     <div key={job.id} className="border border-gray-200 p-6 rounded-lg">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
@@ -758,7 +758,7 @@ export default function JobSeekerDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {jobAlerts.map(alert => (
+                  {jobAlerts.map((alert: any) => (
                     <div key={alert.id} className="border border-gray-200 p-6 rounded-lg">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
@@ -969,7 +969,7 @@ export default function JobSeekerDashboard() {
                   <input
                     type="text"
                     value={newAlert.name}
-                    onChange={(e) => setNewAlert(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setNewAlert((prev: any) => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Senior Engineering Roles"
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -981,7 +981,7 @@ export default function JobSeekerDashboard() {
                   <input
                     type="text"
                     value={newAlert.keywords}
-                    onChange={(e) => setNewAlert(prev => ({ ...prev, keywords: e.target.value }))}
+                    onChange={(e) => setNewAlert((prev: any) => ({ ...prev, keywords: e.target.value }))}
                     placeholder="engineer, drilling, offshore"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
@@ -992,7 +992,7 @@ export default function JobSeekerDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
                     <select
                       value={newAlert.region}
-                      onChange={(e) => setNewAlert(prev => ({ ...prev, region: e.target.value }))}
+                      onChange={(e) => setNewAlert((prev: any) => ({ ...prev, region: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                       <option value="">Any Region</option>
@@ -1008,7 +1008,7 @@ export default function JobSeekerDashboard() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Frequency *</label>
                     <select
                       value={newAlert.frequency}
-                      onChange={(e) => setNewAlert(prev => ({ ...prev, frequency: e.target.value }))}
+                      onChange={(e) => setNewAlert((prev: any) => ({ ...prev, frequency: e.target.value }))}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
