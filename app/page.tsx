@@ -10,43 +10,43 @@ export default function HomePage() {
   const router = useRouter()
   
   // Job data and filtering
-  const [jobs, setJobs] = useState([])
-  const [filteredJobs, setFilteredJobs] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [jobsPerPage] = useState(10)
-  const [sortBy, setSortBy] = useState('recent')
+  const [jobs, setJobs] = useState<any[]>([])
+  const [filteredJobs, setFilteredJobs] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [jobsPerPage] = useState<number>(10)
+  const [sortBy, setSortBy] = useState<string>('recent')
   
   // Search and filters (matching HTML demo)
-  const [searchInput, setSearchInput] = useState('')
-  const [locationFilter, setLocationFilter] = useState('')
-  const [compensationFilter, setCompensationFilter] = useState('')
-  const [jobTypeFilter, setJobTypeFilter] = useState('')
-  const [classificationFilter, setClassificationFilter] = useState('')
-  const [dateFilter, setDateFilter] = useState('')
+  const [searchInput, setSearchInput] = useState<string>('')
+  const [locationFilter, setLocationFilter] = useState<string>('')
+  const [compensationFilter, setCompensationFilter] = useState<string>('')
+  const [jobTypeFilter, setJobTypeFilter] = useState<string>('')
+  const [classificationFilter, setClassificationFilter] = useState<string>('')
+  const [dateFilter, setDateFilter] = useState<string>('')
   
   // Industry filters (matching HTML demo exactly)
-  const [activeFilters, setActiveFilters] = useState([])
+  const [activeFilters, setActiveFilters] = useState<string[]>([])
   
   // Job seeker features
-  const [savedJobs, setSavedJobs] = useState([])
-  const [appliedJobs, setAppliedJobs] = useState([])
-  const [expandedJobs, setExpandedJobs] = useState([])
+  const [savedJobs, setSavedJobs] = useState<number[]>([])
+  const [appliedJobs, setAppliedJobs] = useState<number[]>([])
+  const [expandedJobs, setExpandedJobs] = useState<number[]>([])
   
   // Modals
-  const [showAlertModal, setShowAlertModal] = useState(false)
-  const [showApplicationModal, setShowApplicationModal] = useState(false)
-  const [showJobDetailModal, setShowJobDetailModal] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
-  const [selectedJob, setSelectedJob] = useState(null)
+  const [showAlertModal, setShowAlertModal] = useState<boolean>(false)
+  const [showApplicationModal, setShowApplicationModal] = useState<boolean>(false)
+  const [showJobDetailModal, setShowJobDetailModal] = useState<boolean>(false)
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false)
+  const [selectedJob, setSelectedJob] = useState<any>(null)
   
   // NEW: Employer banner state variables
-  const [showEmployerBanner, setShowEmployerBanner] = useState(true)
-  const [freeJobEligible, setFreeJobEligible] = useState(false)
-  const [checkingEligibility, setCheckingEligibility] = useState(false)
+  const [showEmployerBanner, setShowEmployerBanner] = useState<boolean>(true)
+  const [freeJobEligible, setFreeJobEligible] = useState<boolean>(false)
+  const [checkingEligibility, setCheckingEligibility] = useState<boolean>(false)
   
   // Forms
-  const [applicationForm, setApplicationForm] = useState({
+  const [applicationForm, setApplicationForm] = useState<any>({
     firstName: '',
     lastName: '',
     email: '',
@@ -54,7 +54,7 @@ export default function HomePage() {
     classification: '',
   })
   
-  const [alertForm, setAlertForm] = useState({
+  const [alertForm, setAlertForm] = useState<any>({
     name: '',
     keywords: '',
     region: '',
@@ -113,7 +113,7 @@ export default function HomePage() {
         let allJobs = data.jobs || data // Handle both {jobs: []} and [] formats
         
         // Filter out expired free jobs for public view
-        allJobs = allJobs.filter(job => {
+        allJobs = allJobs.filter((job: any) => {
           if (job.is_free_job && job.free_job_expires_at) {
             const expirationDate = new Date(job.free_job_expires_at)
             const now = new Date()
@@ -140,12 +140,12 @@ export default function HomePage() {
 
   const loadSavedJobs = async () => {
     try {
-      if (!user) return
+      if (!user?.id) return
       
       const response = await fetch(`/api/saved-jobs?userId=${user.id}`)
       if (response.ok) {
         const data = await response.json()
-        const savedJobIds = data.savedJobs.map(saved => saved.job_id)
+        const savedJobIds = data.savedJobs.map((saved: any) => saved.job_id)
         setSavedJobs(savedJobIds)
       }
     } catch (error) {
@@ -155,13 +155,13 @@ export default function HomePage() {
 
   const loadAppliedJobs = async () => {
     try {
-      if (!user) return
+      if (!user?.id) return
       
       const response = await fetch(`/api/applied-jobs?userId=${user.id}`)
       if (response.ok) {
         const data = await response.json()
         // Extract just the job IDs for the appliedJobs array
-        const appliedJobIds = data.appliedJobs.map(app => app.jobs.id)
+        const appliedJobIds = data.appliedJobs.map((app: any) => app.jobs.id)
         setAppliedJobs(appliedJobIds)
       }
     } catch (error) {
@@ -181,8 +181,7 @@ export default function HomePage() {
     const isEmployer = 
       user.user_metadata?.account_type === 'employer' ||
       user.app_metadata?.account_type === 'employer' ||
-      user.user_metadata?.accountType === 'employer' ||
-      user.account_type === 'employer'
+      user.user_metadata?.accountType === 'employer'
 
     if (!isEmployer) {
       // Logged in but not employer - go to create employer account
@@ -208,8 +207,7 @@ export default function HomePage() {
     const isEmployer = 
       user.user_metadata?.account_type === 'employer' ||
       user.app_metadata?.account_type === 'employer' ||
-      user.user_metadata?.accountType === 'employer' ||
-      user.account_type === 'employer'
+      user.user_metadata?.accountType === 'employer'
     
     if (user && isEmployer && freeJobEligible) {
       return true // Show to eligible employers
@@ -219,13 +217,13 @@ export default function HomePage() {
   }
 
   // Check if a feature is still active (works with both old and new field names)
-  const isFeatureActive = (featureUntil) => {
+  const isFeatureActive = (featureUntil: string | null) => {
     if (!featureUntil) return false
     return new Date(featureUntil) > new Date()
   }
 
   // Get feature status for a job
-  const getJobFeatureStatus = (job) => {
+  const getJobFeatureStatus = (job: any) => {
     const isFeatured = job.is_featured && isFeatureActive(job.featured_until)
     const isUrgent = job.is_urgent && isFeatureActive(job.urgent_until)
     
@@ -239,7 +237,7 @@ export default function HomePage() {
     }
   }
 
-  const toggleJobDescription = (jobId) => {
+  const toggleJobDescription = (jobId: number) => {
     if (expandedJobs.includes(jobId)) {
       setExpandedJobs(prev => prev.filter(id => id !== jobId))
     } else {
@@ -248,7 +246,7 @@ export default function HomePage() {
   }
 
   const filterAndSortJobs = () => {
-    let filtered = jobs.filter(job => {
+    let filtered = jobs.filter((job: any) => {
       // Search input filter
       const matchesSearch = !searchInput || 
         job.title.toLowerCase().includes(searchInput.toLowerCase()) ||
@@ -282,7 +280,7 @@ export default function HomePage() {
     })
     
     // Sort jobs - featured jobs should stay at top regardless of sort
-    filtered.sort((a, b) => {
+    filtered.sort((a: any, b: any) => {
       const aFeatures = getJobFeatureStatus(a)
       const bFeatures = getJobFeatureStatus(b)
       
@@ -299,12 +297,12 @@ export default function HomePage() {
         case 'recent':
           const aDate = new Date(a.created_at || a.createdAt)
           const bDate = new Date(b.created_at || b.createdAt)
-          return bDate - aDate
+          return bDate.getTime() - aDate.getTime()
         case 'salary-high':
           return extractMaxSalary(b.hourly_rate || b.hourlyRate || b.salary_range || '') - extractMaxSalary(a.hourly_rate || a.hourlyRate || a.salary_range || '')
         case 'salary-low':
           return extractMaxSalary(a.hourly_rate || a.hourlyRate || a.salary_range || '') - extractMaxSalary(b.hourly_rate || b.hourlyRate || b.salary_range || '')
-          case 'company':
+        case 'company':
           return a.company.localeCompare(b.company)
         case 'title':
           return a.title.localeCompare(b.title)
@@ -317,15 +315,15 @@ export default function HomePage() {
     setCurrentPage(1) // Reset to first page when filtering
   }
 
-  const calculateDaysAgo = (dateString) => {
+  const calculateDaysAgo = (dateString: string) => {
     if (!dateString) return 0
     const date = new Date(dateString)
     const now = new Date()
-    const diffTime = Math.abs(now - date)
+    const diffTime = Math.abs(now.getTime() - date.getTime())
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
   }
 
-  const extractMaxSalary = (hourlyRate) => {
+  const extractMaxSalary = (hourlyRate: string) => {
     if (!hourlyRate) return 0
     const matches = hourlyRate.match(/\$?(\d+)(?:k|,000)?(?:\s*-\s*\$?(\d+)(?:k|,000)?)?/i)
     if (!matches) return 0
@@ -334,7 +332,7 @@ export default function HomePage() {
     return max * (hourlyRate.includes('k') || hourlyRate.includes(',000') ? 1000 : 1)
   }
 
-  const checkCompensationMatch = (jobRate, filterRange) => {
+  const checkCompensationMatch = (jobRate: string, filterRange: string) => {
     if (!jobRate) return false
     
     const matches = jobRate.match(/\$?(\d+)(?:k|,000)?(?:\s*-\s*\$?(\d+)(?:k|,000)?)?/i)
@@ -357,12 +355,12 @@ export default function HomePage() {
     }
   }
 
-  const checkDateMatch = (postedDays, filterDays) => {
+  const checkDateMatch = (postedDays: number, filterDays: string) => {
     const days = parseInt(filterDays)
     return postedDays <= days
   }
 
-  const toggleFilter = (industry) => {
+  const toggleFilter = (industry: string) => {
     if (activeFilters.includes(industry)) {
       setActiveFilters(prev => prev.filter(f => f !== industry))
     } else {
@@ -374,14 +372,14 @@ export default function HomePage() {
     filterAndSortJobs()
   }
 
-  const toggleSaveJob = async (jobId) => {
+  const toggleSaveJob = async (jobId: number) => {
     try {
-      if (!user) {
+      if (!user?.id) {
         setShowAuthModal(true)
         return
       }
       
-      const job = jobs.find(j => j.id === jobId)
+      const job = jobs.find((j: any) => j.id === jobId)
       if (!job) {
         alert('Job not found')
         return
@@ -433,8 +431,8 @@ export default function HomePage() {
     }
   }
 
-  const applyToJob = (job) => {
-    if (!user) {
+  const applyToJob = (job: any) => {
+    if (!user?.id) {
       setShowAuthModal(true)
       return
     }
@@ -455,8 +453,10 @@ export default function HomePage() {
     setShowApplicationModal(true)
   }
 
-  const submitApplication = async (e) => {
+  const submitApplication = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!user?.id || !selectedJob) return
     
     try {
       const response = await fetch('/api/applications', {
@@ -506,10 +506,10 @@ export default function HomePage() {
     }
   }
 
-  const createJobAlert = async (e) => {
+  const createJobAlert = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user) {
+    if (!user?.id) {
       setShowAuthModal(true)
       return
     }
@@ -555,12 +555,12 @@ export default function HomePage() {
     }
   }
 
-  const showJobDetails = (job) => {
+  const showJobDetails = (job: any) => {
     setSelectedJob(job)
     setShowJobDetailModal(true)
   }
 
-  const getPostedText = (job) => {
+  const getPostedText = (job: any) => {
     const days = job.postedDays || calculateDaysAgo(job.created_at)
     if (days === 1) return 'Posted 1 day ago'
     if (days < 7) return `Posted ${days} days ago`
@@ -568,7 +568,7 @@ export default function HomePage() {
     return 'Posted over a month ago'
   }
 
-  const getBadgeText = (badge) => {
+  const getBadgeText = (badge: string) => {
     switch(badge) {
       case 'featured': return 'Featured'
       case 'urgent': return 'Urgent'
@@ -594,7 +594,7 @@ export default function HomePage() {
   const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob)
   const totalPages = Math.ceil(filteredJobs.length / jobsPerPage)
 
-  const paginate = (pageNumber) => {
+  const paginate = (pageNumber: number) => {
     setCurrentPage(pageNumber)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -958,7 +958,7 @@ export default function HomePage() {
               </button>
             </div>
           ) : (
-            currentJobs.map(job => {
+            currentJobs.map((job: any) => {
               const features = getJobFeatureStatus(job)
               const { isFeatured, isUrgent } = features
               const isFreeJob = job.is_free_job && job.free_job_expires_at
@@ -1060,7 +1060,7 @@ export default function HomePage() {
                   
                   <div style={{ marginBottom: '1rem', marginTop: (isFeatured || isUrgent || isFreeJob) ? '1rem' : '0' }}>
                     {/* Legacy badges support */}
-                    {job.badges?.filter(badge => badge !== 'featured' && badge !== 'urgent').map(badge => (
+                    {job.badges?.filter((badge: string) => badge !== 'featured' && badge !== 'urgent').map((badge: string) => (
                       <span
                         key={badge}
                         style={{
@@ -1435,7 +1435,7 @@ export default function HomePage() {
                   <input
                     type="text"
                     value={applicationForm.firstName}
-                    onChange={(e) => setApplicationForm(prev => ({ ...prev, firstName: e.target.value }))}
+                    onChange={(e) => setApplicationForm((prev: any) => ({ ...prev, firstName: e.target.value }))}
                     required
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   />
@@ -1445,7 +1445,7 @@ export default function HomePage() {
                   <input
                     type="text"
                     value={applicationForm.lastName}
-                    onChange={(e) => setApplicationForm(prev => ({ ...prev, lastName: e.target.value }))}
+                    onChange={(e) => setApplicationForm((prev: any) => ({ ...prev, lastName: e.target.value }))}
                     required
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   />
@@ -1457,7 +1457,7 @@ export default function HomePage() {
                 <input
                   type="email"
                   value={applicationForm.email}
-                  onChange={(e) => setApplicationForm(prev => ({ ...prev, email: e.target.value }))}
+                  onChange={(e) => setApplicationForm((prev: any) => ({ ...prev, email: e.target.value }))}
                   required
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                 />
@@ -1468,7 +1468,7 @@ export default function HomePage() {
                 <input
                   type="tel"
                   value={applicationForm.phone}
-                  onChange={(e) => setApplicationForm(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) => setApplicationForm((prev: any) => ({ ...prev, phone: e.target.value }))}
                   required
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   placeholder="(555) 123-4567"
@@ -1487,7 +1487,7 @@ export default function HomePage() {
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Experience Level *</label>
                 <select
                   value={applicationForm.classification}
-                  onChange={(e) => setApplicationForm(prev => ({ ...prev, classification: e.target.value }))}
+                  onChange={(e) => setApplicationForm((prev: any) => ({ ...prev, classification: e.target.value }))}
                   required
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                 >
