@@ -47,8 +47,8 @@ export default function EmployersPage() {
     const isEmployer = 
       user.user_metadata?.account_type === 'employer' ||
       user.app_metadata?.account_type === 'employer' ||
-      user.user_metadata?.accountType === 'employer' ||
-      user.account_type === 'employer'
+      user.user_metadata?.accountType === 'employer'
+      // REMOVED: user.account_type === 'employer' (this property doesn't exist on User type)
 
     if (!isEmployer) {
       // Logged in but not employer - go to create employer account
@@ -65,7 +65,7 @@ export default function EmployersPage() {
   }
 
   // Purchase function for resume credits
-  const handleCreditPurchase = async (packageType) => {
+  const handleCreditPurchase = async (packageType: string) => {
     // Check if user is signed in
     if (!user) {
       // Redirect to login with return URL
@@ -74,19 +74,19 @@ export default function EmployersPage() {
     }
 
     try {
-      const packageMapping = {
+      const packageMapping: Record<string, { priceId: string; credits: number; amount: number }> = {
         'small': { 
-          priceId: process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_10_PRICE_ID, 
+          priceId: process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_10_PRICE_ID || '', 
           credits: 10, 
           amount: 3900 
         },
         'medium': { 
-          priceId: process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_25_PRICE_ID, 
+          priceId: process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_25_PRICE_ID || '', 
           credits: 25, 
           amount: 7900 
         },
         'large': { 
-          priceId: process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_50_PRICE_ID, 
+          priceId: process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_50_PRICE_ID || '', 
           credits: 50, 
           amount: 12900 
         }
@@ -121,7 +121,7 @@ export default function EmployersPage() {
   }
 
   // Purchase function for subscription plans
-  const handleSubscriptionPurchase = async (planType) => {
+  const handleSubscriptionPurchase = async (planType: string) => {
     // Check if user is signed in
     if (!user) {
       // Redirect to login with return URL
@@ -130,12 +130,12 @@ export default function EmployersPage() {
     }
 
     try {
-      const priceMapping = {
-        'single': process.env.NEXT_PUBLIC_STRIPE_SINGLE_JOB_PRICE_ID,
-        'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-        'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
-        'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
-        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
+      const priceMapping: Record<string, string> = {
+        'single': process.env.NEXT_PUBLIC_STRIPE_SINGLE_JOB_PRICE_ID || '',
+        'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '',
+        'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '',
+        'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '',
+        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || ''
       }
 
       const priceId = priceMapping[planType]
@@ -173,7 +173,7 @@ export default function EmployersPage() {
   }
 
   // Purchase function for add-on features
-  const handleAddonPurchase = async (addonType) => {
+  const handleAddonPurchase = async (addonType: string) => {
     // Check if user is signed in
     if (!user) {
       // Redirect to login with return URL
@@ -182,13 +182,13 @@ export default function EmployersPage() {
     }
 
     try {
-      const addonMapping = {
+      const addonMapping: Record<string, { priceId: string; name: string }> = {
         'featured': {
-          priceId: process.env.NEXT_PUBLIC_STRIPE_FEATURED_LISTING_PRICE_ID,
+          priceId: process.env.NEXT_PUBLIC_STRIPE_FEATURED_LISTING_PRICE_ID || '',
           name: 'Featured Job Listing'
         },
         'urgent': {
-          priceId: process.env.NEXT_PUBLIC_STRIPE_URGENT_BADGE_PRICE_ID,
+          priceId: process.env.NEXT_PUBLIC_STRIPE_URGENT_BADGE_PRICE_ID || '',
           name: 'Urgent Badge'
         }
       }
