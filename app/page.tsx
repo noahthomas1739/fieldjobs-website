@@ -239,9 +239,9 @@ export default function HomePage() {
 
   const toggleJobDescription = (jobId: number) => {
     if (expandedJobs.includes(jobId)) {
-      setExpandedJobs(prev => prev.filter(id => id !== jobId))
+      setExpandedJobs((prev: any) => prev.filter((id: any) => id !== jobId))
     } else {
-      setExpandedJobs(prev => [...prev, jobId])
+      setExpandedJobs((prev: any) => [...prev, jobId])
     }
   }
 
@@ -362,9 +362,9 @@ export default function HomePage() {
 
   const toggleFilter = (industry: string) => {
     if (activeFilters.includes(industry)) {
-      setActiveFilters(prev => prev.filter(f => f !== industry))
+      setActiveFilters((prev: any) => prev.filter((f: any) => f !== industry))
     } else {
-      setActiveFilters(prev => [...prev, industry])
+      setActiveFilters((prev: any) => [...prev, industry])
     }
   }
 
@@ -392,7 +392,7 @@ export default function HomePage() {
         })
         
         if (response.ok) {
-          setSavedJobs(prev => prev.filter(id => id !== jobId))
+          setSavedJobs((prev: any) => prev.filter((id: any) => id !== jobId))
           alert('Job removed from saved jobs')
         } else {
           const error = await response.json()
@@ -413,12 +413,12 @@ export default function HomePage() {
         })
         
         if (response.ok) {
-          setSavedJobs(prev => [...prev, jobId])
+          setSavedJobs((prev: any) => [...prev, jobId])
           alert('Job saved successfully! View it in your dashboard.')
         } else {
           const error = await response.json()
           if (error.error === 'Job already saved') {
-            setSavedJobs(prev => [...prev, jobId])
+            setSavedJobs((prev: any) => [...prev, jobId])
             alert('Job was already saved!')
           } else {
             alert('Error saving job: ' + error.error)
@@ -476,7 +476,7 @@ export default function HomePage() {
       })
       
       if (response.ok) {
-        setAppliedJobs(prev => [...prev, selectedJob.id])
+        setAppliedJobs((prev: any) => [...prev, selectedJob.id])
         alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
         setShowApplicationModal(false)
         setSelectedJob(null)
@@ -493,7 +493,7 @@ export default function HomePage() {
         // Handle duplicate application error specifically
         if (response.status === 409) {
           alert('❌ You have already applied to this job! Check your dashboard to see your application status.')
-          setAppliedJobs(prev => [...prev, selectedJob.id])  // Add to local state
+          setAppliedJobs((prev: any) => [...prev, selectedJob.id])  // Add to local state
           setShowApplicationModal(false)
           setSelectedJob(null)
         } else {
@@ -1305,7 +1305,7 @@ export default function HomePage() {
                 <input
                   type="text"
                   value={alertForm.name}
-                  onChange={(e) => setAlertForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => setAlertForm((prev: any) => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Senior Engineering Roles"
                   required
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
@@ -1318,7 +1318,7 @@ export default function HomePage() {
                   <input
                     type="text"
                     value={alertForm.keywords}
-                    onChange={(e) => setAlertForm(prev => ({ ...prev, keywords: e.target.value }))}
+                    onChange={(e) => setAlertForm((prev: any) => ({ ...prev, keywords: e.target.value }))}
                     placeholder="engineer, drilling, offshore"
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   />
@@ -1328,7 +1328,7 @@ export default function HomePage() {
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Region</label>
                   <select
                     value={alertForm.region}
-                    onChange={(e) => setAlertForm(prev => ({ ...prev, region: e.target.value }))}
+                    onChange={(e) => setAlertForm((prev: any) => ({ ...prev, region: e.target.value }))}
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   >
                     <option value="">Any Region</option>
@@ -1346,7 +1346,7 @@ export default function HomePage() {
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Industry</label>
                   <select
                     value={alertForm.industry}
-                    onChange={(e) => setAlertForm(prev => ({ ...prev, industry: e.target.value }))}
+                    onChange={(e) => setAlertForm((prev: any) => ({ ...prev, industry: e.target.value }))}
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   >
                     <option value="">Any Industry</option>
@@ -1361,7 +1361,7 @@ export default function HomePage() {
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Experience</label>
                   <select
                     value={alertForm.classification}
-                    onChange={(e) => setAlertForm(prev => ({ ...prev, classification: e.target.value }))}
+                    onChange={(e) => setAlertForm((prev: any) => ({ ...prev, classification: e.target.value }))}
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   >
                     <option value="">Any Level</option>
@@ -1376,7 +1376,7 @@ export default function HomePage() {
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Frequency *</label>
                   <select
                     value={alertForm.frequency}
-                    onChange={(e) => setAlertForm(prev => ({ ...prev, frequency: e.target.value }))}
+                    onChange={(e) => setAlertForm((prev: any) => ({ ...prev, frequency: e.target.value }))}
                     required
                     style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                   >
