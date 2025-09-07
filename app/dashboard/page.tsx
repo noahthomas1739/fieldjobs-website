@@ -422,7 +422,7 @@ export default function JobSeekerDashboard() {
       const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
       if (appliedResponse.ok) {
         const appliedData = await appliedResponse.json()
-        const realAppliedJobs = appliedData.appliedJobs.map(app => ({
+        const realAppliedJobs = appliedData.appliedJobs.map((app: any) => ({
           id: app.jobs.id,
           title: app.jobs.title,
           company: app.jobs.company,
