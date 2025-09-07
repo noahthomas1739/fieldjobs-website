@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AuthCallback() {
+// Separate component that uses useSearchParams - must be wrapped in Suspense
+function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
@@ -193,5 +194,52 @@ export default function AuthCallback() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Main component with Suspense wrapper
+export default function AuthCallback() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        {/* Navigation Bar */}
+        <nav className="bg-gray-900 text-white sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex justify-between items-center h-16">
+              <div className="text-2xl font-bold text-white">
+                FieldJobs
+              </div>
+              <div className="flex items-center space-x-4">
+                <a 
+                  href="/auth/login"
+                  className="border border-white text-white hover:bg-white hover:text-gray-900 px-4 py-2 rounded transition-colors"
+                >
+                  Login
+                </a>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        {/* Loading Fallback */}
+        <div className="flex items-center justify-center px-4 py-12">
+          <div className="max-w-md w-full">
+            <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                Loading...
+              </h1>
+              <p className="text-gray-600 mb-4">
+                Preparing authentication
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   )
 }
