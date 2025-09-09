@@ -421,8 +421,8 @@ async function handleEndOfCycleDowngrade(stripeSubscription, newPriceId, newPlan
   }
 }
 
-// Utility function to get plan limits
-export function getPlanLimits(planType) {
+// Utility function to get plan limits (REMOVED EXPORT)
+function getPlanLimits(planType) {
   const limits = {
     starter: { 
       active_jobs_limit: 3, 
