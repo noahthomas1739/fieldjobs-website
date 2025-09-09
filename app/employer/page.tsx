@@ -2217,7 +2217,7 @@ export default function EmployerDashboard() {
                     value={selectedApplication.status || 'new'}
                     onChange={(e) => {
                       updateApplicationStatus(selectedApplication.id, e.target.value)
-                      setSelectedApplication(prev => ({ ...prev, status: e.target.value }))
+                      setSelectedApplication((prev: any) => ({ ...prev, status: e.target.value }))
                     }}
                     className="ml-2 px-2 py-1 border border-gray-300 rounded"
                   >
