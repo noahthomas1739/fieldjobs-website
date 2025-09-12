@@ -3,11 +3,13 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function AccountTypePage() {
-  const { user, loading, updateUserMetadata } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [isUpdating, setIsUpdating] = useState(false)
+  const supabase = createClientComponentClient()
 
   // Handle redirect in useEffect
   useEffect(() => {
@@ -25,14 +27,16 @@ export default function AccountTypePage() {
     }
   }, [user, loading, router])
 
-  const handleAccountTypeSelection = async (accountType) => {
+  const handleAccountTypeSelection = async (accountType: string) => {
     setIsUpdating(true)
     
     try {
       console.log('Setting account type to:', accountType)
       
-      // Update user metadata using the hook function
-      const { error } = await updateUserMetadata({ account_type: accountType })
+      // Update user metadata directly with Supabase
+      const { error } = await supabase.auth.updateUser({
+        data: { account_type: accountType }
+      })
 
       if (error) {
         console.error('Error updating account type:', error)
@@ -92,7 +96,6 @@ export default function AccountTypePage() {
           >
             {isUpdating ? 'Setting up...' : "I'm an Employer"}
           </button>
-
           <button
             onClick={() => handleAccountTypeSelection('job_seeker')}
             disabled={isUpdating}
