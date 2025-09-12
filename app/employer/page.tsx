@@ -201,26 +201,27 @@ export default function EmployerDashboard() {
     return levels[plan] || 0
   }
 
+  // FIXED: Immediate upgrades, end-of-cycle downgrades
   const handleUpgrade = async (priceId: string, planType: string) => {
     if (!user?.id) return
     
     try {
       setIsLoading(true)
-      const response = await fetch('/api/stripe/upgrade-subscription', {
+      const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          priceId,
-          planType,
-          userId: user.id,
-          currentPlan: subscriptionCheck.currentPlan
+          action: 'upgrade_immediate',
+          newPriceId: priceId,
+          newPlanType: planType,
+          userId: user.id
         })
       })
 
       const data = await response.json()
       
       if (data.success) {
-        alert(data.message)
+        alert(`Successfully upgraded to ${planType} plan! Your new features are active immediately.`)
         window.location.reload()
       } else {
         alert(data.error || 'Upgrade failed')
@@ -236,23 +237,33 @@ export default function EmployerDashboard() {
   const handleDowngrade = async (priceId: string, planType: string) => {
     if (!user?.id) return
     
+    // Confirm the downgrade timing
+    const currentPlanName = subscriptionCheck.currentPlan.charAt(0).toUpperCase() + subscriptionCheck.currentPlan.slice(1)
+    const newPlanName = planType.charAt(0).toUpperCase() + planType.slice(1)
+    
+    const confirmed = confirm(
+      `Your plan will change from ${currentPlanName} to ${newPlanName} at the end of your current billing cycle. You'll keep all ${currentPlanName} features until then. Continue?`
+    )
+    
+    if (!confirmed) return
+    
     try {
       setIsLoading(true)
-      const response = await fetch('/api/stripe/upgrade-subscription', {
+      const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          priceId,
-          planType,
-          userId: user.id,
-          currentPlan: subscriptionCheck.currentPlan
+          action: 'downgrade_end_cycle',
+          newPriceId: priceId,
+          newPlanType: planType,
+          userId: user.id
         })
       })
 
       const data = await response.json()
       
       if (data.success) {
-        alert(data.message)
+        alert(`Downgrade scheduled! You'll keep your current ${currentPlanName} features until ${data.effectiveDate || 'your next billing cycle'}, then switch to ${newPlanName}.`)
         window.location.reload()
       } else {
         alert(data.error || 'Downgrade failed')
@@ -2051,160 +2062,6 @@ export default function EmployerDashboard() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-1">Requirements</label>
-                  <textarea
-                    value={jobForm.requirements}
-                    onChange={(e) => setJobForm(prev => ({ ...prev, requirements: e.target.value }))}
-                    rows={3}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Region *</label>
-                    <input
-                      type="text"
-                      value={jobForm.region}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, region: e.target.value }))}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Hourly Rate</label>
-                    <input
-                      type="text"
-                      value={jobForm.hourlyRate}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                      placeholder="$50-75/hr"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Duration</label>
-                    <input
-                      type="text"
-                      value={jobForm.duration}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="6 months"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Start Date</label>
-                    <input
-                      type="date"
-                      value={jobForm.startDate}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Industry</label>
-                    <select
-                      value={jobForm.industry}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, industry: e.target.value }))}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    >
-                      <option value="">Select Industry</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Healthcare">Healthcare</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Education">Education</option>
-                      <option value="Manufacturing">Manufacturing</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowJobForm(false)
-                      setEditingJob(null)
-                      setJobForm({
-                        title: '', company: '', description: '', requirements: '', region: '',
-                        hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
-                        benefits: '', contactEmail: '', contactPhone: ''
-                      })
-                    }}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-                  >
-                    {editingJob ? 'Update Job' : 'Post Job'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Free Job Form Modal */}
-        {showFreeJobForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-green-600">Post Your First Job Free! 🎁</h2>
-                <button
-                  onClick={() => setShowFreeJobForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg mb-4">
-                <p className="text-green-800">
-                  🎉 Congratulations! You're eligible for one free job posting. This is a limited-time offer for new employers.
-                </p>
-              </div>
-              
-              <form onSubmit={submitFreeJob} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Job Title *</label>
-                    <input
-                      type="text"
-                      value={jobForm.title}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, title: e.target.value }))}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Company *</label>
-                    <input
-                      type="text"
-                      value={jobForm.company}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, company: e.target.value }))}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description *</label>
-                  <textarea
-                    value={jobForm.description}
-                    onChange={(e) => setJobForm(prev => ({ ...prev, description: e.target.value }))}
-                    required
-                    rows={4}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Region *</label>
@@ -2344,7 +2201,7 @@ export default function EmployerDashboard() {
                   }
                 </p>
                 <div className="text-lg font-bold">
-                  {featureType === 'featured' ? '$49' : '$29'}
+                  {featureType === 'featured' ? '$29' : '$19'}
                 </div>
               </div>
               
@@ -2362,7 +2219,7 @@ export default function EmployerDashboard() {
                   }}
                   className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
                 >
-                  Purchase {featureType === 'featured' ? '$49' : '$29'}
+                  Purchase {featureType === 'featured' ? '$29' : '$19'}
                 </button>
               </div>
             </div>
@@ -2409,3 +2266,157 @@ export default function EmployerDashboard() {
     </div>
   )
 }
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description *</label>
+                  <textarea
+                    value={jobForm.description}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                    rows={4}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Requirements</label>
+                  <textarea
+                    value={jobForm.requirements}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, requirements: e.target.value }))}
+                    rows={3}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Region *</label>
+                    <input
+                      type="text"
+                      value={jobForm.region}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, region: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Hourly Rate</label>
+                    <input
+                      type="text"
+                      value={jobForm.hourlyRate}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                      placeholder="$50-75/hr"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Duration</label>
+                    <input
+                      type="text"
+                      value={jobForm.duration}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="6 months"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={jobForm.startDate}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Industry</label>
+                    <select
+                      value={jobForm.industry}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, industry: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select Industry</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Education">Education</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowJobForm(false)
+                      setEditingJob(null)
+                      setJobForm({
+                        title: '', company: '', description: '', requirements: '', region: '',
+                        hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
+                        benefits: '', contactEmail: '', contactPhone: ''
+                      })
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  >
+                    {editingJob ? 'Update Job' : 'Post Job'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Free Job Form Modal */}
+        {showFreeJobForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-green-600">Post Your First Job Free! 🎁</h2>
+                <button
+                  onClick={() => setShowFreeJobForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg mb-4">
+                <p className="text-green-800">
+                  🎉 Congratulations! You're eligible for one free job posting. This is a limited-time offer for new employers.
+                </p>
+              </div>
+              
+              <form onSubmit={submitFreeJob} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Job Title *</label>
+                    <input
+                      type="text"
+                      value={jobForm.title}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, title: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Company *</label>
+                    <input
+                      type="text"
+                      value={jobForm.company}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, company: e.target.value }))}
+                      required
