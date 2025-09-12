@@ -11,9 +11,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 export async function POST(request) {
   try {
-    const { action, userId, newPriceId, subscriptionId } = await request.json()
+    const { action, userId, newPriceId, newPlanType, subscriptionId } = await request.json()
     
-    console.log('Managing subscription:', { action, userId, newPriceId, subscriptionId })
+    console.log('Managing subscription:', { action, userId, newPriceId, newPlanType, subscriptionId })
 
     // Get user's current subscription from database
     const { data: currentSub, error: subError } = await supabase
@@ -30,6 +30,13 @@ export async function POST(request) {
       case 'cancel':
         return await cancelSubscription(currentSub)
       
+      case 'upgrade_immediate':
+        return await upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
+      
+      case 'downgrade_end_cycle':
+        return await downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType)
+      
+      // Legacy support for old actions
       case 'upgrade':
       case 'downgrade':
         return await changeSubscriptionPlan(currentSub, newPriceId)
@@ -53,6 +60,115 @@ export async function POST(request) {
       { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
+  }
+}
+
+// NEW: Immediate upgrade with proration
+async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType) {
+  try {
+    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
+    
+    // Immediate upgrade with proration - customer pays difference now
+    const updatedSubscription = await stripe.subscriptions.update(
+      currentSub.stripe_subscription_id,
+      {
+        items: [{
+          id: subscription.items.data[0].id,
+          price: newPriceId,
+        }],
+        proration_behavior: 'create_prorations'
+      }
+    )
+
+    // Determine new plan details
+    const planDetails = getPlanDetailsFromPriceId(newPriceId)
+    
+    // Update database immediately
+    await supabase
+      .from('subscriptions')
+      .update({
+        plan_type: planDetails.planType,
+        price: planDetails.price,
+        active_jobs_limit: planDetails.jobLimit,
+        credits: planDetails.credits,
+        current_period_start: new Date(updatedSubscription.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(updatedSubscription.current_period_end * 1000).toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', currentSub.user_id)
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully upgraded to ${planDetails.planType} plan`,
+      newPlan: planDetails
+    })
+
+  } catch (error) {
+    console.error('Upgrade subscription error:', error)
+    return NextResponse.json({ error: 'Failed to upgrade subscription' }, { status: 500 })
+  }
+}
+
+// NEW: End-of-cycle downgrade using subscription schedules
+async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType) {
+  try {
+    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
+    const currentPeriodEnd = subscription.current_period_end
+
+    // Create subscription schedule for end-of-cycle change
+    const schedule = await stripe.subscriptionSchedules.create({
+      from_subscription: currentSub.stripe_subscription_id,
+      phases: [
+        {
+          // Current phase - keep current plan until end of period
+          items: [{
+            price: subscription.items.data[0].price.id,
+            quantity: 1
+          }],
+          start_date: subscription.current_period_start,
+          end_date: currentPeriodEnd
+        },
+        {
+          // New phase - downgraded plan starts next cycle
+          items: [{
+            price: newPriceId,
+            quantity: 1
+          }],
+          start_date: currentPeriodEnd
+        }
+      ]
+    })
+
+    // Store the scheduled change information
+    const planDetails = getPlanDetailsFromPriceId(newPriceId)
+    const effectiveDate = new Date(currentPeriodEnd * 1000).toISOString()
+
+    // Store scheduled change in database (optional tracking table)
+    await supabase
+      .from('subscription_schedule_changes')
+      .upsert({
+        user_id: currentSub.user_id,
+        subscription_id: currentSub.id,
+        stripe_schedule_id: schedule.id,
+        current_plan: currentSub.plan_type,
+        new_plan: planDetails.planType,
+        effective_date: effectiveDate,
+        status: 'scheduled',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+    return NextResponse.json({
+      success: true,
+      message: `Downgrade scheduled to ${planDetails.planType} plan`,
+      effectiveDate: effectiveDate,
+      newPlan: planDetails,
+      scheduleId: schedule.id
+    })
+
+  } catch (error) {
+    console.error('Downgrade subscription error:', error)
+    return NextResponse.json({ error: 'Failed to schedule downgrade' }, { status: 500 })
   }
 }
 
@@ -88,7 +204,7 @@ async function cancelSubscription(currentSub) {
   }
 }
 
-// Change subscription plan (upgrade/downgrade)
+// Legacy: Change subscription plan (immediate with proration)
 async function changeSubscriptionPlan(currentSub, newPriceId) {
   try {
     const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
