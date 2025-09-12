@@ -276,7 +276,7 @@ export default function EmployerDashboard() {
 
     if (isCurrentPlan) {
       return (
-        <button disabled className="w-full bg-gray-300 text-gray-600 py-2 rounded cursor-not-allowed">
+        <button disabled className="w-full bg-gray-300 text-gray-600 py-3 rounded-lg font-medium cursor-not-allowed">
           Current Plan
         </button>
       )
@@ -287,7 +287,7 @@ export default function EmployerDashboard() {
         return (
           <button 
             onClick={() => handleUpgrade(priceId, plan)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
             disabled={isLoading}
           >
             {isLoading ? 'Processing...' : 'Upgrade'}
@@ -297,7 +297,7 @@ export default function EmployerDashboard() {
         return (
           <button 
             onClick={() => handleDowngrade(priceId, plan)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
             disabled={isLoading}
           >
             {isLoading ? 'Processing...' : 'Downgrade'}
@@ -308,7 +308,7 @@ export default function EmployerDashboard() {
       return (
         <button 
           onClick={() => handleSubscriptionPurchase(plan)}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
           disabled={isLoading || subscriptionCheck.loading}
         >
           {isLoading ? 'Processing...' : 
@@ -1814,18 +1814,38 @@ export default function EmployerDashboard() {
               </div>
 
               {/* Subscription Plans */}
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="grid md:grid-cols-4 gap-6 mb-8">
+                {/* Single Job */}
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-semibold">Single Job</h3>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$99</div>
+                    <div className="text-gray-600 text-sm">one-time</div>
+                  </div>
+                  <ul className="space-y-2 mb-6 text-sm">
+                    <li>✅ 1 job posting (30 days)</li>
+                    <li>✅ Basic applicant management</li>
+                    <li>✅ Email support</li>
+                  </ul>
+                  <button 
+                    onClick={() => handleSingleJobPurchase()}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Processing...' : 'Post Job - $99'}
+                  </button>
+                </div>
+
                 {/* Starter Plan */}
                 <div className="border border-gray-200 rounded-lg p-6">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Starter</h3>
-                    <div className="text-3xl font-bold text-orange-500 my-2">$29</div>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
                     <div className="text-gray-600 text-sm">per month</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ 3 active job postings</li>
-                    <li>✅ 10 resume credits/month</li>
-                    <li>✅ Basic analytics</li>
+                    <li>✅ Basic applicant management</li>
                     <li>✅ Email support</li>
                   </ul>
                   {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
@@ -1835,20 +1855,18 @@ export default function EmployerDashboard() {
                 <div className="border border-orange-300 rounded-lg p-6 relative bg-orange-50">
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                      POPULAR
+                      MOST POPULAR
                     </span>
                   </div>
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Growth</h3>
-                    <div className="text-3xl font-bold text-orange-500 my-2">$79</div>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$299</div>
                     <div className="text-gray-600 text-sm">per month</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ 10 active job postings</li>
-                    <li>✅ 50 resume credits/month</li>
-                    <li>✅ Advanced analytics</li>
+                    <li>✅ 6 active job postings</li>
+                    <li>✅ Resume credits included</li>
                     <li>✅ Priority support</li>
-                    <li>✅ Featured job listings</li>
                   </ul>
                   {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
                 </div>
@@ -1857,19 +1875,44 @@ export default function EmployerDashboard() {
                 <div className="border border-gray-200 rounded-lg p-6">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Professional</h3>
-                    <div className="text-3xl font-bold text-orange-500 my-2">$149</div>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$599</div>
                     <div className="text-gray-600 text-sm">per month</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ 25 active job postings</li>
-                    <li>✅ 100 resume credits/month</li>
-                    <li>✅ Premium analytics</li>
-                    <li>✅ Phone support</li>
-                    <li>✅ All job features</li>
-                    <li>✅ Bulk posting tools</li>
+                    <li>✅ 15 active job postings</li>
+                    <li>✅ 25 resume credits included</li>
+                    <li>✅ Advanced analytics</li>
+                    <li>✅ Featured listings</li>
                   </ul>
                   {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
                 </div>
+              </div>
+
+              {/* Enterprise Plan */}
+              <div className="border border-purple-300 rounded-lg p-6 mb-8">
+                <div className="text-center mb-4">
+                  <h3 className="text-2xl font-semibold">Enterprise</h3>
+                  <div className="text-4xl font-bold text-purple-600 my-2">$1,999</div>
+                  <div className="text-gray-600">per month</div>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
+                  <div className="text-center">
+                    <div>✅ Unlimited job postings</div>
+                  </div>
+                  <div className="text-center">
+                    <div>✅ Unlimited resume access</div>
+                  </div>
+                  <div className="text-center">
+                    <div>✅ Dedicated account manager</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleSubscriptionPurchase('enterprise')}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium text-lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Processing...' : 'Upgrade'}
+                </button>
               </div>
 
               {/* Add-ons */}
