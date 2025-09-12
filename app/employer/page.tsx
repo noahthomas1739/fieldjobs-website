@@ -1917,44 +1917,72 @@ export default function EmployerDashboard() {
 
               {/* Add-ons */}
               <div className="border-t border-gray-200 pt-8">
-                <h3 className="text-lg font-semibold mb-4">Add-ons</h3>
-                <div className="grid md:grid-cols-3 gap-4">
+                <h3 className="text-lg font-semibold mb-4">Premium Add-Ons</h3>
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">10 Resume Credits</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$19</div>
-                    <p className="text-gray-600 text-sm mb-4">One-time purchase</p>
+                    <h4 className="font-semibold mb-2">Resume Credits - 10 Pack</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
+                    <p className="text-gray-600 text-sm mb-4">10 credits for candidate contact</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_10')}
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Processing...' : 'Purchase'}
+                      {isLoading ? 'Processing...' : 'Buy 10 Credits'}
                     </button>
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">25 Resume Credits</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
-                    <p className="text-gray-600 text-sm mb-4">One-time purchase</p>
+                    <h4 className="font-semibold mb-2">Resume Credits - 25 Pack</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$79</div>
+                    <p className="text-gray-600 text-sm mb-4">25 credits - Best Value</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_25')}
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Processing...' : 'Purchase'}
+                      {isLoading ? 'Processing...' : 'Buy 25 Credits'}
                     </button>
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">50 Resume Credits</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$69</div>
-                    <p className="text-gray-600 text-sm mb-4">One-time purchase</p>
+                    <h4 className="font-semibold mb-2">Resume Credits - 50 Pack</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$129</div>
+                    <p className="text-gray-600 text-sm mb-4">50 credits for high volume</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_50')}
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Processing...' : 'Purchase'}
+                      {isLoading ? 'Processing...' : 'Buy 50 Credits'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Featured Listing</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$29</div>
+                    <p className="text-gray-600 text-sm mb-4">Top of search results with bright highlight badge</p>
+                    <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
+                    <button 
+                      onClick={() => setActiveTab('jobs')}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+                    >
+                      ⭐ Manage Featured Jobs
+                    </button>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Urgent Badge</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$19</div>
+                    <p className="text-gray-600 text-sm mb-4">Bright "URGENT" badge for immediate attention</p>
+                    <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
+                    <button 
+                      onClick={() => setActiveTab('jobs')}
+                      className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                    >
+                      🚨 Manage Urgent Jobs
                     </button>
                   </div>
                 </div>
