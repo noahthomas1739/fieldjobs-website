@@ -377,12 +377,29 @@ export default function EmployerDashboard() {
       
       if (data.sessionId) {
         console.log('Redirecting to Stripe checkout:', data.sessionId)
-        const { getStripe } = await import('@/lib/stripe')
-        const stripe = await getStripe()
-        const result = await stripe.redirectToCheckout({ sessionId: data.sessionId })
-        if (result.error) {
-          console.error('Stripe redirect error:', result.error)
-          alert('Error redirecting to checkout: ' + result.error.message)
+        try {
+          const { getStripe } = await import('@/lib/stripe')
+          const stripe = await getStripe()
+          
+          if (!stripe) {
+            throw new Error('Stripe failed to load')
+          }
+          
+          const result = await stripe.redirectToCheckout({ sessionId: data.sessionId })
+          
+          if (result.error) {
+            console.error('Stripe redirect error:', result.error)
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } catch (stripeError) {
+          console.error('Stripe loading/redirect error:', stripeError)
+          // Fallback: redirect directly to the URL
+          if (data.url) {
+            console.log('Falling back to direct URL redirect:', data.url)
+            window.location.href = data.url
+          } else {
+            alert('Could not load Stripe. Please try again or contact support.')
+          }
         }
       } else if (data.url) {
         console.log('Redirecting to URL:', data.url)
