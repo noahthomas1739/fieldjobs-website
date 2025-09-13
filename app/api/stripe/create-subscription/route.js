@@ -1,4 +1,13 @@
 // /app/api/stripe/create-subscription/route.js - Fixed for immediate billing
+
+console.log('Environment check:', {
+  hasGrowth: !!process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
+  hasProfessional: !!process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+  hasEnterprise: !!process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+  hasBaseUrl: !!process.env.NEXT_PUBLIC_BASE_URL,
+  hasStripeKey: !!process.env.STRIPE_SECRET_KEY
+})
+
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
