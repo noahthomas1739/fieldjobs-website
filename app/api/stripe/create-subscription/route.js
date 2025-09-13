@@ -1,16 +1,20 @@
-// /app/api/stripe/create-subscription/route.js - Fixed for immediate billing
-
-console.log('Environment check:', {
-  hasGrowth: !!process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
-  hasProfessional: !!process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
-  hasEnterprise: !!process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
-  hasBaseUrl: !!process.env.NEXT_PUBLIC_BASE_URL,
-  hasStripeKey: !!process.env.STRIPE_SECRET_KEY
-})
-
+// /app/api/stripe/create-subscription/route.js - Enhanced debugging
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+
+// ENHANCED DEBUGGING - Add this at the very top
+console.log('=== CREATE SUBSCRIPTION ROUTE STARTED ===')
+console.log('Environment check:', {
+  hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+  hasSupabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+  hasBaseUrl: !!process.env.NEXT_PUBLIC_BASE_URL,
+  hasGrowth: !!process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
+  hasProfessional: !!process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+  hasEnterprise: !!process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+  nodeEnv: process.env.NODE_ENV
+})
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -20,16 +24,19 @@ const supabase = createClient(
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 export async function POST(request) {
+  console.log('=== POST REQUEST RECEIVED ===')
+  
   try {
+    console.log('Parsing request body...')
     const { priceId, planType, userId } = await request.json()
-
-    console.log('🛒 Checkout request:', { priceId, planType, userId })
+    console.log('Request data:', { priceId, planType, userId })
 
     if (!userId || !priceId || !planType) {
+      console.log('Missing fields:', { userId: !!userId, priceId: !!priceId, planType: !!planType })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // CRITICAL: Check for existing active subscriptions
+    console.log('Checking existing subscriptions...')
     const { data: existingSubscriptions, error: subError } = await supabase
       .from('subscriptions')
       .select('*')
@@ -37,14 +44,15 @@ export async function POST(request) {
       .eq('status', 'active')
 
     if (subError) {
-      console.error('❌ Error checking subscriptions:', subError)
-      return NextResponse.json({ error: 'Failed to check existing subscriptions' }, { status: 500 })
+      console.error('❌ Supabase subscription check error:', subError)
+      return NextResponse.json({ error: 'Failed to check existing subscriptions', details: subError.message }, { status: 500 })
     }
 
-    // Block if user already has an active subscription
+    console.log('Existing subscriptions found:', existingSubscriptions?.length || 0)
+
     if (existingSubscriptions && existingSubscriptions.length > 0) {
       const activeSub = existingSubscriptions[0]
-      console.log('🚫 User already has active subscription:', activeSub.plan_type)
+      console.log('🚫 Active subscription found:', activeSub.plan_type)
       
       return NextResponse.json({ 
         error: 'You already have an active subscription',
@@ -54,7 +62,7 @@ export async function POST(request) {
       }, { status: 400 })
     }
 
-    // Get customer from profiles table
+    console.log('Getting user profile...')
     const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id, email')
@@ -62,20 +70,20 @@ export async function POST(request) {
       .single()
 
     if (profileError) {
-      console.error('❌ Error fetching user profile:', profileError)
-      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+      console.error('❌ Profile error:', profileError)
+      return NextResponse.json({ error: 'User profile not found', details: profileError.message }, { status: 404 })
     }
 
-    console.log('👤 User profile found:', {
-      customerId: userProfile?.stripe_customer_id,
+    console.log('User profile:', {
+      hasCustomerId: !!userProfile?.stripe_customer_id,
       email: userProfile?.email
     })
 
-    // Get or create customer
     let customerId = userProfile?.stripe_customer_id
 
-    // If we have a customer ID, verify it exists in Stripe
+    // Verify existing customer in Stripe
     if (customerId) {
+      console.log('Verifying existing customer in Stripe...')
       try {
         const customer = await stripe.customers.retrieve(customerId)
         if (customer.deleted) {
@@ -85,13 +93,14 @@ export async function POST(request) {
           console.log('✅ Existing customer verified:', customerId)
         }
       } catch (error) {
-        console.log('⚠️ Customer not found in Stripe, will create new one:', error.message)
+        console.log('⚠️ Customer not found in Stripe:', error.message)
         customerId = null
       }
     }
 
-    // Double-check in Stripe for any active subscriptions (using correct customer ID)
+    // Check for active subscriptions in Stripe
     if (customerId) {
+      console.log('Checking Stripe for active subscriptions...')
       try {
         const stripeSubscriptions = await stripe.subscriptions.list({
           customer: customerId,
@@ -111,35 +120,31 @@ export async function POST(request) {
       }
     }
 
-    // Create new customer if needed (with duplicate prevention)
+    // Create or find customer
     if (!customerId) {
+      console.log('Creating/finding customer...')
       try {
-        // FIRST: Search for existing customers with the same email
-        console.log('🔍 Searching for existing customers with email:', userProfile.email)
+        // Search for existing customers
         const existingCustomers = await stripe.customers.list({
           email: userProfile.email,
           limit: 10
         })
 
-        // Use existing customer if found (and not deleted)
         if (existingCustomers.data.length > 0) {
           const activeCustomer = existingCustomers.data.find(customer => !customer.deleted)
           if (activeCustomer) {
             customerId = activeCustomer.id
-            console.log('✅ Found existing customer, reusing:', customerId)
+            console.log('✅ Found existing customer:', customerId)
 
-            // Update the profiles table with the found customer ID
             await supabase
               .from('profiles')
               .update({ stripe_customer_id: customerId })
               .eq('id', userId)
-
-            console.log('✅ Updated profile with existing customer ID')
           }
         }
 
-        // ONLY create new customer if none found
         if (!customerId) {
+          console.log('Creating new customer...')
           const customer = await stripe.customers.create({
             email: userProfile.email,
             metadata: {
@@ -151,16 +156,13 @@ export async function POST(request) {
           customerId = customer.id
           console.log('✅ Created new customer:', customerId)
 
-          // Update the profiles table with the new customer ID
           await supabase
             .from('profiles')
             .update({ stripe_customer_id: customerId })
             .eq('id', userId)
-
-          console.log('✅ Updated profile with new customer ID')
         }
       } catch (error) {
-        console.error('❌ Failed to create/find customer:', error)
+        console.error('❌ Customer creation failed:', error)
         return NextResponse.json({ 
           error: 'Failed to create customer',
           details: error.message 
@@ -168,7 +170,14 @@ export async function POST(request) {
       }
     }
 
-    // FIXED: Create checkout session with IMMEDIATE billing for new subscriptions
+    console.log('Creating checkout session...')
+    console.log('Session config:', {
+      customerId,
+      priceId,
+      planType,
+      baseUrl: process.env.NEXT_PUBLIC_BASE_URL
+    })
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -189,15 +198,13 @@ export async function POST(request) {
           userId: userId,
           planType: planType
         },
-        // CRITICAL FIX: Ensure immediate billing for new subscriptions
-        trial_period_days: 0, // No free trial - start billing immediately
-        proration_behavior: 'none' // Don't prorate for new subscriptions - charge full amount
+        trial_period_days: 0,
+        proration_behavior: 'none'
       },
-      // Ensure immediate collection
       allow_promotion_codes: false
     })
 
-    console.log('✅ Checkout session created with immediate billing:', session.id)
+    console.log('✅ Checkout session created successfully:', session.id)
 
     return NextResponse.json({ 
       sessionId: session.id,
@@ -205,10 +212,12 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('❌ Checkout creation error:', error)
+    console.error('❌ FATAL ERROR in create-subscription:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json({ 
       error: 'Failed to create checkout session',
-      details: error.message 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 })
   }
 }
