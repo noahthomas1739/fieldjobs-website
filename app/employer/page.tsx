@@ -21,7 +21,7 @@ export default function EmployerDashboard() {
   const [profile, setProfile] = useState<any>({})
   const [subscription, setSubscription] = useState<any>({ tier: 'free', credits: 0, activeJobs: 0 })
   
-  // NEW: Free job feature states
+  // Free job feature states
   const [freeJobEligible, setFreeJobEligible] = useState(false)
   const [checkingEligibility, setCheckingEligibility] = useState(true)
   const [showFreeJobForm, setShowFreeJobForm] = useState(false)
@@ -29,7 +29,7 @@ export default function EmployerDashboard() {
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false)
   const [currentPrompt, setCurrentPrompt] = useState<any>(null)
   
-  // NEW: Subscription check state for prevention logic
+  // Subscription check state for prevention logic
   const [subscriptionCheck, setSubscriptionCheck] = useState({
     loading: true,
     hasActiveSubscription: false,
@@ -90,8 +90,7 @@ export default function EmployerDashboard() {
   const [notificationShown, setNotificationShown] = useState(false)
   const [processingPayment, setProcessingPayment] = useState(false)
 
-  // NEW: Free job functions
-  // Check if user is eligible for free job
+  // Free job functions
   const checkFreeJobEligibility = async () => {
     try {
       if (!user?.id) return
@@ -109,7 +108,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Check for pending upgrade prompts
   const checkUpgradePrompts = async () => {
     try {
       if (!user?.id) return
@@ -119,7 +117,6 @@ export default function EmployerDashboard() {
 
       if (data.success && data.prompts.length > 0) {
         setPendingPrompts(data.prompts)
-        // Show the most urgent prompt
         const urgentPrompt = data.prompts[0]
         setCurrentPrompt(urgentPrompt)
         setShowUpgradePrompt(true)
@@ -129,7 +126,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Submit free job using existing job form
   const submitFreeJob = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -152,7 +148,7 @@ export default function EmployerDashboard() {
       if (data.success) {
         alert('🎉 ' + data.message)
         await loadJobs()
-        setFreeJobEligible(false) // Button will disappear
+        setFreeJobEligible(false)
         setShowFreeJobForm(false)
         setJobForm({
           title: '', company: '', description: '', requirements: '', region: '',
@@ -170,7 +166,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Handle upgrade prompt actions
   const handlePromptAction = async (action: string) => {
     try {
       if (currentPrompt) {
@@ -195,7 +190,7 @@ export default function EmployerDashboard() {
     }
   }
 
-  // NEW: Helper functions for subscription management
+  // Helper functions for subscription management
   const getPlanLevel = (plan: string) => {
     const levels: Record<string, number> = { free: 0, starter: 1, growth: 2, professional: 3, enterprise: 4 }
     return levels[plan] || 0
@@ -237,7 +232,6 @@ export default function EmployerDashboard() {
   const handleDowngrade = async (priceId: string, planType: string) => {
     if (!user?.id) return
     
-    // Confirm the downgrade timing
     const currentPlanName = subscriptionCheck.currentPlan.charAt(0).toUpperCase() + subscriptionCheck.currentPlan.slice(1)
     const newPlanName = planType.charAt(0).toUpperCase() + planType.slice(1)
     
@@ -276,7 +270,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // NEW: Helper function to render subscription card buttons
   const renderSubscriptionButton = (plan: string, priceId: string) => {
     const isCurrentPlan = subscriptionCheck.currentPlan === plan
     const hasActiveSubscription = subscriptionCheck.hasActiveSubscription
@@ -332,14 +325,12 @@ export default function EmployerDashboard() {
     return null
   }
 
-  // UPDATED: Handle subscription purchases with prevention logic
   const handleSubscriptionPurchase = async (planType: string) => {
     if (!user?.id) return
     
     try {
       setIsLoading(true)
       
-      // Prevent multiple subscriptions
       if (subscriptionCheck.hasActiveSubscription) {
         alert(`You already have an active ${subscriptionCheck.currentPlan} subscription. Please use the upgrade/downgrade options instead.`)
         return
@@ -398,7 +389,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Handle single job purchase
   const handleSingleJobPurchase = async () => {
     try {
       setIsLoading(true)
@@ -430,7 +420,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Handle add-on purchases
   const handleAddonPurchase = async (addonType: string) => {
     try {
       setIsLoading(true)
@@ -476,7 +465,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Handle featured/urgent job purchases
   const handleJobFeaturePurchase = async (jobId: number, featureType: string) => {
     if (!user?.id) return
     
@@ -525,46 +513,12 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Toggle job feature (free version - remove feature)
-  const toggleJobFeature = async (jobId: number, featureType: string, isEnabled: boolean) => {
-    if (!user?.id) return
-    
-    try {
-      const response = await fetch('/api/toggle-job-feature', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobId: jobId,
-          featureType: featureType,
-          isEnabled: !isEnabled,
-          userId: user.id
-        }),
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        await loadJobs() // Refresh jobs list
-        alert(`Job ${featureType} ${!isEnabled ? 'enabled' : 'disabled'} successfully!`)
-      } else {
-        alert('Error: ' + data.error)
-      }
-    } catch (error) {
-      console.error('Error toggling job feature:', error)
-      alert('Error updating job feature')
-    }
-  }
-
-  // Open feature purchase modal
   const openFeaturePurchase = (job: any, type: string) => {
     setSelectedJobForFeature(job)
     setFeatureType(type)
     setShowFeatureModal(true)
   }
 
-  // Load user's current credits
   const loadUserCredits = async () => {
     if (!user?.id) return
     
@@ -579,7 +533,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Load user's current subscription
   const loadSubscription = async () => {
     try {
       if (!user) return
@@ -606,7 +559,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Search resumes
   const searchResumes = async () => {
     try {
       setSearchLoading(true)
@@ -632,7 +584,6 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Unlock profile contact details
   const unlockProfile = async (profileId: number) => {
     if (!user?.id) return
     
@@ -642,7 +593,7 @@ export default function EmployerDashboard() {
     }
     
     if (unlockedProfiles.has(profileId)) {
-      return // Already unlocked
+      return
     }
     
     try {
@@ -666,33 +617,29 @@ export default function EmployerDashboard() {
     }
   }
 
-  // Filter applications based on selected job and status
   const filteredApplications = applications.filter((app: any) => {
     const matchesJob = !selectedJobFilter || app.job_id === selectedJobFilter
     const matchesStatus = !statusFilter || app.status === statusFilter
     return matchesJob && matchesStatus
   })
 
-  // NEW useEffect hooks for free job feature
+  // useEffect hooks
   useEffect(() => {
     if (user?.id) {
       checkFreeJobEligibility()
       checkUpgradePrompts()
 
-      // Check for prompts periodically
       const interval = setInterval(checkUpgradePrompts, 60000)
       return () => clearInterval(interval)
     }
   }, [user?.id])
 
-  // Check URL params for direct navigation from homepage banners
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const showFreeJob = urlParams.get('free_job')
     
     if (showFreeJob === 'true' && freeJobEligible) {
       setShowFreeJobForm(true)
-      // Clean up URL
       const newUrl = window.location.pathname
       window.history.replaceState({}, document.title, newUrl)
     }
@@ -714,7 +661,6 @@ export default function EmployerDashboard() {
     }
   }, [user, loading, router])
 
-  // NEW: Check subscription status on component mount
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       if (!user?.id) return
@@ -730,7 +676,6 @@ export default function EmployerDashboard() {
           canPurchaseNew: data.canPurchaseNew
         })
 
-        // Also update the subscription state with more accurate data
         if (data.subscription) {
           setSubscription({
             tier: data.subscription.plan_type || 'free',
@@ -749,7 +694,6 @@ export default function EmployerDashboard() {
     checkSubscriptionStatus()
   }, [user?.id])
 
-  // Auto-refresh applications every 30 seconds
   useEffect(() => {
     if (!autoRefresh || !user) return
     
@@ -759,160 +703,6 @@ export default function EmployerDashboard() {
     
     return () => clearInterval(interval)
   }, [user, autoRefresh])
-
-  // Handle successful subscription payments
-  useEffect(() => {
-    const handleSubscriptionPaymentSuccess = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const success = urlParams.get('success')
-      const sessionId = urlParams.get('session_id')
-      const planType = urlParams.get('plan')
-      
-      if (success === 'true' && sessionId && planType && user?.id) {
-        try {
-          console.log('Processing successful subscription payment...', { sessionId, planType })
-          
-          const response = await fetch('/api/process-subscription-payment', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              sessionId: sessionId,
-              planType: planType,
-              userId: user.id
-            }),
-          })
-          
-          const data = await response.json()
-          
-          if (data.success) {
-            alert(`🎉 ${data.message} Welcome to your new plan!`)
-            
-            // Refresh subscription data
-            await loadSubscription()
-            
-            // Clean up URL parameters
-            const newUrl = window.location.pathname
-            window.history.replaceState({}, document.title, newUrl)
-            
-          } else {
-            console.error('Subscription processing failed:', data.error)
-            alert('❌ Error processing subscription. Please contact support.')
-          }
-        } catch (error) {
-          console.error('Error processing subscription payment:', error)
-          alert('❌ Error processing subscription. Please contact support.')
-        }
-      }
-    }
-    
-    if (user) {
-      handleSubscriptionPaymentSuccess()
-    }
-  }, [user])
-
-  // Handle successful subscription upgrades
-  useEffect(() => {
-    const handleUpgradeSuccess = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const upgradeSuccess = urlParams.get('upgrade_success')
-      const planType = urlParams.get('plan')
-      
-      if (upgradeSuccess === 'true' && planType && !notificationShown) {
-        // Determine if upgrade or downgrade
-        const currentPlanHierarchy: Record<string, number> = { 'free': 0, 'starter': 1, 'growth': 2, 'professional': 3, 'enterprise': 4 }
-        const currentLevel = currentPlanHierarchy[subscription.tier] || 0
-        const newLevel = currentPlanHierarchy[planType] || 0
-        const isUpgrade = newLevel > currentLevel
-        
-        // Set notification as shown immediately
-        setNotificationShown(true)
-        
-        alert(`🎉 Successfully ${isUpgrade ? 'upgraded' : 'downgraded'} to ${planType} plan! Your new plan is now active.`)
-        
-        // Refresh subscription data
-        await loadSubscription()
-        
-        // Clean up URL parameters immediately
-        const newUrl = window.location.pathname
-        window.history.replaceState({}, document.title, newUrl)
-      }
-      
-      const upgradeCancelled = urlParams.get('upgrade_cancelled')
-      if (upgradeCancelled === 'true' && !notificationShown) {
-        setNotificationShown(true)
-        alert('Upgrade was cancelled. Your current plan remains active.')
-        const newUrl = window.location.pathname
-        window.history.replaceState({}, document.title, newUrl)
-      }
-    }
-    
-    if (user && subscription.tier) {
-      handleUpgradeSuccess()
-    }
-  }, [user, subscription.tier, notificationShown])
-
-  // Reset notification state when URL changes (for new upgrades)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const hasUpgradeParams = urlParams.get('upgrade_success') || urlParams.get('upgrade_cancelled')
-    
-    if (!hasUpgradeParams) {
-      setNotificationShown(false)
-    }
-  }, [])
-
-  // Handle successful feature payments
-  useEffect(() => {
-    const handleFeaturePaymentSuccess = async () => {
-      const urlParams = new URLSearchParams(window.location.search)
-      const sessionId = urlParams.get('session_id')
-      const featureSuccess = urlParams.get('feature_success')
-      
-      if (sessionId && featureSuccess === 'true') {
-        try {
-          console.log('Processing successful feature payment...', sessionId)
-          
-          const response = await fetch('/api/process-feature-payment', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              sessionId: sessionId
-            }),
-          })
-          
-          const data = await response.json()
-          
-          if (data.success) {
-            alert(`🎉 ${data.message} Your job promotion is now active!`)
-            await loadJobs()
-            const newUrl = window.location.pathname
-            window.history.replaceState({}, document.title, newUrl)
-          } else {
-            console.error('Payment processing failed:', data.error)
-            alert('❌ Error processing payment. Please contact support.')
-          }
-        } catch (error) {
-          console.error('Error processing feature payment:', error)
-          alert('❌ Error processing payment. Please contact support.')
-        }
-      }
-      
-      const featureCancelled = urlParams.get('feature_cancelled')
-      if (featureCancelled === 'true') {
-        alert('Payment was cancelled. Your job was not promoted.')
-        const newUrl = window.location.pathname
-        window.history.replaceState({}, document.title, newUrl)
-      }
-    }
-    
-    if (user) {
-      handleFeaturePaymentSuccess()
-    }
-  }, [user])
 
   const loadEmployerData = async () => {
     try {
@@ -1153,14 +943,12 @@ export default function EmployerDashboard() {
     setShowApplicationModal(true)
   }
 
-  // Helper function to format dates
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Never'
     const date = new Date(dateString)
     return date.toLocaleDateString()
   }
 
-  // Helper function to check if feature is expired
   const isFeatureExpired = (expirationDate: string) => {
     if (!expirationDate) return false
     return new Date(expirationDate) < new Date()
@@ -1188,7 +976,6 @@ export default function EmployerDashboard() {
               <h1 className="text-3xl font-bold text-gray-900">Employer Dashboard</h1>
               <p className="text-gray-600">Welcome back! Manage your job postings and applications.</p>
             </div>
-            {/* UPDATED: Header button section with free job feature */}
             <div className="flex gap-3">
               {freeJobEligible && !checkingEligibility ? (
                 <>
@@ -1293,7 +1080,6 @@ export default function EmployerDashboard() {
             <div>
               <h2 className="text-xl font-bold mb-6">Dashboard Overview</h2>
               
-              {/* Recent Activity */}
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Recent Job Postings</h3>
@@ -1352,7 +1138,6 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Quick Actions */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
                 <div className="flex flex-wrap gap-3">
@@ -1452,7 +1237,6 @@ export default function EmployerDashboard() {
                         </div>
                       </div>
                       
-                      {/* Job Actions */}
                       <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                         <div className="flex gap-2">
                           <button
@@ -1494,7 +1278,6 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Filters */}
               <div className="bg-gray-50 p-4 rounded-lg mb-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -1595,7 +1378,6 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Search Filters */}
               <div className="bg-gray-50 p-6 rounded-lg mb-6">
                 <h3 className="text-lg font-semibold mb-4">Search Filters</h3>
                 <div className="grid md:grid-cols-3 gap-4 mb-4">
@@ -1654,7 +1436,6 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Search Results */}
               <div>
                 {searchResults.length === 0 ? (
                   <div className="text-center py-12">
@@ -1718,7 +1499,6 @@ export default function EmployerDashboard() {
             <div>
               <h2 className="text-xl font-bold mb-6">Analytics & Insights</h2>
               
-              {/* Key Metrics */}
               <div className="grid md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">{analytics.totalViews || 0}</div>
@@ -1743,7 +1523,6 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Job Performance */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Job Performance</h3>
                 {jobs.length === 0 ? (
@@ -1771,7 +1550,6 @@ export default function EmployerDashboard() {
                 )}
               </div>
 
-              {/* Recent Activity */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
                 <div className="space-y-2">
@@ -1795,12 +1573,11 @@ export default function EmployerDashboard() {
             </div>
           )}
 
-          {/* Billing & Plans Tab */}
+          {/* Billing Tab */}
           {activeTab === 'billing' && (
             <div>
               <h2 className="text-xl font-bold mb-6">Billing & Plans</h2>
               
-              {/* Current Plan Status */}
               <div className="bg-blue-50 p-6 rounded-lg mb-8">
                 <div className="flex justify-between items-center">
                   <div>
@@ -1824,9 +1601,7 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Subscription Plans */}
               <div className="grid md:grid-cols-4 gap-6 mb-8">
-                {/* Single Job */}
                 <div className="border border-gray-200 rounded-lg p-6">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Single Job</h3>
@@ -1847,7 +1622,6 @@ export default function EmployerDashboard() {
                   </button>
                 </div>
 
-                {/* Starter Plan */}
                 <div className="border border-gray-200 rounded-lg p-6">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Starter</h3>
@@ -1862,7 +1636,6 @@ export default function EmployerDashboard() {
                   {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
                 </div>
 
-                {/* Growth Plan */}
                 <div className="border border-orange-300 rounded-lg p-6 relative bg-orange-50">
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
@@ -1882,7 +1655,6 @@ export default function EmployerDashboard() {
                   {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
                 </div>
 
-                {/* Professional Plan */}
                 <div className="border border-gray-200 rounded-lg p-6">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Professional</h3>
@@ -1899,7 +1671,6 @@ export default function EmployerDashboard() {
                 </div>
               </div>
 
-              {/* Enterprise Plan */}
               <div className="border border-purple-300 rounded-lg p-6 mb-8">
                 <div className="text-center mb-4">
                   <h3 className="text-2xl font-semibold">Enterprise</h3>
@@ -1926,7 +1697,6 @@ export default function EmployerDashboard() {
                 </button>
               </div>
 
-              {/* Add-ons */}
               <div className="border-t border-gray-200 pt-8">
                 <h3 className="text-lg font-semibold mb-4">Premium Add-Ons</h3>
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -2028,6 +1798,160 @@ export default function EmployerDashboard() {
               </div>
               
               <form onSubmit={submitJob} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Job Title *</label>
+                    <input
+                      type="text"
+                      value={jobForm.title}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, title: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Company *</label>
+                    <input
+                      type="text"
+                      value={jobForm.company}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, company: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description *</label>
+                  <textarea
+                    value={jobForm.description}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, description: e.target.value }))}
+                    required
+                    rows={4}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Requirements</label>
+                  <textarea
+                    value={jobForm.requirements}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, requirements: e.target.value }))}
+                    rows={3}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Region *</label>
+                    <input
+                      type="text"
+                      value={jobForm.region}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, region: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Hourly Rate</label>
+                    <input
+                      type="text"
+                      value={jobForm.hourlyRate}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, hourlyRate: e.target.value }))}
+                      placeholder="$50-75/hr"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Duration</label>
+                    <input
+                      type="text"
+                      value={jobForm.duration}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
+                      placeholder="6 months"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={jobForm.startDate}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Industry</label>
+                    <select
+                      value={jobForm.industry}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, industry: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select Industry</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Education">Education</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowJobForm(false)
+                      setEditingJob(null)
+                      setJobForm({
+                        title: '', company: '', description: '', requirements: '', region: '',
+                        hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
+                        benefits: '', contactEmail: '', contactPhone: ''
+                      })
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  >
+                    {editingJob ? 'Update Job' : 'Post Job'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Free Job Form Modal */}
+        {showFreeJobForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-green-600">Post Your First Job Free! 🎁</h2>
+                <button
+                  onClick={() => setShowFreeJobForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg mb-4">
+                <p className="text-green-800">
+                  🎉 Congratulations! You're eligible for one free job posting. This is a limited-time offer for new employers.
+                </p>
+              </div>
+              
+              <form onSubmit={submitFreeJob} className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Job Title *</label>
@@ -2266,157 +2190,3 @@ export default function EmployerDashboard() {
     </div>
   )
 }
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description *</label>
-                  <textarea
-                    value={jobForm.description}
-                    onChange={(e) => setJobForm(prev => ({ ...prev, description: e.target.value }))}
-                    required
-                    rows={4}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Requirements</label>
-                  <textarea
-                    value={jobForm.requirements}
-                    onChange={(e) => setJobForm(prev => ({ ...prev, requirements: e.target.value }))}
-                    rows={3}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Region *</label>
-                    <input
-                      type="text"
-                      value={jobForm.region}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, region: e.target.value }))}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Hourly Rate</label>
-                    <input
-                      type="text"
-                      value={jobForm.hourlyRate}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                      placeholder="$50-75/hr"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Duration</label>
-                    <input
-                      type="text"
-                      value={jobForm.duration}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="6 months"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Start Date</label>
-                    <input
-                      type="date"
-                      value={jobForm.startDate}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Industry</label>
-                    <select
-                      value={jobForm.industry}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, industry: e.target.value }))}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    >
-                      <option value="">Select Industry</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Healthcare">Healthcare</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Education">Education</option>
-                      <option value="Manufacturing">Manufacturing</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowJobForm(false)
-                      setEditingJob(null)
-                      setJobForm({
-                        title: '', company: '', description: '', requirements: '', region: '',
-                        hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
-                        benefits: '', contactEmail: '', contactPhone: ''
-                      })
-                    }}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-                  >
-                    {editingJob ? 'Update Job' : 'Post Job'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Free Job Form Modal */}
-        {showFreeJobForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-green-600">Post Your First Job Free! 🎁</h2>
-                <button
-                  onClick={() => setShowFreeJobForm(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg mb-4">
-                <p className="text-green-800">
-                  🎉 Congratulations! You're eligible for one free job posting. This is a limited-time offer for new employers.
-                </p>
-              </div>
-              
-              <form onSubmit={submitFreeJob} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Job Title *</label>
-                    <input
-                      type="text"
-                      value={jobForm.title}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, title: e.target.value }))}
-                      required
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Company *</label>
-                    <input
-                      type="text"
-                      value={jobForm.company}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, company: e.target.value }))}
-                      required
