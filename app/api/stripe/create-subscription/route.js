@@ -197,9 +197,9 @@ export async function POST(request) {
         metadata: {
           userId: userId,
           planType: planType
-        },
-        trial_period_days: 0,
-        proration_behavior: 'none'
+        }
+        // Removed trial_period_days: 0 - this was causing the Stripe error
+        // For immediate billing, we simply omit trial_period_days
       },
       allow_promotion_codes: false
     })
