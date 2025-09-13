@@ -346,7 +346,8 @@ export default function EmployerDashboard() {
       const priceId = priceMapping[planType]
       
       if (!priceId) {
-        alert('Plan not available. Please contact support.')
+        console.error('Missing price ID for plan:', planType, 'Available:', priceMapping)
+        alert(`${planType} plan not configured yet. Please contact support or try another plan.`)
         return
       }
 
@@ -364,22 +365,31 @@ export default function EmployerDashboard() {
       
       const data = await response.json()
       
-      if (data.error) {
+      console.log('Subscription response:', data) // Debug log
+      
+      if (!response.ok) {
         if (data.shouldUpgrade) {
           alert(data.message)
           return
         }
-        throw new Error(data.error)
+        throw new Error(data.error || `HTTP ${response.status}`)
       }
       
       if (data.sessionId) {
+        console.log('Redirecting to Stripe checkout:', data.sessionId)
         const { getStripe } = await import('@/lib/stripe')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        const result = await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (result.error) {
+          console.error('Stripe redirect error:', result.error)
+          alert('Error redirecting to checkout: ' + result.error.message)
+        }
       } else if (data.url) {
+        console.log('Redirecting to URL:', data.url)
         window.location.href = data.url
       } else {
-        alert('Error creating checkout session: Unknown error')
+        console.error('No session ID or URL in response:', data)
+        alert('Error: No checkout URL received')
       }
     } catch (error) {
       console.error('Error purchasing subscription:', error)
