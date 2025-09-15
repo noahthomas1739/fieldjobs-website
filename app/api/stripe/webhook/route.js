@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
+
+// Use service role client for webhooks (bypasses RLS)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
 
 export async function POST(request) {
   console.log('🔵 WEBHOOK STARTED')
@@ -66,12 +71,7 @@ async function handleSubscriptionSuccess(session) {
   console.log('🔵 === SUBSCRIPTION HANDLER STARTED ===')
   
   try {
-    // Test Supabase connection first
-    console.log('🔵 Creating Supabase client...')
-    const supabase = createRouteHandlerClient({ cookies })
-    console.log('✅ Supabase client created')
-    
-    // Test basic database connection
+    // Test database connection
     console.log('🔵 Testing database connection...')
     const { data: testData, error: testError } = await supabase
       .from('subscriptions')
@@ -104,7 +104,6 @@ async function handleSubscriptionSuccess(session) {
     console.log('🔵 Retrieving Stripe subscription...')
     const subscription = await stripe.subscriptions.retrieve(session.subscription)
     console.log('✅ Stripe subscription retrieved:', subscription.id)
-    console.log('🔵 Subscription status:', subscription.status)
     
     const planLimits = {
       starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
