@@ -10,18 +10,12 @@ export async function POST(request) {
     const body = await request.text()
     const signature = request.headers.get('stripe-signature')
     
-    console.log('🔵 Webhook body length:', body.length)
-    console.log('🔵 Signature present:', !!signature)
-    console.log('🔵 Webhook secret present:', !!process.env.STRIPE_WEBHOOK_SECRET)
+    console.log('✅ Signature present:', !!signature)
+    console.log('✅ Webhook secret present:', !!process.env.STRIPE_WEBHOOK_SECRET)
     
     if (!signature) {
       console.error('❌ Missing Stripe signature')
       return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
-    }
-
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error('❌ Missing STRIPE_WEBHOOK_SECRET environment variable')
-      return NextResponse.json({ error: 'Missing webhook secret' }, { status: 500 })
     }
 
     let event
@@ -47,8 +41,14 @@ export async function POST(request) {
 
       if (session.mode === 'subscription') {
         console.log('🔵 Processing subscription...')
-        await handleSubscriptionSuccess(session)
-        console.log('✅ Subscription processed successfully')
+        try {
+          await handleSubscriptionSuccess(session)
+          console.log('✅ Subscription processed successfully')
+        } catch (subError) {
+          console.error('❌ SUBSCRIPTION ERROR:', subError.message)
+          console.error('❌ SUBSCRIPTION ERROR STACK:', subError.stack)
+          throw subError
+        }
       }
     }
 
@@ -56,25 +56,40 @@ export async function POST(request) {
     return NextResponse.json({ received: true })
     
   } catch (error) {
-    console.error('❌ WEBHOOK ERROR:', error)
-    console.error('❌ Error stack:', error.stack)
+    console.error('❌ WEBHOOK ERROR:', error.message)
+    console.error('❌ WEBHOOK ERROR STACK:', error.stack)
     return NextResponse.json({ error: 'Webhook failed: ' + error.message }, { status: 500 })
   }
 }
 
 async function handleSubscriptionSuccess(session) {
-  console.log('🔵 Starting subscription success handler')
+  console.log('🔵 === SUBSCRIPTION HANDLER STARTED ===')
   
   try {
+    // Test Supabase connection first
+    console.log('🔵 Creating Supabase client...')
     const supabase = createRouteHandlerClient({ cookies })
     console.log('✅ Supabase client created')
+    
+    // Test basic database connection
+    console.log('🔵 Testing database connection...')
+    const { data: testData, error: testError } = await supabase
+      .from('subscriptions')
+      .select('count')
+      .limit(1)
+    
+    if (testError) {
+      console.error('❌ DATABASE CONNECTION FAILED:', testError)
+      throw new Error('Database connection failed: ' + testError.message)
+    }
+    console.log('✅ Database connection successful')
     
     // Handle both naming conventions
     const userId = session.metadata.userId || session.metadata.user_id
     const planType = session.metadata.planType || session.metadata.plan_type
     
-    console.log('🔵 User ID:', userId)
-    console.log('🔵 Plan type:', planType)
+    console.log('🔵 User ID from metadata:', userId)
+    console.log('🔵 Plan type from metadata:', planType)
     
     if (!userId) {
       console.error('❌ No userId found in metadata')
@@ -89,6 +104,7 @@ async function handleSubscriptionSuccess(session) {
     console.log('🔵 Retrieving Stripe subscription...')
     const subscription = await stripe.subscriptions.retrieve(session.subscription)
     console.log('✅ Stripe subscription retrieved:', subscription.id)
+    console.log('🔵 Subscription status:', subscription.status)
     
     const planLimits = {
       starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
@@ -98,7 +114,7 @@ async function handleSubscriptionSuccess(session) {
     }
     
     const limits = planLimits[planType] || planLimits.starter
-    console.log('🔵 Plan limits:', limits)
+    console.log('🔵 Plan limits for', planType, ':', limits)
 
     // Check if subscription exists
     console.log('🔵 Checking for existing subscription...')
@@ -110,7 +126,13 @@ async function handleSubscriptionSuccess(session) {
 
     if (checkError && checkError.code !== 'PGRST116') {
       console.error('❌ Error checking existing subscription:', checkError)
-      throw checkError
+      throw new Error('Database error checking subscription: ' + checkError.message)
+    }
+
+    if (existingSubscription) {
+      console.log('🔵 Found existing subscription, will update')
+    } else {
+      console.log('🔵 No existing subscription, will create new')
     }
 
     const subscriptionData = {
@@ -126,7 +148,7 @@ async function handleSubscriptionSuccess(session) {
       updated_at: new Date().toISOString()
     }
 
-    console.log('🔵 Subscription data to save:', subscriptionData)
+    console.log('🔵 Subscription data to save:', JSON.stringify(subscriptionData, null, 2))
 
     if (existingSubscription) {
       console.log('🔵 Updating existing subscription...')
@@ -137,9 +159,11 @@ async function handleSubscriptionSuccess(session) {
 
       if (error) {
         console.error('❌ Error updating subscription:', error)
-        throw error
+        console.error('❌ Update error details:', JSON.stringify(error, null, 2))
+        throw new Error('Database error updating subscription: ' + error.message)
       }
-      console.log('✅ Updated existing subscription')
+      console.log('✅ Updated existing subscription successfully')
+      console.log('🔵 Update result:', data)
     } else {
       console.log('🔵 Creating new subscription...')
       const { data, error } = await supabase
@@ -152,15 +176,19 @@ async function handleSubscriptionSuccess(session) {
 
       if (error) {
         console.error('❌ Error creating subscription:', error)
-        throw error
+        console.error('❌ Insert error details:', JSON.stringify(error, null, 2))
+        throw new Error('Database error creating subscription: ' + error.message)
       }
-      console.log('✅ Created new subscription')
+      console.log('✅ Created new subscription successfully')
+      console.log('🔵 Insert result:', data)
     }
 
-    console.log('✅ Subscription success handler completed')
+    console.log('✅ === SUBSCRIPTION HANDLER COMPLETED ===')
     
   } catch (error) {
-    console.error('❌ Error in subscription success handler:', error)
+    console.error('❌ === SUBSCRIPTION HANDLER FAILED ===')
+    console.error('❌ Handler error:', error.message)
+    console.error('❌ Handler error stack:', error.stack)
     throw error
   }
 }
