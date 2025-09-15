@@ -197,9 +197,7 @@ export default function EmployerDashboard() {
   }
 
   // FIXED: Immediate upgrades, end-of-cycle downgrades
-  const handleUpgrade = async (priceId: string, planType: string) => {
-    if (!user?.id) return
-    
+  const handleUpgrade = async (priceId, planType) => {
     try {
       setIsLoading(true)
       const response = await fetch('/api/stripe/manage-subscription', {
@@ -207,64 +205,53 @@ export default function EmployerDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'upgrade_immediate',
+          userId: user.id,
           newPriceId: priceId,
           newPlanType: planType,
-          userId: user.id
+          subscriptionId: subscription.stripeSubscriptionId
         })
       })
-
+  
       const data = await response.json()
-      
       if (data.success) {
-        alert(`Successfully upgraded to ${planType} plan! Your new features are active immediately.`)
+        alert(data.message)
         window.location.reload()
       } else {
         alert(data.error || 'Upgrade failed')
       }
     } catch (error) {
-      console.error('Upgrade error:', error)
-      alert('Upgrade failed. Please try again.')
+      alert('Upgrade failed: ' + error.message)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDowngrade = async (priceId: string, planType: string) => {
-    if (!user?.id) return
-    
-    const currentPlanName = subscriptionCheck.currentPlan.charAt(0).toUpperCase() + subscriptionCheck.currentPlan.slice(1)
-    const newPlanName = planType.charAt(0).toUpperCase() + planType.slice(1)
-    
-    const confirmed = confirm(
-      `Your plan will change from ${currentPlanName} to ${newPlanName} at the end of your current billing cycle. You'll keep all ${currentPlanName} features until then. Continue?`
-    )
-    
-    if (!confirmed) return
-    
+  const handleDowngrade = async (priceId, planType) => {
     try {
+      const confirmed = confirm(`You'll keep your current features until your next billing date, then switch to ${planType}. Continue?`)
+      if (!confirmed) return
+  
       setIsLoading(true)
       const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'downgrade_end_cycle',
+          userId: user.id,
           newPriceId: priceId,
           newPlanType: planType,
-          userId: user.id
+          subscriptionId: subscription.stripeSubscriptionId
         })
       })
-
+  
       const data = await response.json()
-      
       if (data.success) {
-        alert(`Downgrade scheduled! You'll keep your current ${currentPlanName} features until ${data.effectiveDate || 'your next billing cycle'}, then switch to ${newPlanName}.`)
-        window.location.reload()
+        alert(data.message)
       } else {
         alert(data.error || 'Downgrade failed')
       }
     } catch (error) {
-      console.error('Downgrade error:', error)
-      alert('Downgrade failed. Please try again.')
+      alert('Downgrade failed: ' + error.message)
     } finally {
       setIsLoading(false)
     }
