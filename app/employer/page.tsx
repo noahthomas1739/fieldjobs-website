@@ -203,6 +203,11 @@ export default function EmployerDashboard() {
 
   // FIXED: Immediate upgrades, end-of-cycle downgrades with proper types
   const handleUpgrade = async (priceId: string, planType: string) => {
+    if (!user?.id) {
+      alert('Please log in to upgrade your subscription.')
+      return
+    }
+
     try {
       setIsLoading(true)
       
@@ -247,6 +252,11 @@ export default function EmployerDashboard() {
   }
 
   const handleDowngrade = async (priceId: string, planType: string) => {
+    if (!user?.id) {
+      alert('Please log in to manage your subscription.')
+      return
+    }
+
     try {
       const confirmed = confirm(`You'll keep your current features until your next billing date, then switch to ${planType}. Continue?`)
       if (!confirmed) return
