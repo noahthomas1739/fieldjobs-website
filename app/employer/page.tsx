@@ -19,7 +19,12 @@ export default function EmployerDashboard() {
   const [applications, setApplications] = useState<any[]>([])
   const [analytics, setAnalytics] = useState<any>({})
   const [profile, setProfile] = useState<any>({})
-  const [subscription, setSubscription] = useState<any>({ tier: 'free', credits: 0, activeJobs: 0 })
+  const [subscription, setSubscription] = useState<any>({ 
+    tier: 'free', 
+    credits: 0, 
+    activeJobs: 0,
+    stripeSubscriptionId: null 
+  })
   
   // Free job feature states
   const [freeJobEligible, setFreeJobEligible] = useState(false)
@@ -196,10 +201,16 @@ export default function EmployerDashboard() {
     return levels[plan] || 0
   }
 
-  // FIXED: Immediate upgrades, end-of-cycle downgrades
-  const handleUpgrade = async (priceId, planType) => {
+  // FIXED: Immediate upgrades, end-of-cycle downgrades with proper types
+  const handleUpgrade = async (priceId: string, planType: string) => {
     try {
       setIsLoading(true)
+      
+      if (!subscription?.stripeSubscriptionId) {
+        alert('No active subscription found. Please contact support.')
+        return
+      }
+
       const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -213,25 +224,40 @@ export default function EmployerDashboard() {
       })
   
       const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`)
+      }
+
       if (data.success) {
-        alert(data.message)
+        alert(data.message || 'Upgrade successful!')
+        // Reload subscription data
+        await loadSubscription()
+        // Refresh the entire dashboard
         window.location.reload()
       } else {
         alert(data.error || 'Upgrade failed')
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Upgrade error:', error)
       alert('Upgrade failed: ' + error.message)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDowngrade = async (priceId, planType) => {
+  const handleDowngrade = async (priceId: string, planType: string) => {
     try {
       const confirmed = confirm(`You'll keep your current features until your next billing date, then switch to ${planType}. Continue?`)
       if (!confirmed) return
+
+      if (!subscription?.stripeSubscriptionId) {
+        alert('No active subscription found. Please contact support.')
+        return
+      }
   
       setIsLoading(true)
+      
       const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -245,12 +271,19 @@ export default function EmployerDashboard() {
       })
   
       const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`)
+      }
+
       if (data.success) {
-        alert(data.message)
+        alert(data.message || 'Downgrade scheduled successfully!')
+        await loadSubscription()
       } else {
         alert(data.error || 'Downgrade failed')
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Downgrade error:', error)
       alert('Downgrade failed: ' + error.message)
     } finally {
       setIsLoading(false)
@@ -395,7 +428,7 @@ export default function EmployerDashboard() {
         console.error('No session ID or URL in response:', data)
         alert('Error: No checkout URL received')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error purchasing subscription:', error)
       alert('Error starting checkout. Please try again.')
     } finally {
@@ -561,15 +594,16 @@ export default function EmployerDashboard() {
           credits: data.subscription.credits || 0,
           activeJobs: data.subscription.active_jobs_limit || 0,
           status: data.subscription.status,
-          currentPeriodEnd: data.subscription.current_period_end
+          currentPeriodEnd: data.subscription.current_period_end,
+          stripeSubscriptionId: data.subscription.stripe_subscription_id || null
         })
       } else {
         console.log('No active subscription found')
-        setSubscription({ tier: 'free', credits: 0, activeJobs: 0 })
+        setSubscription({ tier: 'free', credits: 0, activeJobs: 0, stripeSubscriptionId: null })
       }
     } catch (error) {
       console.error('Error loading subscription:', error)
-      setSubscription({ tier: 'free', credits: 0, activeJobs: 0 })
+      setSubscription({ tier: 'free', credits: 0, activeJobs: 0, stripeSubscriptionId: null })
     }
   }
 
@@ -696,7 +730,8 @@ export default function EmployerDashboard() {
             credits: data.subscription.credits || 0,
             activeJobs: data.subscription.active_jobs_limit || 0,
             status: data.subscription.status,
-            currentPeriodEnd: data.subscription.current_period_end
+            currentPeriodEnd: data.subscription.current_period_end,
+            stripeSubscriptionId: data.subscription.stripe_subscription_id || null
           })
         }
       } catch (error) {
@@ -1086,7 +1121,7 @@ export default function EmployerDashboard() {
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - I'll include all the existing tab content here unchanged */}
         <div className="bg-white rounded-lg p-6 shadow">
           
           {/* Overview Tab */}
@@ -1702,13 +1737,7 @@ export default function EmployerDashboard() {
                     <div>✅ Dedicated account manager</div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleSubscriptionPurchase('enterprise')}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium text-lg"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Processing...' : 'Upgrade'}
-                </button>
+                {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
               </div>
 
               <div className="border-t border-gray-200 pt-8">
