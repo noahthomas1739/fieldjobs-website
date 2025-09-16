@@ -13,18 +13,27 @@ export async function POST(request) {
   try {
     const { action, userId, newPriceId, newPlanType, subscriptionId } = await request.json()
     
-    console.log('Managing subscription:', { action, userId, newPriceId, newPlanType, subscriptionId })
+    console.log('🔧 Managing subscription:', { action, userId, newPriceId, newPlanType, subscriptionId })
+
+    // Validate required parameters
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+    }
 
     // Get user's current subscription from database
     const { data: currentSub, error: subError } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', userId)
+      .eq('status', 'active')
       .single()
 
     if (subError || !currentSub) {
-      return NextResponse.json({ error: 'Subscription not found' }, { status: 404 })
+      console.error('❌ Active subscription not found:', subError)
+      return NextResponse.json({ error: 'No active subscription found' }, { status: 404 })
     }
+
+    console.log('📊 Current subscription:', currentSub)
 
     switch (action) {
       case 'cancel':
@@ -36,26 +45,18 @@ export async function POST(request) {
       case 'downgrade_end_cycle':
         return await downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType)
       
-      // Legacy support for old actions
-      case 'upgrade':
-      case 'downgrade':
-        return await changeSubscriptionPlan(currentSub, newPriceId)
-      
       case 'reactivate':
         return await reactivateSubscription(currentSub)
       
       case 'get_billing_portal':
         return await createBillingPortalSession(currentSub.stripe_customer_id)
       
-      case 'get_billing_history':
-        return await getBillingHistory(currentSub.stripe_customer_id)
-      
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
 
   } catch (error) {
-    console.error('Subscription management error:', error)
+    console.error('❌ Subscription management error:', error)
     return NextResponse.json(
       { error: 'Internal server error', details: error.message },
       { status: 500 }
@@ -63,12 +64,25 @@ export async function POST(request) {
   }
 }
 
-// NEW: Immediate upgrade with proration
+// Immediate upgrade with proration
 async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType) {
   try {
+    console.log('⬆️ Starting immediate upgrade...', { newPriceId, newPlanType })
+
+    if (!currentSub.stripe_subscription_id) {
+      throw new Error('No Stripe subscription ID found')
+    }
+
+    // Get current Stripe subscription
     const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
-    
-    // Immediate upgrade with proration - customer pays difference now
+    console.log('📋 Retrieved Stripe subscription:', subscription.id)
+
+    if (!subscription.items?.data?.[0]) {
+      throw new Error('No subscription items found')
+    }
+
+    // Immediate upgrade with proration
+    console.log('💰 Updating Stripe subscription with proration...')
     const updatedSubscription = await stripe.subscriptions.update(
       currentSub.stripe_subscription_id,
       {
@@ -80,11 +94,14 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
       }
     )
 
-    // Determine new plan details
-    const planDetails = getPlanDetailsFromPriceId(newPriceId)
+    console.log('✅ Stripe subscription updated successfully')
+
+    // Get plan details
+    const planDetails = getPlanDetailsFromPriceId(newPriceId, newPlanType)
+    console.log('📊 Plan details:', planDetails)
     
-    // Update database immediately
-    await supabase
+    // Update subscriptions table
+    const { error: updateError } = await supabase
       .from('subscriptions')
       .update({
         plan_type: planDetails.planType,
@@ -97,25 +114,46 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
       })
       .eq('user_id', currentSub.user_id)
 
+    if (updateError) {
+      console.error('❌ Database update error:', updateError)
+      throw new Error('Failed to update database: ' + updateError.message)
+    }
+
+    console.log('✅ Database updated successfully')
+
     return NextResponse.json({
       success: true,
-      message: `Successfully upgraded to ${planDetails.planType} plan`,
+      message: `Successfully upgraded to ${planDetails.planType} plan! You'll be charged the prorated difference.`,
       newPlan: planDetails
     })
 
   } catch (error) {
-    console.error('Upgrade subscription error:', error)
-    return NextResponse.json({ error: 'Failed to upgrade subscription' }, { status: 500 })
+    console.error('❌ Upgrade subscription error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to upgrade subscription', 
+      details: error.message 
+    }, { status: 500 })
   }
 }
 
-// NEW: End-of-cycle downgrade using subscription schedules
+// End-of-cycle downgrade using subscription schedules
 async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType) {
   try {
+    console.log('⬇️ Starting end-cycle downgrade...', { newPriceId, newPlanType })
+
+    if (!currentSub.stripe_subscription_id) {
+      throw new Error('No Stripe subscription ID found')
+    }
+
+    // Get current Stripe subscription
     const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
     const currentPeriodEnd = subscription.current_period_end
 
+    console.log('📅 Current period ends:', new Date(currentPeriodEnd * 1000))
+
     // Create subscription schedule for end-of-cycle change
+    console.log('📅 Creating subscription schedule...')
     const schedule = await stripe.subscriptionSchedules.create({
       from_subscription: currentSub.stripe_subscription_id,
       phases: [
@@ -139,16 +177,18 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
       ]
     })
 
-    // Store the scheduled change information
-    const planDetails = getPlanDetailsFromPriceId(newPriceId)
+    console.log('✅ Subscription schedule created:', schedule.id)
+
+    // Get plan details
+    const planDetails = getPlanDetailsFromPriceId(newPriceId, newPlanType)
     const effectiveDate = new Date(currentPeriodEnd * 1000).toISOString()
 
-    // Store scheduled change in database (optional tracking table)
-    await supabase
+    // Store scheduled change in your existing subscription_schedule_changes table
+    const { error: scheduleError } = await supabase
       .from('subscription_schedule_changes')
-      .upsert({
+      .insert({
         user_id: currentSub.user_id,
-        subscription_id: currentSub.id,
+        subscription_id: currentSub.id, // Using the UUID from subscriptions table
         stripe_schedule_id: schedule.id,
         current_plan: currentSub.plan_type,
         new_plan: planDetails.planType,
@@ -158,23 +198,36 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
         updated_at: new Date().toISOString()
       })
 
+    if (scheduleError) {
+      console.error('❌ Schedule tracking error:', scheduleError)
+      // Continue anyway - the Stripe schedule was created successfully
+    } else {
+      console.log('✅ Schedule change tracked in database')
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Downgrade scheduled to ${planDetails.planType} plan`,
+      message: `Downgrade scheduled to ${planDetails.planType} plan! Your current plan benefits continue until ${new Date(currentPeriodEnd * 1000).toLocaleDateString()}.`,
       effectiveDate: effectiveDate,
       newPlan: planDetails,
       scheduleId: schedule.id
     })
 
   } catch (error) {
-    console.error('Downgrade subscription error:', error)
-    return NextResponse.json({ error: 'Failed to schedule downgrade' }, { status: 500 })
+    console.error('❌ Downgrade subscription error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to schedule downgrade', 
+      details: error.message 
+    }, { status: 500 })
   }
 }
 
 // Cancel subscription at period end
 async function cancelSubscription(currentSub) {
   try {
+    console.log('❌ Cancelling subscription at period end...')
+
     const subscription = await stripe.subscriptions.update(
       currentSub.stripe_subscription_id,
       {
@@ -183,7 +236,7 @@ async function cancelSubscription(currentSub) {
     )
 
     // Update database
-    await supabase
+    const { error: updateError } = await supabase
       .from('subscriptions')
       .update({
         status: 'cancelled',
@@ -192,6 +245,10 @@ async function cancelSubscription(currentSub) {
       })
       .eq('user_id', currentSub.user_id)
 
+    if (updateError) {
+      throw new Error('Failed to update database: ' + updateError.message)
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Subscription will cancel at the end of your billing period',
@@ -199,58 +256,20 @@ async function cancelSubscription(currentSub) {
     })
 
   } catch (error) {
-    console.error('Cancel subscription error:', error)
-    return NextResponse.json({ error: 'Failed to cancel subscription' }, { status: 500 })
-  }
-}
-
-// Legacy: Change subscription plan (immediate with proration)
-async function changeSubscriptionPlan(currentSub, newPriceId) {
-  try {
-    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
-    
-    const updatedSubscription = await stripe.subscriptions.update(
-      currentSub.stripe_subscription_id,
-      {
-        items: [{
-          id: subscription.items.data[0].id,
-          price: newPriceId,
-        }],
-        proration_behavior: 'create_prorations'
-      }
-    )
-
-    // Determine new plan details
-    const planDetails = getPlanDetailsFromPriceId(newPriceId)
-    
-    // Update database
-    await supabase
-      .from('subscriptions')
-      .update({
-        plan_type: planDetails.planType,
-        price: planDetails.price,
-        active_jobs_limit: planDetails.jobLimit,
-        credits: planDetails.credits,
-        current_period_start: new Date(updatedSubscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(updatedSubscription.current_period_end * 1000).toISOString()
-      })
-      .eq('user_id', currentSub.user_id)
-
-    return NextResponse.json({
-      success: true,
-      message: `Successfully changed to ${planDetails.planType} plan`,
-      newPlan: planDetails
-    })
-
-  } catch (error) {
-    console.error('Change subscription error:', error)
-    return NextResponse.json({ error: 'Failed to change subscription' }, { status: 500 })
+    console.error('❌ Cancel subscription error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to cancel subscription',
+      details: error.message
+    }, { status: 500 })
   }
 }
 
 // Reactivate cancelled subscription
 async function reactivateSubscription(currentSub) {
   try {
+    console.log('🔄 Reactivating subscription...')
+
     const subscription = await stripe.subscriptions.update(
       currentSub.stripe_subscription_id,
       {
@@ -259,13 +278,18 @@ async function reactivateSubscription(currentSub) {
     )
 
     // Update database
-    await supabase
+    const { error: updateError } = await supabase
       .from('subscriptions')
       .update({
         status: 'active',
-        cancelled_at: null
+        cancelled_at: null,
+        updated_at: new Date().toISOString()
       })
       .eq('user_id', currentSub.user_id)
+
+    if (updateError) {
+      throw new Error('Failed to update database: ' + updateError.message)
+    }
 
     return NextResponse.json({
       success: true,
@@ -273,14 +297,20 @@ async function reactivateSubscription(currentSub) {
     })
 
   } catch (error) {
-    console.error('Reactivate subscription error:', error)
-    return NextResponse.json({ error: 'Failed to reactivate subscription' }, { status: 500 })
+    console.error('❌ Reactivate subscription error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to reactivate subscription',
+      details: error.message
+    }, { status: 500 })
   }
 }
 
 // Create Stripe billing portal session
 async function createBillingPortalSession(customerId) {
   try {
+    console.log('🏢 Creating billing portal session...')
+
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?tab=billing`
@@ -292,103 +322,68 @@ async function createBillingPortalSession(customerId) {
     })
 
   } catch (error) {
-    console.error('Billing portal error:', error)
-    return NextResponse.json({ error: 'Failed to create billing portal' }, { status: 500 })
+    console.error('❌ Billing portal error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to create billing portal',
+      details: error.message
+    }, { status: 500 })
   }
 }
 
-// Get billing history
-async function getBillingHistory(customerId) {
-  try {
-    const invoices = await stripe.invoices.list({
-      customer: customerId,
-      limit: 12,
-      status: 'paid'
-    })
+// Helper function using environment variables and fallback plan detection
+function getPlanDetailsFromPriceId(priceId, planType) {
+  console.log('🔍 Getting plan details for:', { priceId, planType })
 
-    const billingHistory = invoices.data.map(invoice => ({
-      id: invoice.id,
-      amount: invoice.amount_paid,
-      currency: invoice.currency,
-      date: new Date(invoice.created * 1000).toISOString(),
-      status: invoice.status,
-      description: invoice.lines.data[0]?.description || 'Subscription',
-      invoiceUrl: invoice.hosted_invoice_url
-    }))
-
-    return NextResponse.json({
-      success: true,
-      billingHistory
-    })
-
-  } catch (error) {
-    console.error('Billing history error:', error)
-    return NextResponse.json({ error: 'Failed to get billing history' }, { status: 500 })
+  // Use environment variables for price ID matching
+  const envPriceIds = {
+    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
+    growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
+    professional: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+    enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
   }
-}
 
-// Helper function to get plan details from price ID
-function getPlanDetailsFromPriceId(priceId) {
+  console.log('🔑 Environment price IDs:', envPriceIds)
+
+  // Match by environment variables first, then fallback to planType
+  let detectedPlan = planType || 'starter'
+
+  // Try to match by price ID to environment variables
+  Object.entries(envPriceIds).forEach(([plan, envPriceId]) => {
+    if (priceId === envPriceId) {
+      detectedPlan = plan
+    }
+  })
+
   const planMapping = {
-    // Single Job - handled separately as one-time payment
-    'price_1Rk5zpRC3IxXIgoOLPKmUXgd': {
-      planType: 'single_job',
-      price: 9900, // $99
-      jobLimit: 1,
-      credits: 0,
-      monthlyCredits: 0,
-      featuredListings: 0,
-      monthlyFeaturedListings: 0
-    },
-    // Starter Plan - $199
-    'price_1RotACRC3IxXIgoOOTmG4lwU': {
+    starter: {
       planType: 'starter',
       price: 19900, // $199
       jobLimit: 3,
-      credits: 0,
-      monthlyCredits: 0,
-      featuredListings: 0,
-      monthlyFeaturedListings: 0
+      credits: 0
     },
-    // Growth Plan - $299
-    'price_1RotHgRC3IxXIgoOOb6ag0tA': {
+    growth: {
       planType: 'growth',
       price: 29900, // $299
       jobLimit: 6,
-      credits: 5,
-      monthlyCredits: 5,
-      featuredListings: 0,
-      monthlyFeaturedListings: 0
+      credits: 5
     },
-    // Professional Plan - $599
-    'price_1Rk5xGRC3IxXIgoOKFM0DRZd': {
+    professional: {
       planType: 'professional', 
       price: 59900, // $599
       jobLimit: 15,
-      credits: 25,
-      monthlyCredits: 25,
-      featuredListings: 2,
-      monthlyFeaturedListings: 2
+      credits: 25
     },
-    // Enterprise Plan - $1,999
-    'price_1Rk5xzRC3IxXIgoO9EtZ0zny': {
+    enterprise: {
       planType: 'enterprise',
       price: 199900, // $1,999
       jobLimit: 999999,
-      credits: 100,
-      monthlyCredits: 100,
-      featuredListings: 5,
-      monthlyFeaturedListings: 5
+      credits: 100
     }
   }
 
-  return planMapping[priceId] || {
-    planType: 'starter',
-    price: 19900,
-    jobLimit: 3,
-    credits: 0,
-    monthlyCredits: 0,
-    featuredListings: 0,
-    monthlyFeaturedListings: 0
-  }
+  const details = planMapping[detectedPlan] || planMapping['starter']
+  console.log('📊 Final plan details:', details)
+  
+  return details
 }
