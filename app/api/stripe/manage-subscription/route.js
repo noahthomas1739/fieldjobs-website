@@ -25,15 +25,48 @@ export async function POST(request) {
       .from('subscriptions')
       .select('*')
       .eq('user_id', userId)
-      .eq('status', 'active')
       .single()
 
     if (subError || !currentSub) {
-      console.error('❌ Active subscription not found:', subError)
-      return NextResponse.json({ error: 'No active subscription found' }, { status: 404 })
+      console.error('❌ Subscription not found:', subError)
+      return NextResponse.json({ error: 'No subscription found' }, { status: 404 })
     }
 
     console.log('📊 Current subscription:', currentSub)
+
+    // CRITICAL FIX: Check actual Stripe subscription status first
+    if (currentSub.stripe_subscription_id) {
+      try {
+        const stripeSubscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
+        console.log('📋 Stripe subscription status:', stripeSubscription.status)
+        
+        // If Stripe subscription is canceled but database shows active, sync the database
+        if (stripeSubscription.status === 'canceled' && currentSub.status !== 'cancelled') {
+          console.log('🔄 Syncing canceled status to database...')
+          await supabase
+            .from('subscriptions')
+            .update({
+              status: 'cancelled',
+              cancelled_at: new Date(stripeSubscription.canceled_at * 1000).toISOString()
+            })
+            .eq('user_id', userId)
+        }
+
+        // Handle canceled subscriptions - redirect to new subscription creation
+        if (stripeSubscription.status === 'canceled') {
+          return NextResponse.json({
+            success: false,
+            error: 'Subscription is canceled',
+            action: 'create_new_subscription',
+            message: 'Your subscription was canceled. Please create a new subscription instead of upgrading.',
+            shouldCreateNew: true
+          }, { status: 400 })
+        }
+      } catch (stripeError) {
+        console.error('⚠️ Error checking Stripe subscription:', stripeError)
+        // Continue anyway - might be a network issue
+      }
+    }
 
     switch (action) {
       case 'cancel':
@@ -73,9 +106,19 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
       throw new Error('No Stripe subscription ID found')
     }
 
-    // Get current Stripe subscription
+    // Get current Stripe subscription and double-check status
     const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
-    console.log('📋 Retrieved Stripe subscription:', subscription.id)
+    console.log('📋 Retrieved Stripe subscription:', subscription.id, 'Status:', subscription.status)
+
+    // Final check - cannot upgrade canceled subscriptions
+    if (subscription.status === 'canceled') {
+      return NextResponse.json({
+        success: false,
+        error: 'Cannot upgrade canceled subscription',
+        shouldCreateNew: true,
+        message: 'Your subscription is canceled. Please create a new subscription instead.'
+      }, { status: 400 })
+    }
 
     if (!subscription.items?.data?.[0]) {
       throw new Error('No subscription items found')
@@ -110,6 +153,8 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
         credits: planDetails.credits,
         current_period_start: new Date(updatedSubscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(updatedSubscription.current_period_end * 1000).toISOString(),
+        status: 'active', // Ensure it's marked as active
+        cancelled_at: null, // Clear any cancellation
         updated_at: new Date().toISOString()
       })
       .eq('user_id', currentSub.user_id)
@@ -129,6 +174,17 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
 
   } catch (error) {
     console.error('❌ Upgrade subscription error:', error)
+    
+    // Handle specific Stripe errors
+    if (error.message.includes('canceled subscription can only update')) {
+      return NextResponse.json({
+        success: false,
+        error: 'Cannot upgrade canceled subscription',
+        shouldCreateNew: true,
+        message: 'Your subscription is canceled. Please create a new subscription instead.'
+      }, { status: 400 })
+    }
+
     return NextResponse.json({ 
       success: false,
       error: 'Failed to upgrade subscription', 
@@ -146,8 +202,18 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
       throw new Error('No Stripe subscription ID found')
     }
 
-    // Get current Stripe subscription
+    // Get current Stripe subscription and check status
     const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
+    
+    if (subscription.status === 'canceled') {
+      return NextResponse.json({
+        success: false,
+        error: 'Cannot downgrade canceled subscription',
+        shouldCreateNew: true,
+        message: 'Your subscription is canceled. Please create a new subscription instead.'
+      }, { status: 400 })
+    }
+
     const currentPeriodEnd = subscription.current_period_end
 
     console.log('📅 Current period ends:', new Date(currentPeriodEnd * 1000))
@@ -183,12 +249,12 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
     const planDetails = getPlanDetailsFromPriceId(newPriceId, newPlanType)
     const effectiveDate = new Date(currentPeriodEnd * 1000).toISOString()
 
-    // Store scheduled change in your existing subscription_schedule_changes table
+    // Store scheduled change in database
     const { error: scheduleError } = await supabase
       .from('subscription_schedule_changes')
       .insert({
         user_id: currentSub.user_id,
-        subscription_id: currentSub.id, // Using the UUID from subscriptions table
+        subscription_id: currentSub.id,
         stripe_schedule_id: schedule.id,
         current_plan: currentSub.plan_type,
         new_plan: planDetails.planType,
@@ -200,7 +266,6 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
 
     if (scheduleError) {
       console.error('❌ Schedule tracking error:', scheduleError)
-      // Continue anyway - the Stripe schedule was created successfully
     } else {
       console.log('✅ Schedule change tracked in database')
     }
@@ -270,7 +335,20 @@ async function reactivateSubscription(currentSub) {
   try {
     console.log('🔄 Reactivating subscription...')
 
-    const subscription = await stripe.subscriptions.update(
+    // Check if it's actually canceled
+    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
+    
+    if (subscription.status === 'canceled') {
+      return NextResponse.json({
+        success: false,
+        error: 'Cannot reactivate fully canceled subscription',
+        shouldCreateNew: true,
+        message: 'This subscription is permanently canceled. Please create a new subscription.'
+      }, { status: 400 })
+    }
+
+    // Only works for subscriptions that are set to cancel at period end
+    const updatedSubscription = await stripe.subscriptions.update(
       currentSub.stripe_subscription_id,
       {
         cancel_at_period_end: false
@@ -331,7 +409,7 @@ async function createBillingPortalSession(customerId) {
   }
 }
 
-// Helper function using environment variables and fallback plan detection
+// Helper function using environment variables
 function getPlanDetailsFromPriceId(priceId, planType) {
   console.log('🔍 Getting plan details for:', { priceId, planType })
 
@@ -358,25 +436,25 @@ function getPlanDetailsFromPriceId(priceId, planType) {
   const planMapping = {
     starter: {
       planType: 'starter',
-      price: 19900, // $199
+      price: 19900,
       jobLimit: 3,
       credits: 0
     },
     growth: {
       planType: 'growth',
-      price: 29900, // $299
+      price: 29900,
       jobLimit: 6,
       credits: 5
     },
     professional: {
       planType: 'professional', 
-      price: 59900, // $599
+      price: 59900,
       jobLimit: 15,
       credits: 25
     },
     enterprise: {
       planType: 'enterprise',
-      price: 199900, // $1,999
+      price: 199900,
       jobLimit: 999999,
       credits: 100
     }
