@@ -20,11 +20,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // Get user's current subscription from database
+    // ENHANCED: Get user's LATEST subscription (active or most recent)
     const { data: currentSub, error: subError } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single()
 
     if (subError || !currentSub) {
@@ -34,23 +36,14 @@ export async function POST(request) {
 
     console.log('📊 Current subscription:', currentSub)
 
-    // CRITICAL FIX: Check actual Stripe subscription status first
+    // ENHANCED: Check actual Stripe subscription status and sync if needed
     if (currentSub.stripe_subscription_id) {
       try {
         const stripeSubscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
         console.log('📋 Stripe subscription status:', stripeSubscription.status)
         
-        // If Stripe subscription is canceled but database shows active, sync the database
-        if (stripeSubscription.status === 'canceled' && currentSub.status !== 'cancelled') {
-          console.log('🔄 Syncing canceled status to database...')
-          await supabase
-            .from('subscriptions')
-            .update({
-              status: 'cancelled',
-              cancelled_at: new Date(stripeSubscription.canceled_at * 1000).toISOString()
-            })
-            .eq('user_id', userId)
-        }
+        // Sync database with Stripe reality
+        await syncSubscriptionStatus(currentSub, stripeSubscription)
 
         // Handle canceled subscriptions - redirect to new subscription creation
         if (stripeSubscription.status === 'canceled') {
@@ -73,7 +66,7 @@ export async function POST(request) {
         return await cancelSubscription(currentSub)
       
       case 'upgrade_immediate':
-        return await upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
+        return await upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType, userId)
       
       case 'downgrade_end_cycle':
         return await downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType)
@@ -97,8 +90,34 @@ export async function POST(request) {
   }
 }
 
-// Immediate upgrade with proration
-async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType) {
+// ENHANCED: Sync database subscription status with Stripe
+async function syncSubscriptionStatus(currentSub, stripeSubscription) {
+  const stripeStatus = stripeSubscription.status
+  const dbStatus = currentSub.status
+  
+  if (stripeStatus !== dbStatus) {
+    console.log(`🔄 Syncing status: DB=${dbStatus} -> Stripe=${stripeStatus}`)
+    
+    const updateData = {
+      status: stripeStatus === 'canceled' ? 'cancelled' : stripeStatus,
+      updated_at: new Date().toISOString()
+    }
+    
+    if (stripeStatus === 'canceled' && !currentSub.cancelled_at) {
+      updateData.cancelled_at = new Date(stripeSubscription.canceled_at * 1000).toISOString()
+    }
+    
+    await supabase
+      .from('subscriptions')
+      .update(updateData)
+      .eq('id', currentSub.id)
+    
+    console.log('✅ Database status synced with Stripe')
+  }
+}
+
+// ENHANCED: Immediate upgrade with cleanup and proration
+async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType, userId) {
   try {
     console.log('⬆️ Starting immediate upgrade...', { newPriceId, newPlanType })
 
@@ -123,6 +142,9 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
     if (!subscription.items?.data?.[0]) {
       throw new Error('No subscription items found')
     }
+
+    // ENHANCED: Clean up old subscriptions before upgrading
+    await cleanupOldSubscriptions(userId, currentSub.stripe_subscription_id)
 
     // Immediate upgrade with proration
     console.log('💰 Updating Stripe subscription with proration...')
@@ -164,6 +186,9 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
       throw new Error('Failed to update database: ' + updateError.message)
     }
 
+    // ENHANCED: Update credit balance for new plan
+    await updateCreditBalance(userId, planDetails.planType)
+
     console.log('✅ Database updated successfully')
 
     return NextResponse.json({
@@ -193,7 +218,7 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType)
   }
 }
 
-// End-of-cycle downgrade using subscription schedules
+// ENHANCED: End-of-cycle downgrade with better validation
 async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType) {
   try {
     console.log('⬇️ Starting end-cycle downgrade...', { newPriceId, newPlanType })
@@ -217,6 +242,22 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
     const currentPeriodEnd = subscription.current_period_end
 
     console.log('📅 Current period ends:', new Date(currentPeriodEnd * 1000))
+
+    // ENHANCED: Check if there's already a scheduled downgrade
+    const { data: existingSchedule } = await supabase
+      .from('subscription_schedule_changes')
+      .select('*')
+      .eq('user_id', currentSub.user_id)
+      .eq('status', 'scheduled')
+      .single()
+
+    if (existingSchedule) {
+      return NextResponse.json({
+        success: false,
+        error: 'Downgrade already scheduled',
+        message: `You already have a scheduled downgrade to ${existingSchedule.new_plan} plan on ${new Date(existingSchedule.effective_date).toLocaleDateString()}.`
+      }, { status: 400 })
+    }
 
     // Create subscription schedule for end-of-cycle change
     console.log('📅 Creating subscription schedule...')
@@ -288,7 +329,7 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
   }
 }
 
-// Cancel subscription at period end
+// ENHANCED: Cancel subscription with cleanup
 async function cancelSubscription(currentSub) {
   try {
     console.log('❌ Cancelling subscription at period end...')
@@ -314,6 +355,13 @@ async function cancelSubscription(currentSub) {
       throw new Error('Failed to update database: ' + updateError.message)
     }
 
+    // Cancel any scheduled changes
+    await supabase
+      .from('subscription_schedule_changes')
+      .update({ status: 'cancelled' })
+      .eq('user_id', currentSub.user_id)
+      .eq('status', 'scheduled')
+
     return NextResponse.json({
       success: true,
       message: 'Subscription will cancel at the end of your billing period',
@@ -330,7 +378,7 @@ async function cancelSubscription(currentSub) {
   }
 }
 
-// Reactivate cancelled subscription
+// ENHANCED: Reactivate with validation
 async function reactivateSubscription(currentSub) {
   try {
     console.log('🔄 Reactivating subscription...')
@@ -409,6 +457,52 @@ async function createBillingPortalSession(customerId) {
   }
 }
 
+// ENHANCED: Cleanup old subscriptions function
+async function cleanupOldSubscriptions(userId, currentStripeSubscriptionId) {
+  console.log('🧹 Cleaning up old subscriptions for user:', userId)
+  
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({ 
+      status: 'replaced',
+      cancelled_at: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .neq('stripe_subscription_id', currentStripeSubscriptionId)
+  
+  if (error) {
+    console.error('⚠️ Error cleaning up old subscriptions:', error)
+  } else {
+    console.log('✅ Cleaned up old subscriptions')
+  }
+}
+
+// ENHANCED: Update credit balance for plan changes
+async function updateCreditBalance(userId, planType) {
+  const monthlyCredits = {
+    'starter': 0,
+    'growth': 5,
+    'professional': 25,
+    'enterprise': 100
+  }[planType] || 0
+
+  const { error } = await supabase
+    .from('credit_balances')
+    .upsert({
+      user_id: userId,
+      monthly_credits: monthlyCredits,
+      last_monthly_refresh: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString()
+    })
+
+  if (error) {
+    console.error('⚠️ Error updating credit balance:', error)
+  } else {
+    console.log(`✅ Updated credit balance: ${monthlyCredits} monthly credits`)
+  }
+}
+
 // Helper function using environment variables
 function getPlanDetailsFromPriceId(priceId, planType) {
   console.log('🔍 Getting plan details for:', { priceId, planType })
@@ -420,8 +514,6 @@ function getPlanDetailsFromPriceId(priceId, planType) {
     professional: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
     enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
   }
-
-  console.log('🔑 Environment price IDs:', envPriceIds)
 
   // Match by environment variables first, then fallback to planType
   let detectedPlan = planType || 'starter'
