@@ -38,23 +38,30 @@ export async function POST(request) {
 
     console.log('🔵 Received Stripe webhook:', event.type)
 
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object
-      console.log('🔵 Checkout session completed:', session.id)
-      console.log('🔵 Session mode:', session.mode)
-      console.log('🔵 Session metadata:', JSON.stringify(session.metadata, null, 2))
-
-      if (session.mode === 'subscription') {
-        console.log('🔵 Processing subscription...')
-        try {
-          await handleSubscriptionSuccess(session)
-          console.log('✅ Subscription processed successfully')
-        } catch (subError) {
-          console.error('❌ SUBSCRIPTION ERROR:', subError.message)
-          console.error('❌ SUBSCRIPTION ERROR STACK:', subError.stack)
-          throw subError
-        }
-      }
+    // Handle different webhook events
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutCompleted(event.data.object)
+        break
+        
+      case 'customer.subscription.created':
+        await handleSubscriptionCreated(event.data.object)
+        break
+        
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object)
+        break
+        
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object)
+        break
+        
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(event.data.object)
+        break
+        
+      default:
+        console.log(`🔵 Unhandled event type: ${event.type}`)
     }
 
     console.log('✅ Webhook completed successfully')
@@ -67,6 +74,235 @@ export async function POST(request) {
   }
 }
 
+// Handle checkout completion (existing functionality)
+async function handleCheckoutCompleted(session) {
+  console.log('🔵 === CHECKOUT COMPLETED ===')
+  
+  if (session.mode === 'subscription') {
+    console.log('🔵 Processing subscription checkout...')
+    await handleSubscriptionSuccess(session)
+  } else {
+    console.log('🔵 Non-subscription checkout, skipping')
+  }
+}
+
+// Handle subscription creation (NEW)
+async function handleSubscriptionCreated(subscription) {
+  console.log('🔵 === SUBSCRIPTION CREATED ===')
+  console.log('🔵 Subscription ID:', subscription.id)
+  console.log('🔵 Customer ID:', subscription.customer)
+  console.log('🔵 Status:', subscription.status)
+  
+  try {
+    // Find user by customer ID
+    const { data: existingSub, error: findError } = await supabase
+      .from('subscriptions')
+      .select('user_id')
+      .eq('stripe_customer_id', subscription.customer)
+      .limit(1)
+      .single()
+    
+    if (findError && findError.code !== 'PGRST116') {
+      console.error('❌ Error finding user:', findError)
+      throw new Error('Could not find user for customer: ' + subscription.customer)
+    }
+    
+    if (!existingSub) {
+      console.log('⚠️ No existing subscription found for customer, skipping')
+      return
+    }
+    
+    await syncSubscriptionToDatabase(subscription, existingSub.user_id)
+    console.log('✅ Subscription created and synced')
+    
+  } catch (error) {
+    console.error('❌ Subscription creation error:', error)
+    throw error
+  }
+}
+
+// Handle subscription updates (NEW)
+async function handleSubscriptionUpdated(subscription) {
+  console.log('🔵 === SUBSCRIPTION UPDATED ===')
+  console.log('🔵 Subscription ID:', subscription.id)
+  console.log('🔵 Status:', subscription.status)
+  
+  try {
+    // Find subscription in database
+    const { data: dbSubscription, error: findError } = await supabase
+      .from('subscriptions')
+      .select('user_id')
+      .eq('stripe_subscription_id', subscription.id)
+      .single()
+    
+    if (findError) {
+      console.error('❌ Could not find subscription in database:', findError)
+      // Try to find by customer ID as fallback
+      const { data: customerSub, error: customerError } = await supabase
+        .from('subscriptions')
+        .select('user_id')
+        .eq('stripe_customer_id', subscription.customer)
+        .single()
+      
+      if (customerError) {
+        console.log('⚠️ No subscription found to update, skipping')
+        return
+      }
+      
+      await syncSubscriptionToDatabase(subscription, customerSub.user_id)
+    } else {
+      await syncSubscriptionToDatabase(subscription, dbSubscription.user_id)
+    }
+    
+    console.log('✅ Subscription updated and synced')
+    
+  } catch (error) {
+    console.error('❌ Subscription update error:', error)
+    throw error
+  }
+}
+
+// Handle subscription deletion (NEW - CRITICAL FOR PREVENTING ORPHANS)
+async function handleSubscriptionDeleted(subscription) {
+  console.log('🔵 === SUBSCRIPTION DELETED ===')
+  console.log('🔵 Subscription ID:', subscription.id)
+  console.log('🔵 Customer ID:', subscription.customer)
+  
+  try {
+    // Mark subscription as cancelled in database
+    const { error: updateError } = await supabase
+      .from('subscriptions')
+      .update({
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('stripe_subscription_id', subscription.id)
+    
+    if (updateError) {
+      console.error('❌ Error marking subscription as cancelled:', updateError)
+      throw updateError
+    }
+    
+    console.log('✅ Subscription marked as cancelled in database')
+    
+    // Cancel any scheduled changes
+    const { error: scheduleError } = await supabase
+      .from('subscription_schedule_changes')
+      .update({ status: 'cancelled' })
+      .eq('stripe_schedule_id', subscription.id)
+    
+    if (scheduleError) {
+      console.log('⚠️ Error cancelling scheduled changes:', scheduleError)
+    }
+    
+  } catch (error) {
+    console.error('❌ Subscription deletion error:', error)
+    throw error
+  }
+}
+
+// Handle payment failures (NEW)
+async function handlePaymentFailed(invoice) {
+  console.log('🔵 === PAYMENT FAILED ===')
+  console.log('🔵 Invoice ID:', invoice.id)
+  console.log('🔵 Subscription ID:', invoice.subscription)
+  
+  try {
+    if (invoice.subscription) {
+      // Update subscription status based on payment failure
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          status: 'past_due',
+          updated_at: new Date().toISOString()
+        })
+        .eq('stripe_subscription_id', invoice.subscription)
+      
+      if (updateError) {
+        console.error('❌ Error updating subscription status:', updateError)
+      } else {
+        console.log('✅ Subscription marked as past_due')
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Payment failure handling error:', error)
+    throw error
+  }
+}
+
+// Sync subscription data to database (ENHANCED)
+async function syncSubscriptionToDatabase(subscription, userId) {
+  console.log('🔵 Syncing subscription to database...')
+  
+  // Determine plan type from price ID
+  const priceId = subscription.items.data[0]?.price?.id
+  const planType = getPlanTypeFromPriceId(priceId)
+  
+  const planLimits = {
+    starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
+    growth: { active_jobs_limit: 6, credits: 5, price: 29900 },
+    professional: { active_jobs_limit: 15, credits: 25, price: 59900 },
+    enterprise: { active_jobs_limit: 999999, credits: 100, price: 199900 }
+  }
+  
+  const limits = planLimits[planType] || planLimits.starter
+  
+  const subscriptionData = {
+    plan_type: planType,
+    status: subscription.status === 'canceled' ? 'cancelled' : subscription.status,
+    stripe_subscription_id: subscription.id,
+    stripe_customer_id: subscription.customer,
+    active_jobs_limit: limits.active_jobs_limit,
+    credits: limits.credits,
+    price: limits.price,
+    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    updated_at: new Date().toISOString()
+  }
+  
+  // Add cancelled_at if subscription is cancelled
+  if (subscription.status === 'canceled') {
+    subscriptionData.cancelled_at = subscription.canceled_at 
+      ? new Date(subscription.canceled_at * 1000).toISOString()
+      : new Date().toISOString()
+  }
+  
+  console.log('🔵 Subscription data:', JSON.stringify(subscriptionData, null, 2))
+  
+  // Update or insert subscription
+  const { error } = await supabase
+    .from('subscriptions')
+    .upsert({
+      user_id: userId,
+      ...subscriptionData
+    }, {
+      onConflict: 'user_id',
+      ignoreDuplicates: false
+    })
+  
+  if (error) {
+    console.error('❌ Error syncing subscription:', error)
+    throw error
+  }
+  
+  console.log('✅ Subscription synced successfully')
+}
+
+// Get plan type from price ID
+function getPlanTypeFromPriceId(priceId) {
+  const priceMapping = {
+    [process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID]: 'starter',
+    [process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID]: 'growth',
+    [process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID]: 'professional',
+    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID]: 'enterprise'
+  }
+  
+  return priceMapping[priceId] || 'starter'
+}
+
+// Original subscription success handler (ENHANCED)
 async function handleSubscriptionSuccess(session) {
   console.log('🔵 === SUBSCRIPTION HANDLER STARTED ===')
   
@@ -105,83 +341,12 @@ async function handleSubscriptionSuccess(session) {
     const subscription = await stripe.subscriptions.retrieve(session.subscription)
     console.log('✅ Stripe subscription retrieved:', subscription.id)
     
-    const planLimits = {
-      starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
-      growth: { active_jobs_limit: 6, credits: 5, price: 29900 },
-      professional: { active_jobs_limit: 15, credits: 25, price: 59900 },
-      enterprise: { active_jobs_limit: 999999, credits: 100, price: 199900 }
-    }
+    // Clean up any old subscriptions before creating new one
+    await cleanupOldSubscriptions(userId, subscription.id)
     
-    const limits = planLimits[planType] || planLimits.starter
-    console.log('🔵 Plan limits for', planType, ':', limits)
-
-    // Check if subscription exists
-    console.log('🔵 Checking for existing subscription...')
-    const { data: existingSubscription, error: checkError } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .single()
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('❌ Error checking existing subscription:', checkError)
-      throw new Error('Database error checking subscription: ' + checkError.message)
-    }
-
-    if (existingSubscription) {
-      console.log('🔵 Found existing subscription, will update')
-    } else {
-      console.log('🔵 No existing subscription, will create new')
-    }
-
-    const subscriptionData = {
-      plan_type: planType,
-      status: 'active',
-      stripe_subscription_id: subscription.id,
-      stripe_customer_id: session.customer,
-      active_jobs_limit: limits.active_jobs_limit,
-      credits: limits.credits,
-      price: limits.price,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      updated_at: new Date().toISOString()
-    }
-
-    console.log('🔵 Subscription data to save:', JSON.stringify(subscriptionData, null, 2))
-
-    if (existingSubscription) {
-      console.log('🔵 Updating existing subscription...')
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .update(subscriptionData)
-        .eq('user_id', userId)
-
-      if (error) {
-        console.error('❌ Error updating subscription:', error)
-        console.error('❌ Update error details:', JSON.stringify(error, null, 2))
-        throw new Error('Database error updating subscription: ' + error.message)
-      }
-      console.log('✅ Updated existing subscription successfully')
-      console.log('🔵 Update result:', data)
-    } else {
-      console.log('🔵 Creating new subscription...')
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: userId,
-          ...subscriptionData,
-          created_at: new Date().toISOString()
-        })
-
-      if (error) {
-        console.error('❌ Error creating subscription:', error)
-        console.error('❌ Insert error details:', JSON.stringify(error, null, 2))
-        throw new Error('Database error creating subscription: ' + error.message)
-      }
-      console.log('✅ Created new subscription successfully')
-      console.log('🔵 Insert result:', data)
-    }
-
+    // Sync subscription to database
+    await syncSubscriptionToDatabase(subscription, userId)
+    
     console.log('✅ === SUBSCRIPTION HANDLER COMPLETED ===')
     
   } catch (error) {
@@ -189,5 +354,27 @@ async function handleSubscriptionSuccess(session) {
     console.error('❌ Handler error:', error.message)
     console.error('❌ Handler error stack:', error.stack)
     throw error
+  }
+}
+
+// Clean up old subscriptions to prevent duplicates
+async function cleanupOldSubscriptions(userId, newSubscriptionId) {
+  console.log('🔵 Cleaning up old subscriptions...')
+  
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({ 
+      status: 'replaced',
+      cancelled_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+    .neq('stripe_subscription_id', newSubscriptionId)
+    .in('status', ['active', 'trialing'])
+  
+  if (error) {
+    console.error('⚠️ Cleanup error:', error)
+  } else {
+    console.log('✅ Old subscriptions cleaned up')
   }
 }
