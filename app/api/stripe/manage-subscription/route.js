@@ -20,62 +20,36 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // ENHANCED: Get user's LATEST subscription (active or most recent)
-    const { data: currentSub, error: subError } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (subError || !currentSub) {
-      console.error('❌ Subscription not found:', subError)
-      return NextResponse.json({ error: 'No subscription found' }, { status: 404 })
+    // ROBUST: Get and validate user's subscription
+    const validSubscription = await getValidUserSubscription(userId)
+    
+    if (!validSubscription) {
+      return NextResponse.json({ 
+        error: 'No valid subscription found',
+        shouldCreateNew: true,
+        message: 'Please create a new subscription to continue.'
+      }, { status: 404 })
     }
 
-    console.log('📊 Current subscription:', currentSub)
-
-    // ENHANCED: Check actual Stripe subscription status and sync if needed
-    if (currentSub.stripe_subscription_id) {
-      try {
-        const stripeSubscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
-        console.log('📋 Stripe subscription status:', stripeSubscription.status)
-        
-        // Sync database with Stripe reality
-        await syncSubscriptionStatus(currentSub, stripeSubscription)
-
-        // Handle canceled subscriptions - redirect to new subscription creation
-        if (stripeSubscription.status === 'canceled') {
-          return NextResponse.json({
-            success: false,
-            error: 'Subscription is canceled',
-            action: 'create_new_subscription',
-            message: 'Your subscription was canceled. Please create a new subscription instead of upgrading.',
-            shouldCreateNew: true
-          }, { status: 400 })
-        }
-      } catch (stripeError) {
-        console.error('⚠️ Error checking Stripe subscription:', stripeError)
-        // Continue anyway - might be a network issue
-      }
-    }
+    console.log('📊 Valid subscription found:', {
+      id: validSubscription.id,
+      stripeId: validSubscription.stripe_subscription_id,
+      planType: validSubscription.plan_type,
+      status: validSubscription.status
+    })
 
     switch (action) {
-      case 'cancel':
-        return await cancelSubscription(currentSub)
-      
       case 'upgrade_immediate':
-        return await upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType, userId)
+        return await upgradeSubscriptionImmediate(validSubscription, newPriceId, newPlanType)
       
       case 'downgrade_end_cycle':
-        return await downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType)
+        return await downgradeSubscriptionEndCycle(validSubscription, newPriceId, newPlanType)
+      
+      case 'cancel':
+        return await cancelSubscription(validSubscription)
       
       case 'reactivate':
-        return await reactivateSubscription(currentSub)
-      
-      case 'get_billing_portal':
-        return await createBillingPortalSession(currentSub.stripe_customer_id)
+        return await reactivateSubscription(validSubscription)
       
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
@@ -84,88 +58,191 @@ export async function POST(request) {
   } catch (error) {
     console.error('❌ Subscription management error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { 
+        error: 'Subscription management failed', 
+        details: error.message,
+        shouldCreateNew: error.message.includes('No such subscription')
+      },
       { status: 500 }
     )
   }
 }
 
-// ENHANCED: Sync database subscription status with Stripe
-async function syncSubscriptionStatus(currentSub, stripeSubscription) {
-  const stripeStatus = stripeSubscription.status
-  const dbStatus = currentSub.status
+/**
+ * ROBUST: Get and validate user's subscription
+ * This function ensures we have a valid, active subscription that exists in both DB and Stripe
+ */
+async function getValidUserSubscription(userId) {
+  console.log('🔍 Finding valid subscription for user:', userId)
   
-  if (stripeStatus !== dbStatus) {
-    console.log(`🔄 Syncing status: DB=${dbStatus} -> Stripe=${stripeStatus}`)
+  // Get all subscriptions for user, ordered by most recent
+  const { data: subscriptions, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('❌ Database error:', error)
+    throw new Error('Database query failed: ' + error.message)
+  }
+
+  if (!subscriptions || subscriptions.length === 0) {
+    console.log('❌ No subscriptions found in database')
+    return null
+  }
+
+  console.log(`📊 Found ${subscriptions.length} subscription(s) in database`)
+
+  // Check each subscription to find a valid one
+  for (const subscription of subscriptions) {
+    console.log(`🔍 Checking subscription ${subscription.id}:`, {
+      stripeId: subscription.stripe_subscription_id,
+      status: subscription.status,
+      planType: subscription.plan_type
+    })
+
+    // Skip if no Stripe subscription ID
+    if (!subscription.stripe_subscription_id) {
+      console.log('⚠️ Skipping - no Stripe subscription ID')
+      continue
+    }
+
+    // Validate with Stripe
+    try {
+      const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id)
+      console.log('✅ Stripe validation successful:', {
+        id: stripeSubscription.id,
+        status: stripeSubscription.status,
+        customer: stripeSubscription.customer
+      })
+
+      // Sync database status with Stripe if needed
+      await syncSubscriptionStatus(subscription, stripeSubscription)
+
+      // Return if subscription is active in Stripe
+      if (['active', 'trialing', 'past_due'].includes(stripeSubscription.status)) {
+        console.log('✅ Found valid active subscription')
+        return {
+          ...subscription,
+          stripeData: stripeSubscription
+        }
+      } else {
+        console.log(`⚠️ Subscription ${stripeSubscription.id} is ${stripeSubscription.status}`)
+      }
+
+    } catch (stripeError) {
+      console.error(`❌ Stripe validation failed for ${subscription.stripe_subscription_id}:`, stripeError.message)
+      
+      // Mark invalid subscriptions
+      if (stripeError.message.includes('No such subscription')) {
+        await markSubscriptionAsInvalid(subscription.id)
+      }
+      continue
+    }
+  }
+
+  console.log('❌ No valid active subscriptions found')
+  return null
+}
+
+/**
+ * ROBUST: Sync database status with Stripe reality
+ */
+async function syncSubscriptionStatus(dbSubscription, stripeSubscription) {
+  const dbStatus = dbSubscription.status
+  const stripeStatus = stripeSubscription.status
+  
+  if (dbStatus !== stripeStatus) {
+    console.log(`🔄 Syncing status: DB="${dbStatus}" -> Stripe="${stripeStatus}"`)
     
     const updateData = {
-      status: stripeStatus === 'canceled' ? 'cancelled' : stripeStatus,
+      status: stripeStatus,
+      current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
       updated_at: new Date().toISOString()
     }
     
-    if (stripeStatus === 'canceled' && !currentSub.cancelled_at) {
-      updateData.cancelled_at = new Date(stripeSubscription.canceled_at * 1000).toISOString()
+    if (stripeStatus === 'canceled' && !dbSubscription.cancelled_at) {
+      updateData.cancelled_at = stripeSubscription.canceled_at 
+        ? new Date(stripeSubscription.canceled_at * 1000).toISOString()
+        : new Date().toISOString()
     }
     
-    await supabase
+    const { error } = await supabase
       .from('subscriptions')
       .update(updateData)
-      .eq('id', currentSub.id)
+      .eq('id', dbSubscription.id)
     
-    console.log('✅ Database status synced with Stripe')
+    if (error) {
+      console.error('⚠️ Failed to sync status:', error)
+    } else {
+      console.log('✅ Status synced successfully')
+    }
   }
 }
 
-// ENHANCED: Immediate upgrade with cleanup and proration
-async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType, userId) {
+/**
+ * ROBUST: Mark invalid subscriptions to prevent future issues
+ */
+async function markSubscriptionAsInvalid(subscriptionId) {
+  console.log(`🗑️ Marking subscription ${subscriptionId} as invalid`)
+  
+  const { error } = await supabase
+    .from('subscriptions')
+    .update({
+      status: 'invalid',
+      cancelled_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', subscriptionId)
+  
+  if (error) {
+    console.error('⚠️ Failed to mark as invalid:', error)
+  }
+}
+
+/**
+ * ROBUST: Immediate upgrade with comprehensive validation
+ */
+async function upgradeSubscriptionImmediate(validSubscription, newPriceId, newPlanType) {
   try {
-    console.log('⬆️ Starting immediate upgrade...', { newPriceId, newPlanType })
-
-    if (!currentSub.stripe_subscription_id) {
-      throw new Error('No Stripe subscription ID found')
+    console.log('⬆️ Starting immediate upgrade...')
+    
+    const stripeSubscription = validSubscription.stripeData
+    
+    // Double-check subscription is upgradeable
+    if (!['active', 'trialing'].includes(stripeSubscription.status)) {
+      throw new Error(`Cannot upgrade ${stripeSubscription.status} subscription`)
     }
 
-    // Get current Stripe subscription and double-check status
-    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
-    console.log('📋 Retrieved Stripe subscription:', subscription.id, 'Status:', subscription.status)
-
-    // Final check - cannot upgrade canceled subscriptions
-    if (subscription.status === 'canceled') {
-      return NextResponse.json({
-        success: false,
-        error: 'Cannot upgrade canceled subscription',
-        shouldCreateNew: true,
-        message: 'Your subscription is canceled. Please create a new subscription instead.'
-      }, { status: 400 })
-    }
-
-    if (!subscription.items?.data?.[0]) {
+    if (!stripeSubscription.items?.data?.[0]) {
       throw new Error('No subscription items found')
     }
 
-    // ENHANCED: Clean up old subscriptions before upgrading
-    await cleanupOldSubscriptions(userId, currentSub.stripe_subscription_id)
+    // Validate new price ID
+    if (!newPriceId || !newPlanType) {
+      throw new Error('Missing price ID or plan type')
+    }
 
-    // Immediate upgrade with proration
-    console.log('💰 Updating Stripe subscription with proration...')
+    console.log('💰 Updating Stripe subscription...')
     const updatedSubscription = await stripe.subscriptions.update(
-      currentSub.stripe_subscription_id,
+      stripeSubscription.id,
       {
         items: [{
-          id: subscription.items.data[0].id,
+          id: stripeSubscription.items.data[0].id,
           price: newPriceId,
         }],
-        proration_behavior: 'create_prorations'
+        proration_behavior: 'create_prorations',
+        billing_cycle_anchor: 'unchanged'
       }
     )
 
     console.log('✅ Stripe subscription updated successfully')
 
-    // Get plan details
-    const planDetails = getPlanDetailsFromPriceId(newPriceId, newPlanType)
-    console.log('📊 Plan details:', planDetails)
+    // Get plan details and update database
+    const planDetails = getPlanDetails(newPlanType)
     
-    // Update subscriptions table
     const { error: updateError } = await supabase
       .from('subscriptions')
       .update({
@@ -175,90 +252,55 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType,
         credits: planDetails.credits,
         current_period_start: new Date(updatedSubscription.current_period_start * 1000).toISOString(),
         current_period_end: new Date(updatedSubscription.current_period_end * 1000).toISOString(),
-        status: 'active', // Ensure it's marked as active
-        cancelled_at: null, // Clear any cancellation
+        status: 'active',
+        cancelled_at: null,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', currentSub.user_id)
+      .eq('id', validSubscription.id)
 
     if (updateError) {
       console.error('❌ Database update error:', updateError)
-      throw new Error('Failed to update database: ' + updateError.message)
+      throw new Error('Database update failed: ' + updateError.message)
     }
 
-    console.log('✅ Database updated successfully')
+    // Clean up any old subscriptions
+    await cleanupOldSubscriptions(validSubscription.user_id, stripeSubscription.id)
 
     return NextResponse.json({
       success: true,
-      message: `Successfully upgraded to ${planDetails.planType} plan! You'll be charged the prorated difference.`,
+      message: `Successfully upgraded to ${planDetails.planType} plan!`,
       newPlan: planDetails
     })
 
   } catch (error) {
-    console.error('❌ Upgrade subscription error:', error)
-    
-    // Handle specific Stripe errors
-    if (error.message.includes('canceled subscription can only update')) {
-      return NextResponse.json({
-        success: false,
-        error: 'Cannot upgrade canceled subscription',
-        shouldCreateNew: true,
-        message: 'Your subscription is canceled. Please create a new subscription instead.'
-      }, { status: 400 })
-    }
-
+    console.error('❌ Upgrade error:', error)
     return NextResponse.json({ 
       success: false,
-      error: 'Failed to upgrade subscription', 
+      error: 'Upgrade failed', 
       details: error.message 
     }, { status: 500 })
   }
 }
 
-// FIXED: Simplified downgrade with better error handling
-async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType) {
+/**
+ * ROBUST: End-of-cycle downgrade with proper scheduling
+ */
+async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newPlanType) {
   try {
-    console.log('⬇️ Starting end-cycle downgrade...', { newPriceId, newPlanType })
-    console.log('🔍 Environment variables check:', {
-      starterPriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-      growthPriceId: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
-      professionalPriceId: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
-      receivedPriceId: newPriceId
-    })
-
-    if (!currentSub.stripe_subscription_id) {
-      throw new Error('No Stripe subscription ID found')
-    }
-
-    // Get current Stripe subscription and check status
-    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
-    console.log('📋 Current subscription details:', {
-      id: subscription.id,
-      status: subscription.status,
-      currentPriceId: subscription.items.data[0]?.price?.id,
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
-    })
+    console.log('⬇️ Starting end-cycle downgrade...')
     
-    if (subscription.status === 'canceled') {
-      return NextResponse.json({
-        success: false,
-        error: 'Cannot downgrade canceled subscription',
-        shouldCreateNew: true,
-        message: 'Your subscription is canceled. Please create a new subscription instead.'
-      }, { status: 400 })
+    const stripeSubscription = validSubscription.stripeData
+    
+    // Validate subscription is downgradeable
+    if (!['active', 'trialing'].includes(stripeSubscription.status)) {
+      throw new Error(`Cannot downgrade ${stripeSubscription.status} subscription`)
     }
 
-    const currentPeriodEnd = subscription.current_period_end
-
-    // FIXED: Simple plan details mapping - no complex environment variable matching
-    const planDetails = getSimplePlanDetails(newPlanType)
-    console.log('📊 Target plan details:', planDetails)
-
-    // ENHANCED: Check if there's already a scheduled downgrade
+    // Check for existing scheduled changes
     const { data: existingSchedule } = await supabase
       .from('subscription_schedule_changes')
       .select('*')
-      .eq('user_id', currentSub.user_id)
+      .eq('user_id', validSubscription.user_id)
       .eq('status', 'scheduled')
       .single()
 
@@ -266,63 +308,62 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
       return NextResponse.json({
         success: false,
         error: 'Downgrade already scheduled',
-        message: `You already have a scheduled downgrade to ${existingSchedule.new_plan} plan on ${new Date(existingSchedule.effective_date).toLocaleDateString()}.`
+        message: `You already have a scheduled downgrade to ${existingSchedule.new_plan} plan.`
       }, { status: 400 })
     }
 
-    // SIMPLIFIED: Use Stripe subscription update at period end instead of schedules
-    console.log('📅 Scheduling downgrade at period end...')
-    
-    // Instead of using subscription schedules, we'll store the scheduled change and handle it via webhook
-    const effectiveDate = new Date(currentPeriodEnd * 1000).toISOString()
+    // Get plan details
+    const planDetails = getPlanDetails(newPlanType)
+    const effectiveDate = new Date(stripeSubscription.current_period_end * 1000).toISOString()
 
-    // Store scheduled change in database - SIMPLIFIED version
+    // Store the scheduled change
     const { error: scheduleError } = await supabase
       .from('subscription_schedule_changes')
       .insert({
-        user_id: currentSub.user_id,
-        subscription_id: currentSub.id,
-        stripe_schedule_id: `schedule_${Date.now()}`, // Simple ID since we're not using Stripe schedules
-        current_plan: currentSub.plan_type,
+        user_id: validSubscription.user_id,
+        subscription_id: validSubscription.id,
+        stripe_schedule_id: `manual_${Date.now()}`,
+        current_plan: validSubscription.plan_type,
         new_plan: planDetails.planType,
+        new_price_id: newPriceId,
         effective_date: effectiveDate,
         status: 'scheduled'
       })
 
     if (scheduleError) {
-      console.error('❌ Schedule tracking error:', scheduleError)
+      console.error('❌ Schedule error:', scheduleError)
       throw new Error('Failed to schedule downgrade: ' + scheduleError.message)
     }
 
-    console.log('✅ Downgrade scheduled successfully')
-
     return NextResponse.json({
       success: true,
-      message: `Downgrade scheduled to ${planDetails.planType} plan! Your current plan benefits continue until ${new Date(currentPeriodEnd * 1000).toLocaleDateString()}.`,
+      message: `Downgrade scheduled to ${planDetails.planType} plan! Your current benefits continue until ${new Date(stripeSubscription.current_period_end * 1000).toLocaleDateString()}.`,
       effectiveDate: effectiveDate,
       newPlan: planDetails
     })
 
   } catch (error) {
-    console.error('❌ Downgrade subscription error:', error)
+    console.error('❌ Downgrade error:', error)
     return NextResponse.json({ 
       success: false,
-      error: 'Failed to schedule downgrade', 
+      error: 'Downgrade scheduling failed', 
       details: error.message 
     }, { status: 500 })
   }
 }
 
-// ENHANCED: Cancel subscription with cleanup
-async function cancelSubscription(currentSub) {
+/**
+ * ROBUST: Cancel subscription
+ */
+async function cancelSubscription(validSubscription) {
   try {
-    console.log('❌ Cancelling subscription at period end...')
-
-    const subscription = await stripe.subscriptions.update(
-      currentSub.stripe_subscription_id,
-      {
-        cancel_at_period_end: true
-      }
+    console.log('❌ Cancelling subscription...')
+    
+    const stripeSubscription = validSubscription.stripeData
+    
+    const canceledSubscription = await stripe.subscriptions.update(
+      stripeSubscription.id,
+      { cancel_at_period_end: true }
     )
 
     // Update database
@@ -331,60 +372,42 @@ async function cancelSubscription(currentSub) {
       .update({
         status: 'cancelled',
         cancelled_at: new Date().toISOString(),
-        current_period_end: new Date(subscription.current_period_end * 1000).toISOString()
+        updated_at: new Date().toISOString()
       })
-      .eq('user_id', currentSub.user_id)
+      .eq('id', validSubscription.id)
 
     if (updateError) {
-      throw new Error('Failed to update database: ' + updateError.message)
+      throw new Error('Database update failed: ' + updateError.message)
     }
-
-    // Cancel any scheduled changes
-    await supabase
-      .from('subscription_schedule_changes')
-      .update({ status: 'cancelled' })
-      .eq('user_id', currentSub.user_id)
-      .eq('status', 'scheduled')
 
     return NextResponse.json({
       success: true,
       message: 'Subscription will cancel at the end of your billing period',
-      cancelAt: new Date(subscription.current_period_end * 1000).toISOString()
+      cancelAt: new Date(canceledSubscription.current_period_end * 1000).toISOString()
     })
 
   } catch (error) {
-    console.error('❌ Cancel subscription error:', error)
+    console.error('❌ Cancel error:', error)
     return NextResponse.json({ 
       success: false,
-      error: 'Failed to cancel subscription',
+      error: 'Cancellation failed',
       details: error.message
     }, { status: 500 })
   }
 }
 
-// ENHANCED: Reactivate with validation
-async function reactivateSubscription(currentSub) {
+/**
+ * ROBUST: Reactivate subscription
+ */
+async function reactivateSubscription(validSubscription) {
   try {
     console.log('🔄 Reactivating subscription...')
-
-    // Check if it's actually canceled
-    const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
     
-    if (subscription.status === 'canceled') {
-      return NextResponse.json({
-        success: false,
-        error: 'Cannot reactivate fully canceled subscription',
-        shouldCreateNew: true,
-        message: 'This subscription is permanently canceled. Please create a new subscription.'
-      }, { status: 400 })
-    }
-
-    // Only works for subscriptions that are set to cancel at period end
-    const updatedSubscription = await stripe.subscriptions.update(
-      currentSub.stripe_subscription_id,
-      {
-        cancel_at_period_end: false
-      }
+    const stripeSubscription = validSubscription.stripeData
+    
+    const reactivatedSubscription = await stripe.subscriptions.update(
+      stripeSubscription.id,
+      { cancel_at_period_end: false }
     )
 
     // Update database
@@ -395,10 +418,10 @@ async function reactivateSubscription(currentSub) {
         cancelled_at: null,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', currentSub.user_id)
+      .eq('id', validSubscription.id)
 
     if (updateError) {
-      throw new Error('Failed to update database: ' + updateError.message)
+      throw new Error('Database update failed: ' + updateError.message)
     }
 
     return NextResponse.json({
@@ -407,124 +430,49 @@ async function reactivateSubscription(currentSub) {
     })
 
   } catch (error) {
-    console.error('❌ Reactivate subscription error:', error)
+    console.error('❌ Reactivate error:', error)
     return NextResponse.json({ 
       success: false,
-      error: 'Failed to reactivate subscription',
+      error: 'Reactivation failed',
       details: error.message
     }, { status: 500 })
   }
 }
 
-// Create Stripe billing portal session
-async function createBillingPortalSession(customerId) {
-  try {
-    console.log('🏢 Creating billing portal session...')
-
-    const session = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?tab=billing`
-    })
-
-    return NextResponse.json({
-      success: true,
-      url: session.url
-    })
-
-  } catch (error) {
-    console.error('❌ Billing portal error:', error)
-    return NextResponse.json({ 
-      success: false,
-      error: 'Failed to create billing portal',
-      details: error.message
-    }, { status: 500 })
-  }
-}
-
-// ENHANCED: Cleanup old subscriptions function
-async function cleanupOldSubscriptions(userId, currentStripeSubscriptionId) {
-  console.log('🧹 Cleaning up old subscriptions for user:', userId)
+/**
+ * UTILITY: Clean up old invalid subscriptions
+ */
+async function cleanupOldSubscriptions(userId, activeStripeSubscriptionId) {
+  console.log('🧹 Cleaning up old subscriptions...')
   
   const { error } = await supabase
     .from('subscriptions')
     .update({ 
       status: 'replaced',
-      cancelled_at: new Date().toISOString()
+      cancelled_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     })
     .eq('user_id', userId)
-    .eq('status', 'active')
-    .neq('stripe_subscription_id', currentStripeSubscriptionId)
+    .neq('stripe_subscription_id', activeStripeSubscriptionId)
+    .in('status', ['active', 'trialing'])
   
   if (error) {
-    console.error('⚠️ Error cleaning up old subscriptions:', error)
+    console.error('⚠️ Cleanup error:', error)
   } else {
-    console.log('✅ Cleaned up old subscriptions')
+    console.log('✅ Old subscriptions cleaned up')
   }
 }
 
-// FIXED: Simple plan details function - no complex price ID matching
-function getSimplePlanDetails(planType) {
-  console.log('🔍 Getting simple plan details for:', planType)
-
-  const planMapping = {
-    starter: {
-      planType: 'starter',
-      price: 19900,
-      jobLimit: 3,
-      credits: 0
-    },
-    growth: {
-      planType: 'growth',
-      price: 29900,
-      jobLimit: 6,
-      credits: 5
-    },
-    professional: {
-      planType: 'professional', 
-      price: 59900,
-      jobLimit: 15,
-      credits: 25
-    },
-    enterprise: {
-      planType: 'enterprise',
-      price: 199900,
-      jobLimit: 999999,
-      credits: 100
-    }
+/**
+ * UTILITY: Get plan details by plan type
+ */
+function getPlanDetails(planType) {
+  const plans = {
+    starter: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
+    growth: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
+    professional: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
+    enterprise: { planType: 'enterprise', price: 199900, jobLimit: 999999, credits: 100 }
   }
-
-  const details = planMapping[planType] || planMapping['starter']
-  console.log('📊 Simple plan details:', details)
   
-  return details
-}
-
-// ENHANCED but SIMPLIFIED: Helper function - more robust but simpler logic
-function getPlanDetailsFromPriceId(priceId, planType) {
-  console.log('🔍 Getting plan details for:', { priceId, planType })
-
-  // Primary: Use the planType parameter if provided
-  if (planType && ['starter', 'growth', 'professional', 'enterprise'].includes(planType)) {
-    return getSimplePlanDetails(planType)
-  }
-
-  // Fallback: Try to match by environment variables, but don't fail if they don't match
-  const envPriceIds = {
-    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-    growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
-    professional: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
-    enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
-  }
-
-  // Try to match by price ID to environment variables
-  for (const [plan, envPriceId] of Object.entries(envPriceIds)) {
-    if (priceId === envPriceId) {
-      console.log(`✅ Matched price ID to plan: ${plan}`)
-      return getSimplePlanDetails(plan)
-    }
-  }
-
-  // Ultimate fallback: Default to starter
-  console.log('⚠️ Could not match price ID, defaulting to starter plan')
-  return getSimplePlanDetails('starter')
+  return plans[planType] || plans['starter']
 }
