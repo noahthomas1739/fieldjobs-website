@@ -8,6 +8,18 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+// Safely convert a Unix seconds timestamp to ISO string, or return null
+function toIsoFromUnixSeconds(unixSeconds) {
+  try {
+    if (unixSeconds === undefined || unixSeconds === null) return null
+    const date = new Date(unixSeconds * 1000)
+    if (isNaN(date.getTime())) return null
+    return date.toISOString()
+  } catch (err) {
+    return null
+  }
+}
+
 export async function POST(request) {
   console.log('🔵 WEBHOOK STARTED')
   
@@ -257,16 +269,15 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     active_jobs_limit: limits.active_jobs_limit,
     credits: limits.credits,
     price: limits.price,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    current_period_start: toIsoFromUnixSeconds(subscription.current_period_start),
+    current_period_end: toIsoFromUnixSeconds(subscription.current_period_end),
     updated_at: new Date().toISOString()
   }
   
   // Add cancelled_at if subscription is cancelled
   if (subscription.status === 'canceled') {
-    subscriptionData.cancelled_at = subscription.canceled_at 
-      ? new Date(subscription.canceled_at * 1000).toISOString()
-      : new Date().toISOString()
+    const cancelledAtIso = toIsoFromUnixSeconds(subscription.canceled_at)
+    subscriptionData.cancelled_at = cancelledAtIso || new Date().toISOString()
   }
   
   console.log('🔵 Subscription data:', JSON.stringify(subscriptionData, null, 2))
