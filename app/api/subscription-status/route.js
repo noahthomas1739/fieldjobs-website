@@ -66,7 +66,6 @@ export async function GET(request) {
 
           if (activeSubscriptions.data.length > 0) {
             const stripeSubscription = activeSubscriptions.data[0] // Most recent
-            console.log(`!!!! Most recent subscription: ${JSON.stringify(stripeSubscription)}`);
             
             // Sync the missing subscription to database
             const planDetails = getPlanDetailsFromStripeSubscription(stripeSubscription)
@@ -74,7 +73,11 @@ export async function GET(request) {
             
             // Clean up any old subscriptions first
             await cleanupOldSubscriptions(userId, stripeSubscription.id)
+
             
+            console.log(`!!!! Most recent subscription: ${JSON.stringify(stripeSubscription)}`);
+            console.log(`Stripe subsccription current_period_start: ${stripeSubscription.current_period_start}`);
+            console.log(`Stripe subsccription current_period_end: ${stripeSubscription.current_period_end}`);
             const { data: syncedSubscription, error: syncError } = await supabase
               .from('subscriptions')
               .insert({
