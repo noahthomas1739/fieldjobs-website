@@ -66,6 +66,7 @@ export async function GET(request) {
 
           if (activeSubscriptions.data.length > 0) {
             const stripeSubscription = activeSubscriptions.data[0] // Most recent
+            console.log(`!!!! Most recent subscription: ${stripeSubscription}`);
             
             // Sync the missing subscription to database
             const planDetails = getPlanDetailsFromStripeSubscription(stripeSubscription)
