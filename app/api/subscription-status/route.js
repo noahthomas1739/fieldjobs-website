@@ -85,8 +85,8 @@ export async function GET(request) {
                 price: planDetails.price,
                 active_jobs_limit: planDetails.jobLimit,
                 credits: planDetails.credits,
-                current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+                current_period_start: new Date(stripeSubscription.items.data[0].current_period_start * 1000).toISOString(),
+                current_period_end: new Date(stripeSubscription.items.data[0].current_period_end * 1000).toISOString(),
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
@@ -95,9 +95,9 @@ export async function GET(request) {
             
             if (!syncError && syncedSubscription) {
               console.log('✅ Successfully synced missing subscription from Stripe')
-              return await processSubscriptionResponse(userId, syncedSubscription)
+              return await processSubscriptionResponse(userId, syncedSubscription);
             } else {
-              console.error('❌ Failed to sync subscription:', syncError)
+              console.error('❌ Failed to sync subscription:', syncError);
             }
           }
         } catch (stripeError) {
