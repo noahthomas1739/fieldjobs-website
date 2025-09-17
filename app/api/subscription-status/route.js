@@ -73,11 +73,7 @@ export async function GET(request) {
             
             // Clean up any old subscriptions first
             await cleanupOldSubscriptions(userId, stripeSubscription.id)
-
             
-            console.log(`!!!! Most recent subscription: ${JSON.stringify(stripeSubscription)}`);
-            console.log(`Stripe subsccription current_period_start: ${stripeSubscription.current_period_start}`);
-            console.log(`Stripe subsccription current_period_end: ${stripeSubscription.current_period_end}`);
             const { data: syncedSubscription, error: syncError } = await supabase
               .from('subscriptions')
               .insert({
