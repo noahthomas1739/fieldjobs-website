@@ -1046,16 +1046,22 @@ export default function EmployerDashboard() {
     return new Date(expirationDate) < new Date()
   }
 
-  // FIXED: Loading state logic - only show loading if auth is loading OR dashboard is loading
-  if (loading || isLoading) {
-    console.log('🔄 Showing loading screen - auth loading:', loading, 'dashboard loading:', isLoading)
+  // FIXED: Only show loading if auth is loading AND no user yet, OR if dashboard is loading but we have a user
+  const shouldShowLoading = (loading && !user) || (user && isLoading)
+  
+  console.log('🔄 Loading check - auth loading:', loading, 'user exists:', !!user, 'dashboard loading:', isLoading, 'should show loading:', shouldShowLoading)
+  
+  if (shouldShowLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-2xl mb-4">⏳</div>
           <div>Loading your dashboard...</div>
           <div className="text-sm text-gray-500 mt-2">
-            {loading ? 'Authenticating...' : 'Loading dashboard data...'}
+            {loading && !user ? 'Authenticating...' : 'Loading dashboard data...'}
+          </div>
+          <div className="text-xs text-gray-400 mt-2">
+            Auth: {loading ? 'loading' : 'done'} | User: {user ? 'found' : 'none'} | Dashboard: {isLoading ? 'loading' : 'done'}
           </div>
         </div>
       </div>
