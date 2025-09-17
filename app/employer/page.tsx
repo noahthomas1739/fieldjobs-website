@@ -301,12 +301,16 @@ export default function EmployerDashboard() {
   }
 
   const renderSubscriptionButton = (plan: string, priceId: string) => {
-    const isCurrentPlan = subscriptionCheck.currentPlan === plan
-    const hasActiveSubscription = subscriptionCheck.hasActiveSubscription
-    const currentLevel = getPlanLevel(subscriptionCheck.currentPlan)
+    // Use the actual subscription state instead of subscriptionCheck for more accurate data
+    const currentPlan = subscription.tier || 'free'
+    const hasActiveSubscription = subscription.tier !== 'free' && subscription.stripeSubscriptionId
+    const isCurrentPlan = currentPlan === plan
+    const currentLevel = getPlanLevel(currentPlan)
     const planLevel = getPlanLevel(plan)
     const isUpgrade = hasActiveSubscription && planLevel > currentLevel
     const isDowngrade = hasActiveSubscription && planLevel < currentLevel
+    
+    console.log(`🔍 Button for ${plan}: current=${currentPlan}, isCurrentPlan=${isCurrentPlan}, hasActive=${hasActiveSubscription}`)
 
     if (isCurrentPlan) {
       return (
@@ -343,11 +347,9 @@ export default function EmployerDashboard() {
         <button 
           onClick={() => handleSubscriptionPurchase(plan)}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-          disabled={isLoading || subscriptionCheck.loading}
+          disabled={isLoading}
         >
-          {isLoading ? 'Processing...' : 
-           subscriptionCheck.loading ? 'Checking...' : 
-           'Choose Plan'}
+          {isLoading ? 'Processing...' : 'Choose Plan'}
         </button>
       )
     }
@@ -361,8 +363,11 @@ export default function EmployerDashboard() {
     try {
       setIsLoading(true)
       
-      if (subscriptionCheck.hasActiveSubscription) {
-        alert(`You already have an active ${subscriptionCheck.currentPlan} subscription. Please use the upgrade/downgrade options instead.`)
+      // Use actual subscription state instead of subscriptionCheck
+      const hasActiveSubscription = subscription.tier !== 'free' && subscription.stripeSubscriptionId
+      
+      if (hasActiveSubscription) {
+        alert(`You already have an active ${subscription.tier} subscription. Please use the upgrade/downgrade options instead.`)
         return
       }
       
