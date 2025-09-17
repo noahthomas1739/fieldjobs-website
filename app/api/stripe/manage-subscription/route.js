@@ -119,7 +119,7 @@ async function getValidUserSubscription(userId) {
       console.log('✅ Stripe API response successful:')
       console.log(`  - Stripe Status: ${stripeSubscription.status}`)
       console.log(`  - Customer: ${stripeSubscription.customer}`)
-      console.log(`  - Current Period: ${new Date(stripeSubscription.current_period_start * 1000).toISOString()} to ${new Date(stripeSubscription.current_period_end * 1000).toISOString()}`)
+      console.log(`  - Current Period: ${new Date(stripeSubscription.items.data[0].current_period_start * 1000).toISOString()} to ${new Date(stripeSubscription.items.data[0].current_period_end * 1000).toISOString()}`)
       console.log(`  - Items: ${stripeSubscription.items?.data?.length || 0}`)
 
       // Sync database status with Stripe if needed
@@ -153,89 +153,6 @@ async function getValidUserSubscription(userId) {
   }
 
   console.log('❌ No valid active subscriptions found after checking all records')
-
-  // FALLBACK: Look up directly in Stripe using the customer's ID
-  try {
-    console.log('🛟 Attempting Stripe fallback using profile.customer_id...')
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('stripe_customer_id, id')
-      .eq('id', userId)
-      .single()
-
-    if (profileError) {
-      console.warn('⚠️ Could not load profile for fallback:', profileError)
-      return null
-    }
-
-    if (!profile?.stripe_customer_id) {
-      console.log('⚠️ No stripe_customer_id on profile; cannot perform Stripe fallback')
-      return null
-    }
-
-    console.log('🔗 Listing subscriptions from Stripe for customer:', profile.stripe_customer_id)
-    const stripeList = await stripe.subscriptions.list({
-      customer: profile.stripe_customer_id,
-      status: 'all',
-      limit: 10
-    })
-
-    if (!stripeList?.data?.length) {
-      console.log('⚠️ Stripe lists no subscriptions for this customer')
-      return null
-    }
-
-    const validStatuses = ['active', 'trialing', 'past_due', 'unpaid']
-    // Pick the most recent valid subscription
-    const validStripeSub = stripeList.data
-      .filter(s => validStatuses.includes(s.status))
-      .sort((a, b) => (b.current_period_end || 0) - (a.current_period_end || 0))[0]
-
-    if (!validStripeSub) {
-      console.log('⚠️ No valid Stripe subscription found in fallback')
-      return null
-    }
-
-    console.log('✅ Found valid subscription on Stripe during fallback:', validStripeSub.id)
-
-    const inferredPlanType = mapPriceIdToPlanType(validStripeSub.items?.data?.[0]?.price?.id)
-    const planDetails = getPlanDetails(inferredPlanType)
-
-    // UPSERT: Insert a synced subscription row so future calls use DB path
-    const { error: upsertError } = await supabase
-      .from('subscriptions')
-      .insert({
-        user_id: userId,
-        stripe_subscription_id: validStripeSub.id,
-        plan_type: planDetails.planType,
-        price: planDetails.price,
-        active_jobs_limit: planDetails.jobLimit,
-        credits: planDetails.credits,
-        status: validStripeSub.status === 'canceled' ? 'cancelled' : validStripeSub.status,
-        current_period_start: new Date(validStripeSub.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(validStripeSub.current_period_end * 1000).toISOString(),
-        cancelled_at: validStripeSub.canceled_at ? new Date(validStripeSub.canceled_at * 1000).toISOString() : null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-
-    if (upsertError) {
-      console.warn('⚠️ Failed to upsert fallback subscription:', upsertError)
-    } else {
-      console.log('✅ Upserted subscription from Stripe fallback into database')
-    }
-
-    return {
-      id: undefined, // unknown until next DB read; not needed for immediate usage
-      user_id: userId,
-      stripe_subscription_id: validStripeSub.id,
-      plan_type: planDetails.planType,
-      status: validStripeSub.status,
-      stripeData: validStripeSub
-    }
-  } catch (fallbackError) {
-    console.warn('⚠️ Stripe fallback failed:', fallbackError.message)
-  }
 
   return null
 }
