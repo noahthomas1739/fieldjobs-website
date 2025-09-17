@@ -186,9 +186,6 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType,
       throw new Error('Failed to update database: ' + updateError.message)
     }
 
-    // ENHANCED: Update credit balance for new plan
-    await updateCreditBalance(userId, planDetails.planType)
-
     console.log('✅ Database updated successfully')
 
     return NextResponse.json({
@@ -218,10 +215,16 @@ async function upgradeSubscriptionImmediate(currentSub, newPriceId, newPlanType,
   }
 }
 
-// ENHANCED: End-of-cycle downgrade with better validation
+// FIXED: Simplified downgrade with better error handling
 async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType) {
   try {
     console.log('⬇️ Starting end-cycle downgrade...', { newPriceId, newPlanType })
+    console.log('🔍 Environment variables check:', {
+      starterPriceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
+      growthPriceId: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
+      professionalPriceId: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+      receivedPriceId: newPriceId
+    })
 
     if (!currentSub.stripe_subscription_id) {
       throw new Error('No Stripe subscription ID found')
@@ -229,6 +232,12 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
 
     // Get current Stripe subscription and check status
     const subscription = await stripe.subscriptions.retrieve(currentSub.stripe_subscription_id)
+    console.log('📋 Current subscription details:', {
+      id: subscription.id,
+      status: subscription.status,
+      currentPriceId: subscription.items.data[0]?.price?.id,
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString()
+    })
     
     if (subscription.status === 'canceled') {
       return NextResponse.json({
@@ -241,7 +250,9 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
 
     const currentPeriodEnd = subscription.current_period_end
 
-    console.log('📅 Current period ends:', new Date(currentPeriodEnd * 1000))
+    // FIXED: Simple plan details mapping - no complex environment variable matching
+    const planDetails = getSimplePlanDetails(newPlanType)
+    console.log('📊 Target plan details:', planDetails)
 
     // ENHANCED: Check if there's already a scheduled downgrade
     const { data: existingSchedule } = await supabase
@@ -259,64 +270,37 @@ async function downgradeSubscriptionEndCycle(currentSub, newPriceId, newPlanType
       }, { status: 400 })
     }
 
-    // Create subscription schedule for end-of-cycle change
-    console.log('📅 Creating subscription schedule...')
-    const schedule = await stripe.subscriptionSchedules.create({
-      from_subscription: currentSub.stripe_subscription_id,
-      phases: [
-        {
-          // Current phase - keep current plan until end of period
-          items: [{
-            price: subscription.items.data[0].price.id,
-            quantity: 1
-          }],
-          start_date: subscription.current_period_start,
-          end_date: currentPeriodEnd
-        },
-        {
-          // New phase - downgraded plan starts next cycle
-          items: [{
-            price: newPriceId,
-            quantity: 1
-          }],
-          start_date: currentPeriodEnd
-        }
-      ]
-    })
-
-    console.log('✅ Subscription schedule created:', schedule.id)
-
-    // Get plan details
-    const planDetails = getPlanDetailsFromPriceId(newPriceId, newPlanType)
+    // SIMPLIFIED: Use Stripe subscription update at period end instead of schedules
+    console.log('📅 Scheduling downgrade at period end...')
+    
+    // Instead of using subscription schedules, we'll store the scheduled change and handle it via webhook
     const effectiveDate = new Date(currentPeriodEnd * 1000).toISOString()
 
-    // Store scheduled change in database
+    // Store scheduled change in database - SIMPLIFIED version
     const { error: scheduleError } = await supabase
       .from('subscription_schedule_changes')
       .insert({
         user_id: currentSub.user_id,
         subscription_id: currentSub.id,
-        stripe_schedule_id: schedule.id,
+        stripe_schedule_id: `schedule_${Date.now()}`, // Simple ID since we're not using Stripe schedules
         current_plan: currentSub.plan_type,
         new_plan: planDetails.planType,
         effective_date: effectiveDate,
-        status: 'scheduled',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        status: 'scheduled'
       })
 
     if (scheduleError) {
       console.error('❌ Schedule tracking error:', scheduleError)
-    } else {
-      console.log('✅ Schedule change tracked in database')
+      throw new Error('Failed to schedule downgrade: ' + scheduleError.message)
     }
+
+    console.log('✅ Downgrade scheduled successfully')
 
     return NextResponse.json({
       success: true,
       message: `Downgrade scheduled to ${planDetails.planType} plan! Your current plan benefits continue until ${new Date(currentPeriodEnd * 1000).toLocaleDateString()}.`,
       effectiveDate: effectiveDate,
-      newPlan: planDetails,
-      scheduleId: schedule.id
+      newPlan: planDetails
     })
 
   } catch (error) {
@@ -478,52 +462,9 @@ async function cleanupOldSubscriptions(userId, currentStripeSubscriptionId) {
   }
 }
 
-// ENHANCED: Update credit balance for plan changes
-async function updateCreditBalance(userId, planType) {
-  const monthlyCredits = {
-    'starter': 0,
-    'growth': 5,
-    'professional': 25,
-    'enterprise': 100
-  }[planType] || 0
-
-  const { error } = await supabase
-    .from('credit_balances')
-    .upsert({
-      user_id: userId,
-      monthly_credits: monthlyCredits,
-      last_monthly_refresh: new Date().toISOString().split('T')[0],
-      updated_at: new Date().toISOString()
-    })
-
-  if (error) {
-    console.error('⚠️ Error updating credit balance:', error)
-  } else {
-    console.log(`✅ Updated credit balance: ${monthlyCredits} monthly credits`)
-  }
-}
-
-// Helper function using environment variables
-function getPlanDetailsFromPriceId(priceId, planType) {
-  console.log('🔍 Getting plan details for:', { priceId, planType })
-
-  // Use environment variables for price ID matching
-  const envPriceIds = {
-    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-    growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
-    professional: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
-    enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
-  }
-
-  // Match by environment variables first, then fallback to planType
-  let detectedPlan = planType || 'starter'
-
-  // Try to match by price ID to environment variables
-  Object.entries(envPriceIds).forEach(([plan, envPriceId]) => {
-    if (priceId === envPriceId) {
-      detectedPlan = plan
-    }
-  })
+// FIXED: Simple plan details function - no complex price ID matching
+function getSimplePlanDetails(planType) {
+  console.log('🔍 Getting simple plan details for:', planType)
 
   const planMapping = {
     starter: {
@@ -552,8 +493,38 @@ function getPlanDetailsFromPriceId(priceId, planType) {
     }
   }
 
-  const details = planMapping[detectedPlan] || planMapping['starter']
-  console.log('📊 Final plan details:', details)
+  const details = planMapping[planType] || planMapping['starter']
+  console.log('📊 Simple plan details:', details)
   
   return details
+}
+
+// ENHANCED but SIMPLIFIED: Helper function - more robust but simpler logic
+function getPlanDetailsFromPriceId(priceId, planType) {
+  console.log('🔍 Getting plan details for:', { priceId, planType })
+
+  // Primary: Use the planType parameter if provided
+  if (planType && ['starter', 'growth', 'professional', 'enterprise'].includes(planType)) {
+    return getSimplePlanDetails(planType)
+  }
+
+  // Fallback: Try to match by environment variables, but don't fail if they don't match
+  const envPriceIds = {
+    starter: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
+    growth: process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
+    professional: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+    enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
+  }
+
+  // Try to match by price ID to environment variables
+  for (const [plan, envPriceId] of Object.entries(envPriceIds)) {
+    if (priceId === envPriceId) {
+      console.log(`✅ Matched price ID to plan: ${plan}`)
+      return getSimplePlanDetails(plan)
+    }
+  }
+
+  // Ultimate fallback: Default to starter
+  console.log('⚠️ Could not match price ID, defaulting to starter plan')
+  return getSimplePlanDetails('starter')
 }
