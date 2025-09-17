@@ -9,6 +9,18 @@ const supabase = createClient(
 )
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
+// Safely convert a Unix seconds timestamp to ISO string, or return null
+function toIsoFromUnixSeconds(unixSeconds) {
+  try {
+    if (unixSeconds === undefined || unixSeconds === null) return null
+    const date = new Date(unixSeconds * 1000)
+    if (isNaN(date.getTime())) return null
+    return date.toISOString()
+  } catch (err) {
+    return null
+  }
+}
+
 export async function POST(request) {
   try {
     const { action, userId, newPriceId, newPlanType, subscriptionId } = await request.json()
@@ -119,7 +131,12 @@ async function getValidUserSubscription(userId) {
       console.log('✅ Stripe API response successful:')
       console.log(`  - Stripe Status: ${stripeSubscription.status}`)
       console.log(`  - Customer: ${stripeSubscription.customer}`)
-      console.log(`  - Current Period: ${new Date(stripeSubscription.items.data[0].current_period_start * 1000).toISOString()} to ${new Date(stripeSubscription.items.data[0].current_period_end * 1000).toISOString()}`)
+      {
+        const item = stripeSubscription.items?.data?.[0]
+        const startIso = toIsoFromUnixSeconds(item?.current_period_start)
+        const endIso = toIsoFromUnixSeconds(item?.current_period_end)
+        console.log(`  - Current Period: ${startIso || 'unknown'} to ${endIso || 'unknown'}`)
+      }
       console.log(`  - Items: ${stripeSubscription.items?.data?.length || 0}`)
 
       // Sync database status with Stripe if needed
@@ -169,16 +186,16 @@ async function syncSubscriptionStatus(dbSubscription, stripeSubscription) {
     
     const updateData = {
       status: stripeStatus === 'canceled' ? 'cancelled' : stripeStatus,
-      current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+      current_period_start: toIsoFromUnixSeconds(stripeSubscription.current_period_start),
+      current_period_end: toIsoFromUnixSeconds(stripeSubscription.current_period_end),
       updated_at: new Date().toISOString()
     }
     
     // FIXED: Handle canceled_at timestamp properly
-    if (stripeStatus === 'canceled') {
+      if (stripeStatus === 'canceled') {
       if (stripeSubscription.canceled_at) {
         // Only set if Stripe has a valid canceled_at timestamp
-        updateData.cancelled_at = new Date(stripeSubscription.canceled_at * 1000).toISOString()
+        updateData.cancelled_at = toIsoFromUnixSeconds(stripeSubscription.canceled_at) || new Date().toISOString()
       } else if (!dbSubscription.cancelled_at) {
         // Set current time if no canceled_at exists anywhere
         updateData.cancelled_at = new Date().toISOString()
@@ -270,8 +287,8 @@ async function upgradeSubscriptionImmediate(validSubscription, newPriceId, newPl
         price: planDetails.price,
         active_jobs_limit: planDetails.jobLimit,
         credits: planDetails.credits,
-        current_period_start: new Date(updatedSubscription.current_period_start * 1000).toISOString(),
-        current_period_end: new Date(updatedSubscription.current_period_end * 1000).toISOString(),
+        current_period_start: toIsoFromUnixSeconds(updatedSubscription.current_period_start),
+        current_period_end: toIsoFromUnixSeconds(updatedSubscription.current_period_end),
         status: 'active',
         cancelled_at: null,
         updated_at: new Date().toISOString()
@@ -334,7 +351,7 @@ async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newP
 
     // Get plan details
     const planDetails = getPlanDetails(newPlanType)
-    const effectiveDate = new Date(stripeSubscription.current_period_end * 1000).toISOString()
+    const effectiveDate = toIsoFromUnixSeconds(stripeSubscription.current_period_end)
 
     // Store the scheduled change
     const { error: scheduleError } = await supabase
@@ -357,7 +374,7 @@ async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newP
 
     return NextResponse.json({
       success: true,
-      message: `Downgrade scheduled to ${planDetails.planType} plan! Your current benefits continue until ${new Date(stripeSubscription.current_period_end * 1000).toLocaleDateString()}.`,
+      message: `Downgrade scheduled to ${planDetails.planType} plan! Your current benefits continue until ${effectiveDate ? new Date(effectiveDate).toLocaleDateString() : 'the end of your current period'}.`,
       effectiveDate: effectiveDate,
       newPlan: planDetails
     })
@@ -403,7 +420,7 @@ async function cancelSubscription(validSubscription) {
     return NextResponse.json({
       success: true,
       message: 'Subscription will cancel at the end of your billing period',
-      cancelAt: new Date(canceledSubscription.current_period_end * 1000).toISOString()
+      cancelAt: toIsoFromUnixSeconds(canceledSubscription.current_period_end)
     })
 
   } catch (error) {
