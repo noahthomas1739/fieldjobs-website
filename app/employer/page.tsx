@@ -590,29 +590,39 @@ export default function EmployerDashboard() {
     }
   }
 
+  // FIXED: Enhanced subscription loading with better error handling
   const loadSubscription = async () => {
     try {
-      if (!user) return
+      if (!user?.id) {
+        console.log('No user ID, skipping subscription load')
+        return
+      }
+      
+      console.log('🔄 Loading subscription for user:', user.id)
       
       const response = await fetch(`/api/subscription-status?userId=${user.id}`)
       const data = await response.json()
       
+      console.log('📊 Subscription API response:', data)
+      
       if (data.success && data.subscription) {
-        console.log('✅ Loaded subscription:', data.subscription)
-        setSubscription({
+        console.log('✅ Setting subscription state:', data.subscription.plan_type)
+        const subscriptionData = {
           tier: data.subscription.plan_type || 'free',
           credits: data.subscription.credits || 0,
           activeJobs: data.subscription.active_jobs_limit || 0,
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
-        })
+        }
+        setSubscription(subscriptionData)
+        console.log('✅ Subscription state set:', subscriptionData)
       } else {
-        console.log('No active subscription found')
+        console.log('ℹ️ No active subscription found, setting free tier')
         setSubscription({ tier: 'free', credits: 0, activeJobs: 0, stripeSubscriptionId: null })
       }
     } catch (error) {
-      console.error('Error loading subscription:', error)
+      console.error('❌ Error loading subscription:', error)
       setSubscription({ tier: 'free', credits: 0, activeJobs: 0, stripeSubscriptionId: null })
     }
   }
@@ -703,38 +713,49 @@ export default function EmployerDashboard() {
     }
   }, [freeJobEligible])
 
+  // FIXED: Main useEffect with better error handling and loading state management
   useEffect(() => {
-    console.log('Employer Dashboard useEffect - user:', user)
-    console.log('Employer Dashboard useEffect - loading:', loading)
+    console.log('🔄 Dashboard useEffect - user:', !!user, 'loading:', loading)
     
-    if (!loading && !user) {
-      console.log('No user found, redirecting to login')
+    if (loading) {
+      console.log('🔄 Auth still loading, waiting...')
+      return
+    }
+    
+    if (!user) {
+      console.log('❌ No user found, redirecting to login')
       router.push('/auth/login')
       return
     }
     
-    if (user) {
-      console.log('User found, loading employer data')
-      loadEmployerData()
-    }
+    console.log('✅ User found, loading dashboard data')
+    loadEmployerData()
   }, [user, loading, router])
 
+  // FIXED: Separate subscription check effect with better state management
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
-      if (!user?.id) return
+      if (!user?.id) {
+        console.log('No user ID for subscription check')
+        return
+      }
       
       try {
+        console.log('🔄 Checking subscription status...')
         const response = await fetch(`/api/check-subscription-status?userId=${user.id}`)
         const data = await response.json()
+        
+        console.log('📊 Subscription check response:', data)
         
         setSubscriptionCheck({
           loading: false,
           hasActiveSubscription: data.hasActiveSubscription,
-          currentPlan: data.currentPlan,
+          currentPlan: data.currentPlan || 'free',
           canPurchaseNew: data.canPurchaseNew
         })
 
         if (data.subscription) {
+          console.log('✅ Updating subscription from check:', data.subscription.plan_type)
           setSubscription({
             tier: data.subscription.plan_type || 'free',
             credits: data.subscription.credits || 0,
@@ -745,12 +766,14 @@ export default function EmployerDashboard() {
           })
         }
       } catch (error) {
-        console.error('Error checking subscription:', error)
+        console.error('❌ Error checking subscription:', error)
         setSubscriptionCheck(prev => ({ ...prev, loading: false }))
       }
     }
 
-    checkSubscriptionStatus()
+    if (user?.id) {
+      checkSubscriptionStatus()
+    }
   }, [user?.id])
 
   useEffect(() => {
@@ -763,20 +786,30 @@ export default function EmployerDashboard() {
     return () => clearInterval(interval)
   }, [user, autoRefresh])
 
+  // FIXED: Enhanced data loading with better error handling
   const loadEmployerData = async () => {
     try {
+      console.log('🔄 Loading employer data...')
       setIsLoading(true)
-      await Promise.all([
-        loadJobs(),
-        loadApplications(),
-        loadAnalytics(),
-        loadProfile(),
-        loadUserCredits(),
-        loadSubscription()
-      ])
+      
+      // Load all data with individual error handling
+      const dataPromises = [
+        loadJobs().catch(err => console.error('Error loading jobs:', err)),
+        loadApplications().catch(err => console.error('Error loading applications:', err)),
+        loadAnalytics().catch(err => console.error('Error loading analytics:', err)),
+        loadProfile().catch(err => console.error('Error loading profile:', err)),
+        loadUserCredits().catch(err => console.error('Error loading credits:', err)),
+        loadSubscription().catch(err => console.error('Error loading subscription:', err))
+      ]
+      
+      // Wait for all promises to complete, even if some fail
+      await Promise.allSettled(dataPromises)
+      
+      console.log('✅ Employer data loading completed')
     } catch (error) {
-      console.error('Error loading employer data:', error)
+      console.error('❌ Critical error loading employer data:', error)
     } finally {
+      console.log('🔄 Setting isLoading to false')
       setIsLoading(false)
     }
   }
@@ -1013,16 +1046,23 @@ export default function EmployerDashboard() {
     return new Date(expirationDate) < new Date()
   }
 
+  // FIXED: Loading state logic - only show loading if auth is loading OR dashboard is loading
   if (loading || isLoading) {
+    console.log('🔄 Showing loading screen - auth loading:', loading, 'dashboard loading:', isLoading)
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-2xl mb-4">⏳</div>
           <div>Loading your dashboard...</div>
+          <div className="text-sm text-gray-500 mt-2">
+            {loading ? 'Authenticating...' : 'Loading dashboard data...'}
+          </div>
         </div>
       </div>
     )
   }
+
+  console.log('✅ Rendering dashboard - subscription tier:', subscription.tier)
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -1034,6 +1074,10 @@ export default function EmployerDashboard() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Employer Dashboard</h1>
               <p className="text-gray-600">Welcome back! Manage your job postings and applications.</p>
+              {/* Debug info */}
+              <p className="text-xs text-blue-600 mt-1">
+                Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobs}
+              </p>
             </div>
             <div className="flex gap-3">
               {freeJobEligible && !checkingEligibility ? (
