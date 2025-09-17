@@ -167,16 +167,22 @@ async function syncSubscriptionStatus(dbSubscription, stripeSubscription) {
     console.log(`🔄 Syncing status: DB="${dbStatus}" -> Stripe="${stripeStatus}"`)
     
     const updateData = {
-      status: stripeStatus,
+      status: stripeStatus === 'canceled' ? 'cancelled' : stripeStatus,
       current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
       current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
       updated_at: new Date().toISOString()
     }
     
-    if (stripeStatus === 'canceled' && !dbSubscription.cancelled_at) {
-      updateData.cancelled_at = stripeSubscription.canceled_at 
-        ? new Date(stripeSubscription.canceled_at * 1000).toISOString()
-        : new Date().toISOString()
+    // FIXED: Handle canceled_at timestamp properly
+    if (stripeStatus === 'canceled') {
+      if (stripeSubscription.canceled_at) {
+        // Only set if Stripe has a valid canceled_at timestamp
+        updateData.cancelled_at = new Date(stripeSubscription.canceled_at * 1000).toISOString()
+      } else if (!dbSubscription.cancelled_at) {
+        // Set current time if no canceled_at exists anywhere
+        updateData.cancelled_at = new Date().toISOString()
+      }
+      // If dbSubscription already has cancelled_at, leave it unchanged
     }
     
     const { error } = await supabase
@@ -198,10 +204,11 @@ async function syncSubscriptionStatus(dbSubscription, stripeSubscription) {
 async function markSubscriptionAsInvalid(subscriptionId) {
   console.log(`🗑️ Marking subscription ${subscriptionId} as invalid`)
   
+  // Use 'cancelled' instead of 'invalid' since database constraint doesn't allow 'invalid'
   const { error } = await supabase
     .from('subscriptions')
     .update({
-      status: 'invalid',
+      status: 'cancelled',
       cancelled_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     })
@@ -209,6 +216,8 @@ async function markSubscriptionAsInvalid(subscriptionId) {
   
   if (error) {
     console.error('⚠️ Failed to mark as invalid:', error)
+  } else {
+    console.log('✅ Marked subscription as cancelled (invalid)')
   }
 }
 
