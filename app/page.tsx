@@ -732,8 +732,8 @@ export default function HomePage() {
               fontWeight: '600',
               transition: 'all 0.3s ease'
             }}
-            onMouseEnter={(e) => e.target.style.background = '#e55a2b'}
-            onMouseLeave={(e) => e.target.style.background = '#ff6b35'}
+            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.background = '#e55a2b'}
+            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.background = '#ff6b35'}
           >
             🔍 Search Jobs
           </button>
