@@ -1,12 +1,12 @@
 'use client'
 
 import { useAuth } from '@/hooks/useAuth'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import SubscriptionManagement from '@/components/SubscriptionManagement'
 
-export default function EmployerDashboard() {
+function EmployerDashboardContent() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -2346,5 +2346,13 @@ export default function EmployerDashboard() {
 
       </div>
     </div>
+  )
+}
+
+export default function EmployerDashboard() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <EmployerDashboardContent />
+    </Suspense>
   )
 }
