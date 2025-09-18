@@ -8,6 +8,12 @@ export async function POST(request) {
     const { addonType, priceId, quantity = 1, jobId = null } = await request.json()
     console.log('Received addon purchase request:', { addonType, priceId, quantity, jobId })
     
+    // Validate priceId
+    if (!priceId || priceId.length === 0) {
+      console.error('Missing or empty priceId:', priceId)
+      return NextResponse.json({ error: 'Price ID is required' }, { status: 400 })
+    }
+    
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 
       cookies: () => cookieStore 
@@ -57,7 +63,25 @@ export async function POST(request) {
       case 'resume_credits_10':
       case 'resume_credits_25':
       case 'resume_credits_50':
-        lineItem = { price: priceId, quantity: 1 }
+        // If no priceId provided, create price_data dynamically
+        if (!priceId || priceId === '') {
+          const creditAmounts = { 'resume_credits_10': 10, 'resume_credits_25': 25, 'resume_credits_50': 50 }
+          const prices = { 'resume_credits_10': 3900, 'resume_credits_25': 7900, 'resume_credits_50': 12900 }
+          
+          lineItem = { 
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `Resume Credits - ${creditAmounts[addonType]} Pack`,
+                description: `${creditAmounts[addonType]} credits for candidate contact`
+              },
+              unit_amount: prices[addonType]
+            },
+            quantity: 1 
+          }
+        } else {
+          lineItem = { price: priceId, quantity: 1 }
+        }
         successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/employer?credits_purchased=true&type=${addonType}`
         metadata.credits_amount = addonType.split('_')[2] // Extract number from type
         break
@@ -66,7 +90,21 @@ export async function POST(request) {
         if (!jobId) {
           return NextResponse.json({ error: 'Job ID required for featured listing' }, { status: 400 })
         }
-        lineItem = { price: priceId, quantity: 1 }
+        if (!priceId || priceId === '') {
+          lineItem = { 
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Featured Job Listing',
+                description: 'Top of search results with bright highlight badge for 30 days'
+              },
+              unit_amount: 2900 // $29
+            },
+            quantity: 1 
+          }
+        } else {
+          lineItem = { price: priceId, quantity: 1 }
+        }
         successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/employer?featured_added=true&job_id=${jobId}`
         metadata.job_id = jobId
         break
@@ -75,7 +113,21 @@ export async function POST(request) {
         if (!jobId) {
           return NextResponse.json({ error: 'Job ID required for urgent badge' }, { status: 400 })
         }
-        lineItem = { price: priceId, quantity: 1 }
+        if (!priceId || priceId === '') {
+          lineItem = { 
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Urgent Job Badge',
+                description: 'Bright "URGENT" badge for immediate attention for 14 days'
+              },
+              unit_amount: 1900 // $19
+            },
+            quantity: 1 
+          }
+        } else {
+          lineItem = { price: priceId, quantity: 1 }
+        }
         successUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/employer?urgent_added=true&job_id=${jobId}`
         metadata.job_id = jobId
         break

@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[8192],{2634:()=>{},6205:(e,_,E)=>{"use strict";let s;E.d(_,{getStripe:()=>p});var t=E(7368),l=E(5254),n=E(9509);let p=()=>(s||(s=(0,t.c)(n.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)),s);new l.A(n.env.STRIPE_SECRET_KEY||"sk_test_placeholder",{apiVersion:"2023-10-16"})}}]);

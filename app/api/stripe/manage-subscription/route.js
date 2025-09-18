@@ -1,13 +1,9 @@
 // app/api/stripe/manage-subscription/route.js
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder')
 
 // Safely convert a Unix seconds timestamp to ISO string, or return null
 function toIsoFromUnixSeconds(unixSeconds) {
@@ -23,6 +19,11 @@ function toIsoFromUnixSeconds(unixSeconds) {
 
 export async function POST(request) {
   try {
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+
     const { action, userId, newPriceId, newPlanType, subscriptionId } = await request.json()
     
     console.log('🔧 Managing subscription:', { action, userId, newPriceId, newPlanType, subscriptionId })

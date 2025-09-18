@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 // Function to trigger first application prompt for free jobs
 const triggerFirstApplicationPrompt = async (jobId, employerId) => {
@@ -88,6 +84,11 @@ export async function GET(request) {
 
     console.log('📋 Parameters:', { userId, employerId })
 
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+
     if (!userId && !employerId) {
       return NextResponse.json(
         { error: 'User ID or Employer ID required' },
@@ -169,6 +170,11 @@ export async function POST(request) {
     console.log('📝 Creating new application')
     
     const { jobId, userId, firstName, lastName, email, phone, classification } = await request.json()
+
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
 
     if (!jobId || !userId || !firstName || !lastName || !email || !phone) {
       return NextResponse.json(

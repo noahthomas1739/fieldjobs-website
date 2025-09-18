@@ -494,12 +494,7 @@ function EmployerDashboardContent() {
         'resume_credits_50': process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_50_PRICE_ID || '',
       }
       
-      const priceId = priceMapping[addonType]
-      
-      if (!priceId) {
-        alert('Add-on not available. Please contact support.')
-        return
-      }
+      const priceId = priceMapping[addonType] || '' // Allow empty priceId, API will create dynamic pricing
       
       const response = await fetch('/api/stripe/purchase-addon', {
         method: 'POST',
@@ -1737,6 +1732,75 @@ function EmployerDashboardContent() {
                 }}
                 onSubscriptionUpdate={handleSubscriptionUpdate}
               />
+
+              {/* Subscription Plans Section */}
+              <div>
+                <h2 className="text-xl font-bold mb-6">Subscription Plans</h2>
+                
+                <div className="grid md:grid-cols-4 gap-6 mb-8">
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold">Starter</h3>
+                      <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
+                      <div className="text-gray-600 text-sm">per month</div>
+                    </div>
+                    <ul className="space-y-2 mb-6 text-sm">
+                      <li>✅ 3 active job postings</li>
+                      <li>✅ Basic applicant management</li>
+                      <li>✅ Email support</li>
+                    </ul>
+                    {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
+                  </div>
+
+                  <div className="border border-orange-300 rounded-lg p-6 relative bg-orange-50">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                        MOST POPULAR
+                      </span>
+                    </div>
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold">Growth</h3>
+                      <div className="text-3xl font-bold text-orange-500 my-2">$299</div>
+                      <div className="text-gray-600 text-sm">per month</div>
+                    </div>
+                    <ul className="space-y-2 mb-6 text-sm">
+                      <li>✅ 6 active job postings</li>
+                      <li>✅ Resume credits included</li>
+                      <li>✅ Priority support</li>
+                    </ul>
+                    {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold">Professional</h3>
+                      <div className="text-3xl font-bold text-orange-500 my-2">$599</div>
+                      <div className="text-gray-600 text-sm">per month</div>
+                    </div>
+                    <ul className="space-y-2 mb-6 text-sm">
+                      <li>✅ 15 active job postings</li>
+                      <li>✅ 25 resume credits included</li>
+                      <li>✅ Advanced analytics</li>
+                      <li>✅ Featured listings</li>
+                    </ul>
+                    {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
+                  </div>
+
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold">Enterprise</h3>
+                      <div className="text-3xl font-bold text-purple-600 my-2">$1,999</div>
+                      <div className="text-gray-600 text-sm">per month</div>
+                    </div>
+                    <ul className="space-y-2 mb-6 text-sm">
+                      <li>✅ Unlimited job postings</li>
+                      <li>✅ Unlimited resume access</li>
+                      <li>✅ Dedicated account manager</li>
+                    </ul>
+                    {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
+                  </div>
+                </div>
+              </div>
 
               {/* Single Job & Add-On Products Section */}
               <div>
