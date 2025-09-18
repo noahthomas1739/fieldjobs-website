@@ -702,95 +702,73 @@ export default function HomePage() {
         <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', margin: 0 }}>Find Your Next Technical Opportunity</h1>
         <p style={{ margin: '1rem 0 2rem 0' }}>Connect with top employers in nuclear, energy, aerospace, defense, and technical industries</p>
         
-        {/* Enhanced Search Fields */}
-        <div style={{ display: 'flex', gap: '1rem', maxWidth: '800px', margin: '2rem auto 0', flexWrap: 'wrap' }}>
+        {/* Simplified Search - One Line */}
+        <div style={{ display: 'flex', gap: '0', maxWidth: '800px', margin: '2rem auto 0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' }}>
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && performSearch()}
-            placeholder="Job title, company, or keywords"
+            placeholder="Search jobs by title, company, or keywords..."
             style={{ 
               flex: 1, 
-              padding: '0.75rem', 
-              border: '3px solid #ff6b35',
-              borderRadius: '5px', 
-              fontSize: '1rem', 
-              minWidth: '200px',
+              padding: '1rem 1.5rem', 
+              border: 'none',
+              fontSize: '1.1rem', 
               outline: 'none',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
               backgroundColor: 'white',
               color: 'black'
             }}
           />
-          <select
-            value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
-            style={{ 
-              flex: 1, 
-              padding: '0.75rem', 
-              border: '3px solid #ff6b35',
-              borderRadius: '5px', 
-              fontSize: '1rem', 
-              minWidth: '200px',
-              outline: 'none',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
-              backgroundColor: 'white',
-              color: 'black'
-            }}
-          >
-            <option value="">All Regions</option>
-            <option value="northeast">Northeast US</option>
-            <option value="southeast">Southeast US</option>
-            <option value="midwest">Midwest US</option>
-            <option value="southwest">Southwest US</option>
-            <option value="west">West US</option>
-            <option value="canada">Canada</option>
-            <option value="mexico">Mexico</option>
-            <option value="nationwide">US Nationwide</option>
-            <option value="international">International</option>
-          </select>
-          <select
-            value={compensationFilter}
-            onChange={(e) => setCompensationFilter(e.target.value)}
-            style={{ 
-              flex: 1, 
-              padding: '0.75rem', 
-              border: '3px solid #ff6b35',
-              borderRadius: '5px', 
-              fontSize: '1rem', 
-              minWidth: '200px',
-              outline: 'none',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
-              backgroundColor: 'white',
-              color: 'black'
-            }}
-          >
-            <option value="">All Compensation</option>
-            <option value="0-25">Under $25/hr</option>
-            <option value="25-35">$25 - $35/hr</option>
-            <option value="35-50">$35 - $50/hr</option>
-            <option value="50-75">$50 - $75/hr</option>
-            <option value="75+">$75+/hr</option>
-            <option value="project">Project Rate</option>
-          </select>
           <button
             onClick={performSearch}
             style={{ 
-              padding: '0.75rem 2rem', 
+              padding: '1rem 2.5rem', 
               background: '#ff6b35', 
               color: 'white', 
-              border: '3px solid #ff6b35',
-              borderRadius: '5px', 
+              border: 'none',
               cursor: 'pointer', 
-              fontSize: '1rem',
+              fontSize: '1.1rem',
               fontWeight: '600',
-              boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
               transition: 'all 0.3s ease'
             }}
+            onMouseEnter={(e) => e.target.style.background = '#e55a2b'}
+            onMouseLeave={(e) => e.target.style.background = '#ff6b35'}
           >
-            Search Jobs
+            🔍 Search Jobs
           </button>
+        </div>
+
+        {/* Quick Filter Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+          {[
+            { key: 'nuclear', label: 'Nuclear' },
+            { key: 'power-generation', label: 'Power' },
+            { key: 'construction', label: 'Construction' },
+            { key: 'aerospace', label: 'Aerospace' },
+            { key: 'electric-td', label: 'Electric' }
+          ].map((industry) => (
+            <button
+              key={industry.key}
+              onClick={() => {
+                toggleFilter(industry.key)
+                performSearch()
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                background: activeFilters.includes(industry.key) ? '#ff6b35' : 'transparent',
+                color: activeFilters.includes(industry.key) ? 'white' : '#ff6b35',
+                border: `2px solid #ff6b35`,
+                borderRadius: '25px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {industry.label}
+            </button>
+          ))}
         </div>        
         
         {/* UPDATED: Search hero buttons section */}
@@ -912,30 +890,76 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Results Header with Sort */}
-        <div style={{ background: 'white', padding: '1.5rem 2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.5rem' }}>
-              {isLoading ? 'Loading Jobs...' : `${filteredJobs.length} Jobs Found`}
-            </h2>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#666' }}>
-              Showing {indexOfFirstJob + 1}-{Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length} results
-            </p>
+        {/* Enhanced Results Header */}
+        <div style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid #e0e0e0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#1a1a1a', fontWeight: '700' }}>
+                {isLoading ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '20px', height: '20px', border: '2px solid #ff6b35', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    Loading Jobs...
+                  </span>
+                ) : (
+                  <span style={{ color: filteredJobs.length === 0 ? '#666' : '#ff6b35' }}>
+                    {filteredJobs.length === 0 ? 'No Jobs Found' : `${filteredJobs.length} Job${filteredJobs.length === 1 ? '' : 's'} Available`}
+                  </span>
+                )}
+              </h2>
+              {filteredJobs.length > 0 && (
+                <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '1rem' }}>
+                  Showing {indexOfFirstJob + 1}-{Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length} results
+                </p>
+              )}
+            </div>
+            {filteredJobs.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '500', color: '#333', fontSize: '0.9rem' }}>Sort by:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  style={{ padding: '0.5rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.9rem', backgroundColor: 'white' }}
+                >
+                  <option value="recent">Most Recent</option>
+                  <option value="salary-high">Compensation: High to Low</option>
+                  <option value="salary-low">Compensation: Low to High</option>
+                  <option value="company">Company A-Z</option>
+                  <option value="title">Job Title A-Z</option>
+                </select>
+              </div>
+            )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <label style={{ fontWeight: '500', color: '#333' }}>Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
-            >
-              <option value="recent">Most Recent</option>
-              <option value="salary-high">Compensation: High to Low</option>
-              <option value="salary-low">Compensation: Low to High</option>
-              <option value="company">Company A-Z</option>
-              <option value="title">Job Title A-Z</option>
-            </select>
-          </div>
+
+          {/* Active Filters Display */}
+          {(searchInput || activeFilters.length > 0 || locationFilter || compensationFilter) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+              <span style={{ fontWeight: '500', color: '#333', fontSize: '0.9rem' }}>Active filters:</span>
+              {searchInput && (
+                <span style={{ background: '#e8f4fd', color: '#1976d2', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  🔍 "{searchInput}"
+                  <button onClick={() => setSearchInput('')} style={{ background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: '0', fontSize: '12px' }}>✕</button>
+                </span>
+              )}
+              {activeFilters.map(filter => (
+                <span key={filter} style={{ background: '#fff3e0', color: '#f57c00', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {filter.replace('-', ' ')}
+                  <button onClick={() => toggleFilter(filter)} style={{ background: 'none', border: 'none', color: '#f57c00', cursor: 'pointer', padding: '0', fontSize: '12px' }}>✕</button>
+                </span>
+              ))}
+              <button 
+                onClick={() => {
+                  setSearchInput('')
+                  setActiveFilters([])
+                  setLocationFilter('')
+                  setCompensationFilter('')
+                  performSearch()
+                }}
+                style={{ background: '#ff6b35', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '15px', fontSize: '0.8rem', border: 'none', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* UPDATED: Job Listings with Enhanced Featured Display and Free Job Badges */}
