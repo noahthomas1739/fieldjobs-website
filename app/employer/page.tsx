@@ -1177,7 +1177,7 @@ function EmployerDashboardContent() {
               { id: 'applications', label: 'Applications', icon: '📧', badge: getNewApplicationsCount() },
               { id: 'resume-search', label: 'Resume Search', icon: '🔍' },
               { id: 'analytics', label: 'Analytics', icon: '📈' },
-              { id: 'billing', label: 'Billing & Plans', icon: '💳' }
+              { id: 'billing', label: 'Products & Billing', icon: '🛒' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -1504,6 +1504,60 @@ function EmployerDashboardContent() {
                   Credits: {userCredits} • Each contact unlock uses 1 credit
                 </div>
               </div>
+
+              {/* Resume Credits Purchase Section */}
+              {userCredits < 5 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-2xl">💳</div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-orange-800">Need More Resume Credits?</h3>
+                      <p className="text-orange-700">Purchase resume credits to unlock candidate contact information</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white border border-orange-200 rounded-lg p-4 text-center">
+                      <div className="text-lg font-bold text-orange-600 mb-1">10 Credits</div>
+                      <div className="text-2xl font-bold mb-2">$39</div>
+                      <div className="text-sm text-gray-600 mb-3">$3.90 per credit</div>
+                      <button
+                        onClick={() => handleAddonPurchase('resume_credits_10')}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium"
+                      >
+                        Purchase
+                      </button>
+                    </div>
+                    
+                    <div className="bg-white border border-orange-200 rounded-lg p-4 text-center relative">
+                      <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                        Most Popular
+                      </div>
+                      <div className="text-lg font-bold text-orange-600 mb-1">25 Credits</div>
+                      <div className="text-2xl font-bold mb-2">$79</div>
+                      <div className="text-sm text-gray-600 mb-3">$3.16 per credit</div>
+                      <button
+                        onClick={() => handleAddonPurchase('resume_credits_25')}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium"
+                      >
+                        Purchase
+                      </button>
+                    </div>
+                    
+                    <div className="bg-white border border-orange-200 rounded-lg p-4 text-center">
+                      <div className="text-lg font-bold text-orange-600 mb-1">50 Credits</div>
+                      <div className="text-2xl font-bold mb-2">$129</div>
+                      <div className="text-sm text-gray-600 mb-3">$2.58 per credit</div>
+                      <button
+                        onClick={() => handleAddonPurchase('resume_credits_50')}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium"
+                      >
+                        Purchase
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-gray-50 p-6 rounded-lg mb-6">
                 <h3 className="text-lg font-semibold mb-4">Search Filters</h3>
