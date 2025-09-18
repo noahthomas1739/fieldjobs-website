@@ -4,10 +4,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 // Use service role client for webhooks (bypasses RLS)
-const cookieStore = cookies()
-const supabase = createRouteHandlerClient({ 
-  cookies: () => cookieStore 
-})
+// Note: supabase client will be created within request functions
 
 
 // Safely convert a Unix seconds timestamp to ISO string, or return null
@@ -110,6 +107,12 @@ async function handleOneTimePayment(session) {
   console.log('🔵 === ONE-TIME PAYMENT PROCESSING ===')
   
   try {
+    // Create supabase client within the function
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     const userId = session.metadata?.user_id
     const addonType = session.metadata?.addon_type
     const creditsAmount = session.metadata?.credits_amount
@@ -282,6 +285,12 @@ async function handleSubscriptionCreated(subscription) {
   console.log('🔵 Status:', subscription.status)
   
   try {
+    // Create supabase client within the function
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     // Find user by customer ID
     const { data: existingSub, error: findError } = await supabase
       .from('subscriptions')
@@ -316,6 +325,12 @@ async function handleSubscriptionUpdated(subscription) {
   console.log('🔵 Status:', subscription.status)
   
   try {
+    // Create supabase client within the function
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     // Find subscription in database
     const { data: dbSubscription, error: findError } = await supabase
       .from('subscriptions')
@@ -357,6 +372,12 @@ async function handleSubscriptionDeleted(subscription) {
   console.log('🔵 Customer ID:', subscription.customer)
   
   try {
+    // Create supabase client within the function
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     // Mark subscription as cancelled in database
     const { error: updateError } = await supabase
       .from('subscriptions')
@@ -397,6 +418,12 @@ async function handlePaymentFailed(invoice) {
   console.log('🔵 Subscription ID:', invoice.subscription)
   
   try {
+    // Create supabase client within the function
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     if (invoice.subscription) {
       // Update subscription status based on payment failure
       const { error: updateError } = await supabase
@@ -423,6 +450,12 @@ async function handlePaymentFailed(invoice) {
 // Sync subscription data to database (ENHANCED)
 async function syncSubscriptionToDatabase(subscription, userId) {
   console.log('🔵 Syncing subscription to database...')
+  
+  // Create supabase client within the function
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ 
+    cookies: () => cookieStore 
+  })
   
   // Determine plan type from price ID
   const priceId = subscription.items.data[0]?.price?.id
@@ -494,6 +527,12 @@ async function handleSubscriptionSuccess(session) {
   console.log('🔵 === SUBSCRIPTION HANDLER STARTED ===')
   
   try {
+    // Create supabase client within the function
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     // Test database connection
     console.log('🔵 Testing database connection...')
     const { data: testData, error: testError } = await supabase
@@ -547,6 +586,12 @@ async function handleSubscriptionSuccess(session) {
 // Clean up old subscriptions to prevent duplicates
 async function cleanupOldSubscriptions(userId, newSubscriptionId) {
   console.log('🔵 Cleaning up old subscriptions...')
+  
+  // Create supabase client within the function
+  const cookieStore = cookies()
+  const supabase = createRouteHandlerClient({ 
+    cookies: () => cookieStore 
+  })
   
   const { error } = await supabase
     .from('subscriptions')
