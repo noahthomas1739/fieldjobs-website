@@ -129,6 +129,21 @@ export default function EmployersPage() {
       return
     }
 
+    // Check if user already has an active subscription
+    try {
+      const subscriptionResponse = await fetch(`/api/subscription-status?userId=${user.id}`)
+      const subscriptionData = await subscriptionResponse.json()
+      
+      if (subscriptionData.success && subscriptionData.subscription && subscriptionData.subscription.status === 'active') {
+        // User has active subscription, redirect to billing tab
+        router.push('/employer?tab=billing')
+        return
+      }
+    } catch (error) {
+      console.error('Error checking subscription status:', error)
+      // Continue with purchase flow if check fails
+    }
+
     try {
       const priceMapping: Record<string, string> = {
         'single': process.env.NEXT_PUBLIC_STRIPE_SINGLE_JOB_PRICE_ID || '',
@@ -152,7 +167,8 @@ export default function EmployersPage() {
         },
         body: JSON.stringify({
           priceId: priceId,
-          planType: planType
+          planType: planType,
+          userId: user.id  // Add userId to the request
         }),
       })
 

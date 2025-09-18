@@ -2,12 +2,14 @@
 
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import SubscriptionManagement from '@/components/SubscriptionManagement'
 
 export default function EmployerDashboard() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   
   // State management
   const [activeTab, setActiveTab] = useState('overview')
@@ -780,6 +782,37 @@ export default function EmployerDashboard() {
       checkSubscriptionStatus()
     }
   }, [user?.id])
+
+  // Handle URL parameters for tab routing
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && ['overview', 'jobs', 'applications', 'resume-search', 'analytics', 'billing'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
+
+  // Subscription update handler for SubscriptionManagement component
+  const handleSubscriptionUpdate = async () => {
+    if (!user?.id) return
+    
+    try {
+      const response = await fetch(`/api/subscription-status?userId=${user.id}`)
+      const data = await response.json()
+      
+      if (data.success && data.subscription) {
+        setSubscription({
+          tier: data.subscription.plan_type || 'free',
+          credits: data.credits || 0,
+          activeJobs: data.subscription.active_jobs_limit || 0,
+          status: data.subscription.status,
+          currentPeriodEnd: data.subscription.current_period_end,
+          stripeSubscriptionId: data.subscription.stripe_subscription_id || null
+        })
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error)
+    }
+  }
 
   useEffect(() => {
     if (!autoRefresh || !user) return
@@ -1689,6 +1722,23 @@ export default function EmployerDashboard() {
 
           {/* Billing Tab */}
           {activeTab === 'billing' && (
+            <SubscriptionManagement 
+              user={user}
+              subscription={{
+                plan_type: subscription.tier,
+                credits: subscription.credits,
+                active_jobs_limit: subscription.activeJobs,
+                status: subscription.status,
+                current_period_end: subscription.currentPeriodEnd,
+                stripe_subscription_id: subscription.stripeSubscriptionId,
+                price: subscription.price || 0
+              }}
+              onSubscriptionUpdate={handleSubscriptionUpdate}
+            />
+          )}
+
+          {/* Original billing content as backup */}
+          {activeTab === 'billing-old' && (
             <div>
               <h2 className="text-xl font-bold mb-6">Billing & Plans</h2>
               
