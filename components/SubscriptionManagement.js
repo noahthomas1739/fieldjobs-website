@@ -9,12 +9,17 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
   const [billingHistory, setBillingHistory] = useState([])
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [scheduledChanges, setScheduledChanges] = useState([])
 
   useEffect(() => {
     if (activeTab === 'billing' && subscription?.stripe_customer_id) {
       loadBillingHistory()
     }
-  }, [activeTab, subscription])
+    // Load scheduled changes when component mounts or user changes
+    if (user?.id) {
+      loadScheduledChanges()
+    }
+  }, [activeTab, subscription, user?.id])
 
   const loadBillingHistory = async () => {
     try {
@@ -36,6 +41,20 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       console.error('Error loading billing history:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadScheduledChanges = async () => {
+    try {
+      const response = await fetch(`/api/subscription-schedule-status?userId=${user.id}`)
+      const data = await response.json()
+      
+      if (data.success && data.scheduledChanges) {
+        setScheduledChanges(data.scheduledChanges)
+        console.log('📅 Loaded scheduled changes:', data.scheduledChanges)
+      }
+    } catch (error) {
+      console.error('Error loading scheduled changes:', error)
     }
   }
 
@@ -101,9 +120,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'upgrade',
+          action: 'upgrade_immediate',
           userId: user.id,
-          newPriceId: newPriceId
+          newPriceId: newPriceId,
+          newPlanType: planName.toLowerCase()
         })
       })
 
@@ -111,6 +131,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       if (data.success) {
         alert(`✅ Successfully upgraded to ${planName} plan!`)
         onSubscriptionUpdate()
+        loadScheduledChanges() // Reload scheduled changes
         setShowUpgradeModal(false)
       } else {
         alert('Error upgrading subscription. Please try again.')
@@ -118,6 +139,36 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
     } catch (error) {
       console.error('Error upgrading subscription:', error)
       alert('Error upgrading subscription. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDowngradeSubscription = async (newPriceId, planName) => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/stripe/manage-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'downgrade_end_cycle',
+          userId: user.id,
+          newPriceId: newPriceId,
+          newPlanType: planName.toLowerCase()
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        alert(`✅ ${data.message}`)
+        onSubscriptionUpdate()
+        loadScheduledChanges() // Reload scheduled changes
+      } else {
+        alert(`Error scheduling downgrade: ${data.error || 'Please try again.'}`)
+      }
+    } catch (error) {
+      console.error('Error scheduling downgrade:', error)
+      alert('Error scheduling downgrade. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -261,6 +312,19 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
           </div>
 
+          {/* Scheduled Changes Alert */}
+          {scheduledChanges.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800 mb-2">📅 Upcoming Changes</h4>
+              {scheduledChanges.map((change, index) => (
+                <div key={change.id || index} className="text-blue-700">
+                  Your plan will change from <strong>{change.currentPlan}</strong> to <strong>{change.newPlan}</strong> on{' '}
+                  <strong>{formatDate(change.effectiveDate)}</strong>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Plan Benefits */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-gray-50 p-4 rounded-lg text-center">
@@ -345,7 +409,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleUpgradeSubscription('price_1Rk5wTRC3IxXIgoOJXQeNds5', 'Starter')}
+                    onClick={() => handleDowngradeSubscription('price_1Rk5wTRC3IxXIgoOJXQeNds5', 'Starter')}
                     disabled={isLoading}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
@@ -380,7 +444,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   </div>
                 ) : (
                   <button
-                    onClick={() => handleUpgradeSubscription('price_1Rk5xGRC3IxXIgoOKFM0DRZd', 'Professional')}
+                    onClick={() => subscription?.plan_type === 'enterprise' 
+                      ? handleDowngradeSubscription('price_1Rk5xGRC3IxXIgoOKFM0DRZd', 'Professional')
+                      : handleUpgradeSubscription('price_1Rk5xGRC3IxXIgoOKFM0DRZd', 'Professional')
+                    }
                     disabled={isLoading}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
