@@ -352,18 +352,22 @@ async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newP
     // Get plan details
     const planDetails = getPlanDetails(newPlanType)
     
-    // Debug the period end timestamp
+    // Debug the period end timestamp - check both possible locations
     console.log('🐛 DEBUG stripeSubscription.current_period_end:', stripeSubscription.current_period_end)
-    console.log('🐛 DEBUG typeof:', typeof stripeSubscription.current_period_end)
+    console.log('🐛 DEBUG stripeSubscription.items.data[0]?.current_period_end:', stripeSubscription.items?.data?.[0]?.current_period_end)
     
-    const effectiveDate = toIsoFromUnixSeconds(stripeSubscription.current_period_end)
+    // Try to get period end from subscription object, fallback to items
+    let periodEnd = stripeSubscription.current_period_end || stripeSubscription.items?.data?.[0]?.current_period_end
+    console.log('🐛 DEBUG final periodEnd value:', periodEnd)
+    
+    const effectiveDate = toIsoFromUnixSeconds(periodEnd)
     console.log('🐛 DEBUG effectiveDate after conversion:', effectiveDate)
     
     // If conversion failed, try direct conversion as fallback
-    if (!effectiveDate && stripeSubscription.current_period_end) {
+    if (!effectiveDate && periodEnd) {
       console.log('🔧 Trying direct Date conversion as fallback...')
       try {
-        const fallbackDate = new Date(stripeSubscription.current_period_end * 1000).toISOString()
+        const fallbackDate = new Date(periodEnd * 1000).toISOString()
         console.log('🔧 Fallback conversion successful:', fallbackDate)
         
         // Store the scheduled change with fallback date
