@@ -351,7 +351,56 @@ async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newP
 
     // Get plan details
     const planDetails = getPlanDetails(newPlanType)
+    
+    // Debug the period end timestamp
+    console.log('🐛 DEBUG stripeSubscription.current_period_end:', stripeSubscription.current_period_end)
+    console.log('🐛 DEBUG typeof:', typeof stripeSubscription.current_period_end)
+    
     const effectiveDate = toIsoFromUnixSeconds(stripeSubscription.current_period_end)
+    console.log('🐛 DEBUG effectiveDate after conversion:', effectiveDate)
+    
+    // If conversion failed, try direct conversion as fallback
+    if (!effectiveDate && stripeSubscription.current_period_end) {
+      console.log('🔧 Trying direct Date conversion as fallback...')
+      try {
+        const fallbackDate = new Date(stripeSubscription.current_period_end * 1000).toISOString()
+        console.log('🔧 Fallback conversion successful:', fallbackDate)
+        
+        // Store the scheduled change with fallback date
+        const { error: scheduleError } = await supabase
+          .from('subscription_schedule_changes')
+          .insert({
+            user_id: validSubscription.user_id,
+            subscription_id: validSubscription.id,
+            stripe_schedule_id: `manual_${Date.now()}`,
+            current_plan: validSubscription.plan_type,
+            new_plan: planDetails.planType,
+            effective_date: fallbackDate,
+            status: 'scheduled'
+          })
+
+        if (scheduleError) {
+          console.error('❌ Schedule error:', scheduleError)
+          throw new Error('Failed to schedule downgrade: ' + scheduleError.message)
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Downgrade scheduled to ${planDetails.planType} plan! Your current benefits continue until ${new Date(fallbackDate).toLocaleDateString()}.`,
+          effectiveDate: fallbackDate,
+          newPlan: planDetails
+        })
+        
+      } catch (fallbackError) {
+        console.error('❌ Fallback conversion also failed:', fallbackError)
+        throw new Error('Unable to determine billing period end date from Stripe. Please contact support.')
+      }
+    }
+    
+    // Ensure we have a valid effective date
+    if (!effectiveDate) {
+      throw new Error('Unable to determine billing period end date from Stripe. Please contact support.')
+    }
 
     // Store the scheduled change
     const { error: scheduleError } = await supabase
