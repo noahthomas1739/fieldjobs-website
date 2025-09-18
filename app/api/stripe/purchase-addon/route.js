@@ -8,11 +8,8 @@ export async function POST(request) {
     const { addonType, priceId, quantity = 1, jobId = null } = await request.json()
     console.log('Received addon purchase request:', { addonType, priceId, quantity, jobId })
     
-    // Validate priceId
-    if (!priceId || priceId.length === 0) {
-      console.error('Missing or empty priceId:', priceId)
-      return NextResponse.json({ error: 'Price ID is required' }, { status: 400 })
-    }
+    // Note: priceId is optional - we'll use dynamic pricing if not provided
+    console.log('Processing addon purchase with priceId:', priceId || 'dynamic')
     
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 

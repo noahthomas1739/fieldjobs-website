@@ -25,13 +25,40 @@ export async function POST(request) {
   console.log('=== POST REQUEST RECEIVED ===')
   
   try {
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
     console.log('Parsing request body...')
     const { priceId, planType, userId } = await request.json()
     console.log('Request data:', { priceId, planType, userId })
 
-    if (!userId || !priceId || !planType) {
-      console.log('Missing fields:', { userId: !!userId, priceId: !!priceId, planType: !!planType })
+    if (!userId || !planType) {
+      console.log('Missing fields:', { userId: !!userId, planType: !!planType })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+    
+    // If no priceId provided, use dynamic pricing
+    let actualPriceId = priceId
+    if (!actualPriceId) {
+      console.log('No priceId provided, using dynamic pricing for plan:', planType)
+      
+      // Create dynamic price based on plan type
+      const planPricing = {
+        'starter': { amount: 19900, name: 'Starter Plan', description: '3 active jobs, basic features' },
+        'growth': { amount: 29900, name: 'Growth Plan', description: '6 active jobs, 5 monthly credits' },
+        'professional': { amount: 59900, name: 'Professional Plan', description: '15 active jobs, 25 monthly credits' },
+        'enterprise': { amount: 199900, name: 'Enterprise Plan', description: 'Unlimited jobs, 100 monthly credits' }
+      }
+      
+      const pricing = planPricing[planType]
+      if (!pricing) {
+        return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 })
+      }
+      
+      // We'll create the subscription with price_data instead of priceId
+      actualPriceId = null // Signal to use price_data
     }
 
     console.log('Checking existing subscriptions...')
@@ -171,18 +198,43 @@ export async function POST(request) {
     console.log('Creating checkout session...')
     console.log('Session config:', {
       customerId,
-      priceId,
+      priceId: actualPriceId,
       planType,
       baseUrl: process.env.NEXT_PUBLIC_BASE_URL
     })
 
+    // Create line item with either priceId or price_data
+    let lineItem
+    if (actualPriceId) {
+      lineItem = { price: actualPriceId, quantity: 1 }
+    } else {
+      // Use dynamic pricing
+      const planPricing = {
+        'starter': { amount: 19900, name: 'Starter Plan', description: '3 active jobs, basic features' },
+        'growth': { amount: 29900, name: 'Growth Plan', description: '6 active jobs, 5 monthly credits' },
+        'professional': { amount: 59900, name: 'Professional Plan', description: '15 active jobs, 25 monthly credits' },
+        'enterprise': { amount: 199900, name: 'Enterprise Plan', description: 'Unlimited jobs, 100 monthly credits' }
+      }
+      
+      const pricing = planPricing[planType]
+      lineItem = {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: pricing.name,
+            description: pricing.description
+          },
+          unit_amount: pricing.amount,
+          recurring: { interval: 'month' }
+        },
+        quantity: 1
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
+      line_items: [lineItem],
       mode: 'subscription',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?success=true&plan=${planType}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?canceled=true`,

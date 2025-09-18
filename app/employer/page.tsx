@@ -373,20 +373,9 @@ function EmployerDashboardContent() {
         return
       }
       
-      const priceMapping: Record<string, string> = {
-        'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '',
-        'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '',
-        'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '',
-        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || ''
-      }
-      
-      const priceId = priceMapping[planType]
-      
-      if (!priceId) {
-        console.error('Missing price ID for plan:', planType, 'Available:', priceMapping)
-        alert(`${planType} plan not configured yet. Please contact support or try another plan.`)
-        return
-      }
+      // Use empty priceId to trigger dynamic pricing in the API
+      // This avoids dependency on environment variables
+      const priceId = ''
 
       const response = await fetch('/api/stripe/create-subscription', {
         method: 'POST',
@@ -488,13 +477,9 @@ function EmployerDashboardContent() {
     try {
       setIsLoading(true)
       
-      const priceMapping: Record<string, string> = {
-        'resume_credits_10': process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_10_PRICE_ID || '',
-        'resume_credits_25': process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_25_PRICE_ID || '',
-        'resume_credits_50': process.env.NEXT_PUBLIC_STRIPE_RESUME_CREDITS_50_PRICE_ID || '',
-      }
-      
-      const priceId = priceMapping[addonType] || '' // Allow empty priceId, API will create dynamic pricing
+      // Use empty priceId to trigger dynamic pricing in the API
+      // This avoids dependency on environment variables
+      const priceId = ''
       
       const response = await fetch('/api/stripe/purchase-addon', {
         method: 'POST',
