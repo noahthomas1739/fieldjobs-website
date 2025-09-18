@@ -67,16 +67,14 @@ export default function SignupPage() {
       // Store account type in localStorage to retrieve after OAuth redirect
       localStorage.setItem('signup_account_type', selectedAccountType)
       
-      const { data, error } = await signInWithGoogle()
+      // signInWithGoogle() handles the redirect automatically
+      await signInWithGoogle()
       
-      if (error) {
-        setError('Google signup failed. Please try again.')
-        console.error('Google signup error:', error)
-      }
+      // Note: User will be redirected to Google, so we won't reach here
+      // The actual auth handling happens in the callback page
     } catch (err) {
       setError('An unexpected error occurred')
       console.error('Google signup error:', err)
-    } finally {
       setIsLoading(false)
     }
   }
