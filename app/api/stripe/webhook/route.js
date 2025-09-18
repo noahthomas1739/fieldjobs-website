@@ -4,6 +4,10 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 // Use service role client for webhooks (bypasses RLS)
+const cookieStore = cookies()
+const supabase = createRouteHandlerClient({ 
+  cookies: () => cookieStore 
+})
 
 
 // Safely convert a Unix seconds timestamp to ISO string, or return null
@@ -87,12 +91,186 @@ export async function POST(request) {
 // Handle checkout completion (existing functionality)
 async function handleCheckoutCompleted(session) {
   console.log('🔵 === CHECKOUT COMPLETED ===')
+  console.log('🔵 Session mode:', session.mode)
+  console.log('🔵 Session metadata:', session.metadata)
   
   if (session.mode === 'subscription') {
     console.log('🔵 Processing subscription checkout...')
     await handleSubscriptionSuccess(session)
+  } else if (session.mode === 'payment') {
+    console.log('🔵 Processing one-time payment checkout...')
+    await handleOneTimePayment(session)
   } else {
-    console.log('🔵 Non-subscription checkout, skipping')
+    console.log('🔵 Unknown checkout mode, skipping')
+  }
+}
+
+// Handle one-time payment completion (NEW)
+async function handleOneTimePayment(session) {
+  console.log('🔵 === ONE-TIME PAYMENT PROCESSING ===')
+  
+  try {
+    const userId = session.metadata?.user_id
+    const addonType = session.metadata?.addon_type
+    const creditsAmount = session.metadata?.credits_amount
+    const jobId = session.metadata?.job_id
+    
+    console.log('🔵 Payment metadata:', { userId, addonType, creditsAmount, jobId })
+    
+    if (!userId) {
+      console.error('❌ No userId found in payment metadata')
+      return
+    }
+
+    // Handle resume credit purchases
+    if (addonType && addonType.startsWith('resume_credits_')) {
+      console.log('💰 Processing resume credits purchase...')
+      
+      const creditMap = {
+        'resume_credits_10': 10,
+        'resume_credits_25': 25,
+        'resume_credits_50': 50
+      }
+      
+      const creditsToAdd = creditMap[addonType] || parseInt(creditsAmount) || 0
+      
+      if (creditsToAdd === 0) {
+        console.error('❌ Invalid credit amount for:', addonType)
+        return
+      }
+      
+      console.log(`💰 Adding ${creditsToAdd} credits to user ${userId}`)
+      
+      // Get or create credit balance
+      let { data: creditBalance, error: creditError } = await supabase
+        .from('credit_balances')
+        .select('purchased_credits, monthly_credits')
+        .eq('user_id', userId)
+        .single()
+
+      if (creditError && creditError.code === 'PGRST116') {
+        // Create new credit balance record
+        console.log('💰 Creating new credit balance record...')
+        const { data: newBalance, error: insertError } = await supabase
+          .from('credit_balances')
+          .insert({
+            user_id: userId,
+            purchased_credits: creditsToAdd,
+            monthly_credits: 0,
+            last_monthly_refresh: new Date().toISOString().split('T')[0],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single()
+        
+        if (insertError) {
+          console.error('❌ Error creating credit balance:', insertError)
+          throw insertError
+        }
+        
+        creditBalance = newBalance
+      } else if (creditError) {
+        console.error('❌ Error fetching credit balance:', creditError)
+        throw creditError
+      } else {
+        // Update existing balance
+        console.log('💰 Updating existing credit balance...')
+        const newPurchasedCredits = creditBalance.purchased_credits + creditsToAdd
+        
+        const { error: updateError } = await supabase
+          .from('credit_balances')
+          .update({ 
+            purchased_credits: newPurchasedCredits,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+        
+        if (updateError) {
+          console.error('❌ Error updating credit balance:', updateError)
+          throw updateError
+        }
+        
+        creditBalance.purchased_credits = newPurchasedCredits
+      }
+
+      // Log the purchase for tracking
+      const { error: logError } = await supabase
+        .from('credit_purchases')
+        .insert({
+          user_id: userId,
+          credits_purchased: creditsToAdd,
+          package_type: addonType.split('_')[2], // Extract "10", "25", or "50"
+          amount_paid: session.amount_total / 100, // Convert from cents to dollars
+          purchased_at: new Date().toISOString(),
+          stripe_session_id: session.id
+        })
+
+      if (logError) {
+        console.warn('⚠️ Failed to log credit purchase:', logError)
+      }
+
+      const totalCredits = creditBalance.monthly_credits + creditBalance.purchased_credits
+      console.log(`✅ Added ${creditsToAdd} credits. Total credits: ${totalCredits}`)
+    }
+    
+    // Handle job feature purchases (featured listing, urgent badge)
+    else if (addonType === 'featured_listing' || addonType === 'urgent_badge') {
+      console.log(`🎯 Processing ${addonType} purchase for job ${jobId}...`)
+      
+      if (!jobId) {
+        console.error('❌ No jobId found for feature purchase')
+        return
+      }
+      
+      // Update job with the purchased feature
+      const updateData = {
+        updated_at: new Date().toISOString()
+      }
+      
+      if (addonType === 'featured_listing') {
+        updateData.is_featured = true
+        updateData.featured_until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+      } else if (addonType === 'urgent_badge') {
+        updateData.is_urgent = true
+        updateData.urgent_until = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days
+      }
+      
+      const { error: jobUpdateError } = await supabase
+        .from('jobs')
+        .update(updateData)
+        .eq('id', jobId)
+        .eq('user_id', userId) // Ensure user owns the job
+      
+      if (jobUpdateError) {
+        console.error(`❌ Error updating job with ${addonType}:`, jobUpdateError)
+        throw jobUpdateError
+      }
+      
+      // Log the feature purchase
+      const { error: featureLogError } = await supabase
+        .from('job_feature_purchases')
+        .insert({
+          user_id: userId,
+          job_id: jobId,
+          feature_type: addonType,
+          amount_paid: session.amount_total / 100,
+          purchased_at: new Date().toISOString(),
+          stripe_session_id: session.id
+        })
+      
+      if (featureLogError) {
+        console.warn('⚠️ Failed to log feature purchase:', featureLogError)
+      }
+      
+      console.log(`✅ Applied ${addonType} to job ${jobId}`)
+    }
+    
+    console.log('✅ === ONE-TIME PAYMENT COMPLETED ===')
+    
+  } catch (error) {
+    console.error('❌ One-time payment processing error:', error)
+    throw error
   }
 }
 

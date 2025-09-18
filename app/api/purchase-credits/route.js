@@ -1,144 +1,105 @@
 // app/api/purchase-credits/route.js
 import { NextResponse } from 'next/server'
+import { stripe } from '@/lib/stripe-server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 export async function POST(request) {
   try {
+    const { priceId, credits, packageType, amount } = await request.json()
+    console.log('💰 Resume credits purchase request:', { priceId, credits, packageType, amount })
+    
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 
       cookies: () => cookieStore 
     })
-
-    const { userId, creditPackage } = await request.json()
-
-    if (!userId || !creditPackage) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'User ID and credit package are required' 
-      }, { status: 400 })
-    }
-
-    // Define credit packages
-    const packages = {
-      'small': { credits: 10, price: 39 },
-      'medium': { credits: 25, price: 79 },
-      'large': { credits: 50, price: 129 }
-    }
-
-    const selectedPackage = packages[creditPackage]
     
-    if (!selectedPackage) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Invalid credit package' 
-      }, { status: 400 })
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      console.error('Authentication failed:', authError)
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
-    console.log(`💰 Adding ${selectedPackage.credits} purchased credits for user:`, userId)
-
-    // Get or create credit balance
-    let { data: creditBalance, error: creditError } = await supabase
-      .from('credit_balances')
-      .select('purchased_credits, monthly_credits')
-      .eq('user_id', userId)
+    let customerId
+    
+    // Get existing customer ID or create new one
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('id', user.id)
       .single()
 
-    if (creditError && creditError.code === 'PGRST116') {
-      // Create initial credit balance if it doesn't exist
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('plan_type')
-        .eq('user_id', userId)
-        .single()
-      
-      const monthlyCredits = {
-        'growth': 5,
-        'professional': 25,
-        'enterprise': 100
-      }[subscription?.plan_type] || 0
-      
-      const { data: newBalance, error: createError } = await supabase
-        .from('credit_balances')
-        .insert({
-          user_id: userId,
-          monthly_credits: monthlyCredits,
-          purchased_credits: selectedPackage.credits,
-          last_monthly_refresh: new Date().toISOString().split('T')[0]
-        })
-        .select()
-        .single()
-      
-      if (createError) {
-        console.error('❌ Error creating credit balance:', createError)
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Failed to create credit balance' 
-        }, { status: 500 })
-      }
-      
-      creditBalance = newBalance
-    } else if (creditError) {
-      console.error('❌ Error fetching credit balance:', creditError)
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to fetch credit balance' 
-      }, { status: 500 })
+    if (profile?.stripe_customer_id) {
+      customerId = profile.stripe_customer_id
     } else {
-      // Add purchased credits to existing balance
-      const newPurchasedCredits = creditBalance.purchased_credits + selectedPackage.credits
-      
-      const { error: updateError } = await supabase
-        .from('credit_balances')
-        .update({ 
-          purchased_credits: newPurchasedCredits,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId)
-      
-      if (updateError) {
-        console.error('❌ Error updating credit balance:', updateError)
-        return NextResponse.json({ 
-          success: false, 
-          error: 'Failed to add credits' 
-        }, { status: 500 })
-      }
-      
-      creditBalance.purchased_credits = newPurchasedCredits
-    }
-
-    // Log the purchase (optional - for tracking)
-    const { error: logError } = await supabase
-      .from('credit_purchases')
-      .insert({
-        user_id: userId,
-        credits_purchased: selectedPackage.credits,
-        package_type: creditPackage,
-        amount_paid: selectedPackage.price,
-        purchased_at: new Date().toISOString()
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { supabase_user_id: user.id }
       })
-
-    // Don't fail if logging fails - it's not critical
-    if (logError) {
-      console.warn('⚠️ Failed to log credit purchase:', logError)
+      customerId = customer.id
+      
+      await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id)
     }
 
-    const totalCredits = creditBalance.monthly_credits + creditBalance.purchased_credits
+    // Map packageType to addonType format for consistency
+    const addonTypeMap = {
+      'small': 'resume_credits_10',
+      'medium': 'resume_credits_25',
+      'large': 'resume_credits_50'
+    }
     
-    console.log(`✅ Added ${selectedPackage.credits} credits. Total credits: ${totalCredits}`)
+    const addonType = addonTypeMap[packageType]
+    
+    if (!addonType) {
+      return NextResponse.json({ error: 'Invalid package type' }, { status: 400 })
+    }
 
-    return NextResponse.json({
-      success: true,
-      creditsAdded: selectedPackage.credits,
-      totalCredits: totalCredits,
-      message: `Successfully added ${selectedPackage.credits} credits to your account!`
+    // Create line item with dynamic pricing (same as purchase-addon route)
+    const creditAmounts = { 'resume_credits_10': 10, 'resume_credits_25': 25, 'resume_credits_50': 50 }
+    const prices = { 'resume_credits_10': 3900, 'resume_credits_25': 7900, 'resume_credits_50': 12900 }
+    
+    const lineItem = { 
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `Resume Credits - ${creditAmounts[addonType]} Pack`,
+          description: `${creditAmounts[addonType]} credits for candidate contact`
+        },
+        unit_amount: prices[addonType]
+      },
+      quantity: 1 
+    }
+
+    const metadata = { 
+      user_id: user.id, 
+      addon_type: addonType,
+      credits_amount: creditAmounts[addonType].toString(),
+      quantity: '1'
+    }
+
+    // Create Stripe checkout session for one-time payment
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [lineItem],
+      mode: 'payment',
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?credits_purchased=true&type=${addonType}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employers?credits_canceled=true`,
+      metadata: metadata
     })
+
+    console.log('✅ Created resume credits session:', session.id)
+    return NextResponse.json({ sessionId: session.id })
 
   } catch (error) {
     console.error('❌ Purchase credits server error:', error)
     return NextResponse.json({ 
-      success: false, 
-      error: 'Server error while purchasing credits' 
+      error: 'Server error while creating checkout session',
+      details: error.message 
     }, { status: 500 })
   }
 }
