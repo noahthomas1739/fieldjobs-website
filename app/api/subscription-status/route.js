@@ -74,7 +74,7 @@ export async function GET(request) {
             console.log('🔄 Syncing missing subscription from Stripe:', planDetails.planType)
             
             // Clean up any old subscriptions first
-            await cleanupOldSubscriptions(userId, stripeSubscription.id)
+            await cleanupOldSubscriptions(userId, stripeSubscription.id, supabase)
             
             const { data: syncedSubscription, error: syncError } = await supabase
               .from('subscriptions')
@@ -97,7 +97,7 @@ export async function GET(request) {
             
             if (!syncError && syncedSubscription) {
               console.log('✅ Successfully synced missing subscription from Stripe')
-              return await processSubscriptionResponse(userId, syncedSubscription);
+              return await processSubscriptionResponse(userId, syncedSubscription, supabase);
             } else {
               console.error('❌ Failed to sync subscription:', syncError);
             }
@@ -137,7 +137,7 @@ export async function GET(request) {
     }
 
     // Process the subscription response
-    return await processSubscriptionResponse(userId, subscription)
+    return await processSubscriptionResponse(userId, subscription, supabase)
 
   } catch (error) {
     console.error('❌ Subscription status server error:', error)
@@ -149,7 +149,7 @@ export async function GET(request) {
 }
 
 // Helper function to process subscription and credits
-async function processSubscriptionResponse(userId, subscription) {
+async function processSubscriptionResponse(userId, subscription, supabase) {
   // Get user's credit balance
   let totalCredits = 0
   const { data: creditBalance, error: creditError } = await supabase
@@ -247,7 +247,7 @@ async function processSubscriptionResponse(userId, subscription) {
 }
 
 // Helper function to clean up old subscriptions
-async function cleanupOldSubscriptions(userId, newStripeSubscriptionId) {
+async function cleanupOldSubscriptions(userId, newStripeSubscriptionId, supabase) {
   console.log('🧹 Cleaning up old subscriptions for user:', userId)
   
   const { error } = await supabase
