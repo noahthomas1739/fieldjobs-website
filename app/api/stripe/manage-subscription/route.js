@@ -362,7 +362,6 @@ async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newP
         stripe_schedule_id: `manual_${Date.now()}`,
         current_plan: validSubscription.plan_type,
         new_plan: planDetails.planType,
-        new_price_id: newPriceId,
         effective_date: effectiveDate,
         status: 'scheduled'
       })
