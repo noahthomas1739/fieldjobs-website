@@ -79,11 +79,20 @@ function AuthCallbackContent() {
             setTimeout(() => {
               const accountType = storedAccountType || data.user?.user_metadata?.account_type
               
+              console.log('🔍 Redirect Logic Debug:')
+              console.log('- storedAccountType:', storedAccountType)
+              console.log('- user_metadata?.account_type:', data.user?.user_metadata?.account_type)
+              console.log('- final accountType:', accountType)
+              console.log('- Will redirect to:', !accountType ? '/auth/account-type' : (accountType === 'employer' ? '/employer' : '/dashboard'))
+              
               if (!accountType) {
+                console.log('👤 New user - redirecting to account type selection')
                 router.push('/auth/account-type')
               } else if (accountType === 'employer') {
+                console.log('🏢 Existing employer - redirecting to employer dashboard')
                 router.push('/employer')
               } else {
+                console.log('👷 Existing job seeker - redirecting to job seeker dashboard')
                 router.push('/dashboard')
               }
             }, 1500)
