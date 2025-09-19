@@ -101,8 +101,7 @@ export default function SignupPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'r_liteprofile r_emailaddress'
+          scopes: 'openid profile email'
         }
       })
       

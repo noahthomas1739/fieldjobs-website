@@ -31,10 +31,20 @@ In your Supabase dashboard:
    https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback
    ```
 
-### 3. LinkedIn App Permissions
-Make sure your LinkedIn app has these permissions enabled:
-- `r_liteprofile` (to read basic profile info)
-- `r_emailaddress` (to read email)
+### 3. LinkedIn App Permissions & Products
+LinkedIn has moved to OpenID Connect. Make sure your LinkedIn app has:
+
+**Required Product:**
+- "Sign In with LinkedIn using OpenID Connect" (NOT the old "Sign In with LinkedIn")
+
+**Required Scopes (automatically included with OpenID Connect):**
+- `openid` (authentication)
+- `profile` (basic profile info)  
+- `email` (email address)
+
+**OLD SCOPES TO REMOVE:**
+- ❌ `r_liteprofile` (deprecated)
+- ❌ `r_emailaddress` (deprecated)
 
 ### 4. Test URLs
 - **Production**: `https://field-jobs.co`
@@ -59,16 +69,21 @@ The browser shows: `redirect_to=https://field-jobs.co/auth/callback`
 But LinkedIn expects: `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
 
 ### Fix Steps:
-1. **Remove these URLs from LinkedIn app** (if present):
-   - `https://field-jobs.co/auth/callback`
-   - `http://localhost:3000/auth/callback`
+1. **LinkedIn App Setup**:
+   - Remove these URLs from LinkedIn app (if present):
+     - `https://field-jobs.co/auth/callback`
+     - `http://localhost:3000/auth/callback`
+   - Keep ONLY: `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
+   - Enable "Sign In with LinkedIn using OpenID Connect" product
 
-2. **Keep ONLY this URL in LinkedIn app**:
-   - `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
-
-3. **In Supabase, your Site URL should be**:
+2. **Supabase Configuration**:
    - Site URL: `https://field-jobs.co`
    - Additional redirect URLs: `http://localhost:3000/**`
+   - LinkedIn provider enabled with Client ID/Secret
+
+3. **Code Changes Made**:
+   - Updated scopes from `r_liteprofile r_emailaddress` to `openid profile email`
+   - Removed custom `redirectTo` option to let Supabase handle redirects automatically
 
 ### OAuth Flow Explanation:
 1. User clicks LinkedIn login → Supabase initiates OAuth
