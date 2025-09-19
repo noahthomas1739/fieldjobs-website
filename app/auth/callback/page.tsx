@@ -37,6 +37,8 @@ function AuthCallbackContent() {
 
           if (data.user) {
             console.log('OAuth sign in successful for:', data.user.email)
+            console.log('Full user object:', data.user)
+            console.log('Session data:', data.session)
             setStatus('success')
             setMessage('Sign in successful!')
             
@@ -75,8 +77,14 @@ function AuthCallbackContent() {
               }
             }
             
-            // Redirect after a short delay
-            setTimeout(() => {
+            // Force session refresh before redirect to ensure auth state is properly set
+            setTimeout(async () => {
+              console.log('🔄 Forcing session refresh before redirect...')
+              
+              // Force session refresh
+              const { data: refreshedSession } = await supabase.auth.getSession()
+              console.log('Refreshed session:', refreshedSession)
+              
               const accountType = storedAccountType || data.user?.user_metadata?.account_type
               
               console.log('🔍 Redirect Logic Debug:')
