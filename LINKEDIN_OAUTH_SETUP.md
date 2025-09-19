@@ -6,16 +6,18 @@ LinkedIn OAuth is failing with "redirect_uri does not match the registered value
 ## Fix Required
 
 ### 1. LinkedIn Developer Console
-Go to: https://www.linkedin.com/developers/apps
+Go: https://www.linkedin.com/developers/apps
 
 1. **Select your LinkedIn app** (or create one if needed)
 2. **Go to Auth tab**
-3. **Add ONLY the Supabase callback URL as authorized redirect URL**:
+3. **Add these Authorized redirect URLs for branded OAuth flow**:
    ```
+   https://field-jobs.co/auth/callback
+   http://localhost:3000/auth/callback
    https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback
    ```
 
-⚠️ **CRITICAL**: Do NOT add your app URLs (field-jobs.co, localhost) here. LinkedIn should only redirect to Supabase, then Supabase handles redirecting to your app.
+✅ **BRANDED FLOW**: Include your app URLs so users see your domain during OAuth, not Supabase's.
 
 ### 2. Supabase Configuration
 In your Supabase dashboard:
@@ -70,10 +72,10 @@ But LinkedIn expects: `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback
 
 ### Fix Steps:
 1. **LinkedIn App Setup**:
-   - Remove these URLs from LinkedIn app (if present):
-     - `https://field-jobs.co/auth/callback`
-     - `http://localhost:3000/auth/callback`
-   - Keep ONLY: `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
+   - Add ALL these URLs to LinkedIn app authorized redirects:
+     - `https://field-jobs.co/auth/callback` (production)
+     - `http://localhost:3000/auth/callback` (development)
+     - `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback` (Supabase fallback)
    - Enable "Sign In with LinkedIn using OpenID Connect" product
 
 2. **Supabase Configuration**:
@@ -83,13 +85,20 @@ But LinkedIn expects: `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback
 
 3. **Code Changes Made**:
    - Updated scopes from `r_liteprofile r_emailaddress` to `openid profile email`
-   - Removed custom `redirectTo` option to let Supabase handle redirects automatically
+   - Restored `redirectTo` option for branded OAuth flow
+   - Users now see your domain during LinkedIn OAuth, not Supabase's
 
-### OAuth Flow Explanation:
-1. User clicks LinkedIn login → Supabase initiates OAuth
-2. LinkedIn redirects to → `wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
-3. Supabase processes auth → Redirects to your app's `/auth/callback`
+### OAuth Flow Explanation (Branded):
+1. User clicks LinkedIn login → Supabase initiates OAuth with your domain
+2. LinkedIn redirects to → `https://field-jobs.co/auth/callback` (branded!)
+3. Your app receives auth code → Exchanges with Supabase for session
 4. Your app handles the session → Redirects to dashboard
+
+### Benefits of Branded Flow:
+- ✅ Users see field-jobs.co during OAuth (professional)
+- ✅ No Supabase branding visible to users
+- ✅ Consistent brand experience
+- ✅ Better trust and user experience
 
 ## Important Notes
 - LinkedIn OAuth requires HTTPS in production
