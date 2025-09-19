@@ -39,6 +39,7 @@ export default function HomePage() {
   const [showJobDetailModal, setShowJobDetailModal] = useState<boolean>(false)
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false)
   const [selectedJob, setSelectedJob] = useState<any>(null)
+  const [searchComplete, setSearchComplete] = useState<boolean>(false)
   
   // NEW: Employer banner state variables
   const [showEmployerBanner, setShowEmployerBanner] = useState<boolean>(true)
@@ -369,7 +370,33 @@ export default function HomePage() {
   }
 
   const performSearch = () => {
+    // Show loading state briefly for user feedback
+    setIsLoading(true)
+    setSearchComplete(false)
+    
+    // Perform the search
     filterAndSortJobs()
+    
+    // Auto-scroll to results after a brief delay to show loading feedback
+    setTimeout(() => {
+      setIsLoading(false)
+      setSearchComplete(true)
+      
+      // Scroll to results section smoothly
+      const resultsSection = document.querySelector('[data-results-section]')
+      if (resultsSection) {
+        resultsSection.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        })
+      }
+      
+      // Hide search complete notification after 3 seconds
+      setTimeout(() => {
+        setSearchComplete(false)
+      }, 3000)
+    }, 500) // Brief loading animation for user feedback
   }
 
   const toggleSaveJob = async (jobId: number) => {
@@ -601,6 +628,23 @@ export default function HomePage() {
 
   return (
     <div style={{ margin: 0, padding: 0, boxSizing: 'border-box', fontFamily: 'Arial, sans-serif', background: '#f5f5f5' }}>
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
       {/* Thin Free Job Notification Bar */}
       {shouldShowThinBanner() && freeJobEligible && user && (
         <div style={{ 
@@ -785,6 +829,28 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Search Complete Notification */}
+      {searchComplete && (
+        <div style={{ 
+          position: 'fixed', 
+          top: '20px', 
+          right: '20px', 
+          background: '#28a745', 
+          color: 'white', 
+          padding: '1rem 1.5rem', 
+          borderRadius: '8px', 
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)', 
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          animation: 'slideInRight 0.3s ease-out'
+        }}>
+          <span style={{ fontSize: '1.2rem' }}>✅</span>
+          <span style={{ fontWeight: '500' }}>Search completed! Found {filteredJobs.length} jobs</span>
+        </div>
+      )}
+
       {/* Main Content */}
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
         {/* Filters Container */}
@@ -891,7 +957,7 @@ export default function HomePage() {
         </div>
 
         {/* Enhanced Results Header */}
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid #e0e0e0' }}>
+        <div data-results-section style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid #e0e0e0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
             <div>
               <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#1a1a1a', fontWeight: '700' }}>

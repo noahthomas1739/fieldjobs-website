@@ -122,13 +122,14 @@ export default function LoginPage() {
             {isLoading ? 'Signing in...' : 'Continue with Google'}
           </button>
 
-          {/* LinkedIn Sign In - Coming Soon */}
+          {/* LinkedIn Sign In */}
           <button
-            disabled={true}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed mb-6"
+            onClick={handleLinkedInLogin}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-3 bg-[#0077B5] hover:bg-[#005885] text-white px-4 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
           >
             <LinkedInIcon />
-            LinkedIn Login Coming Soon
+            {isLoading ? 'Signing in...' : 'Continue with LinkedIn'}
           </button>
 
           <div className="relative my-6">
