@@ -13,16 +13,28 @@ export default function AccountTypePage() {
 
   // Handle redirect in useEffect
   useEffect(() => {
+    console.log('🎯 Account Type Page Debug:')
+    console.log('- loading:', loading)
+    console.log('- user:', user)
+    console.log('- user.user_metadata:', user?.user_metadata)
+    console.log('- account_type:', user?.user_metadata?.account_type)
+    
     if (!loading) {
       if (!user) {
+        console.log('❌ No user - redirecting to login')
         router.push('/auth/login')
       } else if (user.user_metadata?.account_type) {
         // User already has account type, redirect appropriately
+        console.log('✅ User has account type:', user.user_metadata.account_type)
         if (user.user_metadata.account_type === 'employer') {
+          console.log('🏢 Redirecting to employer dashboard')
           router.push('/employer')
         } else {
+          console.log('👷 Redirecting to job seeker dashboard')
           router.push('/dashboard')
         }
+      } else {
+        console.log('👤 New user - showing account type selection')
       }
     }
   }, [user, loading, router])
