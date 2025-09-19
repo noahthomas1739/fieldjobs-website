@@ -9,21 +9,29 @@ export default function AccountTypePage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [isUpdating, setIsUpdating] = useState(false)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
   const supabase = createClientComponentClient()
 
-  // Handle redirect in useEffect
+  // Handle redirect in useEffect with proper timing for OAuth flow
   useEffect(() => {
     console.log('🎯 Account Type Page Debug:')
     console.log('- loading:', loading)
     console.log('- user:', user)
     console.log('- user.user_metadata:', user?.user_metadata)
     console.log('- account_type:', user?.user_metadata?.account_type)
+    console.log('- hasCheckedAuth:', hasCheckedAuth)
     
     if (!loading) {
-      if (!user) {
-        console.log('❌ No user - redirecting to login')
+      if (!user && !hasCheckedAuth) {
+        // Give auth state time to load after OAuth redirect, then check again
+        console.log('⏳ No user found, waiting for auth state to load after OAuth...')
+        setTimeout(() => {
+          setHasCheckedAuth(true)
+        }, 2000)
+      } else if (!user && hasCheckedAuth) {
+        console.log('❌ No user found after delay - redirecting to login')
         router.push('/auth/login')
-      } else if (user.user_metadata?.account_type) {
+      } else if (user?.user_metadata?.account_type) {
         // User already has account type, redirect appropriately
         console.log('✅ User has account type:', user.user_metadata.account_type)
         if (user.user_metadata.account_type === 'employer') {
@@ -33,11 +41,11 @@ export default function AccountTypePage() {
           console.log('👷 Redirecting to job seeker dashboard')
           router.push('/dashboard')
         }
-      } else {
+      } else if (user) {
         console.log('👤 New user - showing account type selection')
       }
     }
-  }, [user, loading, router])
+  }, [user, loading, hasCheckedAuth, router])
 
   const handleAccountTypeSelection = async (accountType: string) => {
     setIsUpdating(true)
