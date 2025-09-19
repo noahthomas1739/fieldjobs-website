@@ -40,11 +40,48 @@ function AuthCallbackContent() {
             setStatus('success')
             setMessage('Sign in successful!')
             
+            // Check if we have a stored account type from signup
+            let storedAccountType = null
+            try {
+              storedAccountType = localStorage.getItem('signup_account_type')
+              console.log('Stored account type from signup:', storedAccountType)
+            } catch (err) {
+              console.log('localStorage not available:', err)
+            }
+            
+            // If user doesn't have account type but we have one stored, apply it
+            if (!data.user?.user_metadata?.account_type && storedAccountType) {
+              console.log('Applying stored account type:', storedAccountType)
+              setMessage('Setting up your account...')
+              
+              try {
+                const { error } = await supabase.auth.updateUser({
+                  data: { account_type: storedAccountType }
+                })
+                
+                if (error) {
+                  console.error('Error setting account type:', error)
+                } else {
+                  console.log('Account type set successfully!')
+                  // Clear the stored account type
+                  try {
+                    localStorage.removeItem('signup_account_type')
+                  } catch (err) {
+                    console.log('Could not clear localStorage:', err)
+                  }
+                }
+              } catch (err) {
+                console.error('Failed to set account type:', err)
+              }
+            }
+            
             // Redirect after a short delay
             setTimeout(() => {
-              if (!data.user?.user_metadata?.account_type) {
+              const accountType = storedAccountType || data.user?.user_metadata?.account_type
+              
+              if (!accountType) {
                 router.push('/auth/account-type')
-              } else if (data.user?.user_metadata?.account_type === 'employer') {
+              } else if (accountType === 'employer') {
                 router.push('/employer')
               } else {
                 router.push('/dashboard')
