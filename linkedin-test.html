@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LinkedIn OAuth Direct Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 50px; }
+        .test-button { 
+            background: #0077B5; 
+            color: white; 
+            padding: 15px 30px; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .info { background: #f0f8ff; padding: 20px; border-radius: 5px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>LinkedIn OAuth Direct Test</h1>
+    
+    <div class="info">
+        <h3>Test Instructions:</h3>
+        <p>This page tests LinkedIn OAuth directly without Supabase to isolate the issue.</p>
+        <p><strong>Client ID:</strong> 861y3u5rdzoq2f</p>
+        <p><strong>Expected Result:</strong> Should redirect to LinkedIn login, then back to Supabase</p>
+    </div>
+
+    <h3>Test Links:</h3>
+    
+    <!-- Test 1: Supabase Callback -->
+    <a href="https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=861y3u5rdzoq2f&redirect_uri=https%3A%2F%2Fwqoiedzibfptxfsatzgy.supabase.co%2Fauth%2Fv1%2Fcallback&scope=openid%20profile%20email&state=test1" 
+       class="test-button">
+        Test 1: LinkedIn → Supabase Callback
+    </a>
+    <br>
+
+    <!-- Test 2: Your Domain Callback -->
+    <a href="https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=861y3u5rdzoq2f&redirect_uri=https%3A%2F%2Ffield-jobs.co%2Fauth%2Fcallback&scope=openid%20profile%20email&state=test2" 
+       class="test-button">
+        Test 2: LinkedIn → Your Domain Callback
+    </a>
+    <br>
+
+    <!-- Test 3: Localhost Callback -->
+    <a href="https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=861y3u5rdzoq2f&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fcallback&scope=openid%20profile%20email&state=test3" 
+       class="test-button">
+        Test 3: LinkedIn → Localhost Callback
+    </a>
+
+    <div class="info">
+        <h3>What Each Test Should Do:</h3>
+        <ul>
+            <li><strong>Test 1:</strong> Should work if Supabase LinkedIn provider is configured correctly</li>
+            <li><strong>Test 2:</strong> Should work if your domain callback is properly set up</li>
+            <li><strong>Test 3:</strong> Should work for local development testing</li>
+        </ul>
+        <p><strong>If any test fails with "redirect_uri mismatch":</strong> The LinkedIn app configuration is the issue</p>
+        <p><strong>If tests work but Supabase doesn't:</strong> The Supabase LinkedIn provider configuration is the issue</p>
+    </div>
+
+    <div class="info">
+        <h3>How to Use:</h3>
+        <ol>
+            <li>Open this file in a browser</li>
+            <li>Click each test button</li>
+            <li>Note which ones work and which fail</li>
+            <li>This will help isolate where the exact problem is</li>
+        </ol>
+    </div>
+</body>
+</html>
