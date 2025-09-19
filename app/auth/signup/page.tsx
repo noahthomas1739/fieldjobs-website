@@ -102,7 +102,10 @@ export default function SignupPage() {
         provider: 'linkedin_oidc',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          scopes: 'openid profile email'
+          scopes: 'openid profile email',
+          queryParams: {
+            prompt: 'select_account'
+          }
         }
       })
       
