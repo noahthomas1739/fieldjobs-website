@@ -10,12 +10,12 @@ Go to: https://www.linkedin.com/developers/apps
 
 1. **Select your LinkedIn app** (or create one if needed)
 2. **Go to Auth tab**
-3. **Add these Authorized redirect URLs**:
+3. **Add ONLY the Supabase callback URL as authorized redirect URL**:
    ```
    https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback
-   https://field-jobs.co/auth/callback
-   http://localhost:3000/auth/callback
    ```
+
+⚠️ **CRITICAL**: Do NOT add your app URLs (field-jobs.co, localhost) here. LinkedIn should only redirect to Supabase, then Supabase handles redirecting to your app.
 
 ### 2. Supabase Configuration
 In your Supabase dashboard:
@@ -52,7 +52,32 @@ After configuration:
 2. Test on production domain
 3. Verify user profile data is correctly received
 
+## Troubleshooting Current Issue
+
+### Current Error Analysis
+The browser shows: `redirect_to=https://field-jobs.co/auth/callback`
+But LinkedIn expects: `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
+
+### Fix Steps:
+1. **Remove these URLs from LinkedIn app** (if present):
+   - `https://field-jobs.co/auth/callback`
+   - `http://localhost:3000/auth/callback`
+
+2. **Keep ONLY this URL in LinkedIn app**:
+   - `https://wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
+
+3. **In Supabase, your Site URL should be**:
+   - Site URL: `https://field-jobs.co`
+   - Additional redirect URLs: `http://localhost:3000/**`
+
+### OAuth Flow Explanation:
+1. User clicks LinkedIn login → Supabase initiates OAuth
+2. LinkedIn redirects to → `wqoiedzibfptxfsatzgy.supabase.co/auth/v1/callback`
+3. Supabase processes auth → Redirects to your app's `/auth/callback`
+4. Your app handles the session → Redirects to dashboard
+
 ## Important Notes
 - LinkedIn OAuth requires HTTPS in production
 - Redirect URIs are case-sensitive
 - Changes in LinkedIn Developer Console may take a few minutes to propagate
+- The redirect URI in LinkedIn should NEVER be your app's URL directly
