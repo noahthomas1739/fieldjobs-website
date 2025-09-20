@@ -58,6 +58,12 @@ function AuthCallbackContent() {
               }
             }
 
+            // For LinkedIn users, store a flag to prompt for resume upload
+            const isLinkedInUser = data.user?.app_metadata?.provider === 'linkedin_oidc'
+            if (isLinkedInUser && storedAccountType === 'job_seeker') {
+              localStorage.setItem('linkedin_resume_prompt', 'true')
+            }
+
             // Force session refresh before redirect to ensure auth state is properly set
             setTimeout(async () => {
               console.log('🔄 Forcing session refresh before redirect...')

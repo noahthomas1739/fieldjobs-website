@@ -12,6 +12,7 @@ export default function JobSeekerDashboard() {
   // State management
   const [activeTab, setActiveTab] = useState('overview')
   const [isLoading, setIsLoading] = useState(true)
+  const [showLinkedInResumePrompt, setShowLinkedInResumePrompt] = useState(false)
   
   // Data states with proper types
   const [savedJobs, setSavedJobs] = useState<any[]>([])
@@ -57,6 +58,19 @@ export default function JobSeekerDashboard() {
         return () => clearInterval(interval)
       }
     }, [user, loading, router])
+
+    // Check for LinkedIn resume prompt
+    useEffect(() => {
+      try {
+        const linkedinPrompt = localStorage.getItem('linkedin_resume_prompt')
+        if (linkedinPrompt === 'true' && !profile.resumeUploaded) {
+          setShowLinkedInResumePrompt(true)
+          localStorage.removeItem('linkedin_resume_prompt')
+        }
+      } catch (err) {
+        console.error('Error checking LinkedIn resume prompt:', err)
+      }
+    }, [profile.resumeUploaded])
 
     // URL tab detection - separate useEffect
     useEffect(() => {
@@ -1035,6 +1049,39 @@ export default function JobSeekerDashboard() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* LinkedIn Resume Prompt Modal */}
+        {showLinkedInResumePrompt && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md mx-4">
+              <div className="text-center">
+                <div className="text-4xl mb-4">📄</div>
+                <h3 className="text-xl font-bold mb-3">Welcome, LinkedIn User! 🎉</h3>
+                <p className="text-gray-600 mb-6">
+                  Complete your profile by uploading your resume. This will help employers find you and 
+                  enable you to apply for jobs with one click!
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowLinkedInResumePrompt(false)
+                      setActiveTab('profile')
+                    }}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
+                  >
+                    Upload Resume
+                  </button>
+                  <button
+                    onClick={() => setShowLinkedInResumePrompt(false)}
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium"
+                  >
+                    Skip for Now
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
