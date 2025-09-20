@@ -86,7 +86,7 @@ export default function JobSeekerDashboard() {
 
             if (shouldUpdate) {
               console.log('Updating profile with LinkedIn data...')
-              setProfile(prev => ({
+              setProfile((prev: any) => ({
                 ...prev,
                 first_name: (prev.first_name === 'Job' || !prev.first_name) ? data.firstName : prev.first_name,
                 last_name: (prev.last_name === 'Seeker' || !prev.last_name) ? data.lastName : prev.last_name,
