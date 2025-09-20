@@ -105,7 +105,8 @@ export default function SignupPage() {
           scopes: 'openid profile email',
           queryParams: {
             prompt: 'select_account'
-          }
+          },
+          skipBrowserRedirect: false
         }
       })
       

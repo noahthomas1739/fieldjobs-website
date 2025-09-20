@@ -67,7 +67,8 @@ export default function LoginPage() {
           scopes: 'openid profile email',
           queryParams: {
             prompt: 'select_account'
-          }
+          },
+          skipBrowserRedirect: false
         }
       })
       
