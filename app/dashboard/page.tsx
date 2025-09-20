@@ -59,7 +59,7 @@ export default function JobSeekerDashboard() {
       }
     }, [user, loading, router])
 
-    // Check for LinkedIn resume prompt
+    // Check for LinkedIn resume prompt and auto-fill data
     useEffect(() => {
       try {
         const linkedinPrompt = localStorage.getItem('linkedin_resume_prompt')
@@ -67,10 +67,29 @@ export default function JobSeekerDashboard() {
           setShowLinkedInResumePrompt(true)
           localStorage.removeItem('linkedin_resume_prompt')
         }
+
+        // Auto-fill profile with LinkedIn data
+        const linkedinData = localStorage.getItem('linkedin_profile_data')
+        if (linkedinData && profile.id) {
+          const data = JSON.parse(linkedinData)
+          console.log('Auto-filling profile with LinkedIn data:', data)
+          
+          // Update profile state if fields are empty
+          setProfile(prev => ({
+            ...prev,
+            first_name: prev.first_name || data.firstName,
+            last_name: prev.last_name || data.lastName,
+            email: prev.email || data.email,
+            linkedin_url: prev.linkedin_url || data.linkedinUrl
+          }))
+          
+          // Clear the stored data after using it
+          localStorage.removeItem('linkedin_profile_data')
+        }
       } catch (err) {
-        console.error('Error checking LinkedIn resume prompt:', err)
+        console.error('Error processing LinkedIn data:', err)
       }
-    }, [profile.resumeUploaded])
+    }, [profile.resumeUploaded, profile.id])
 
     // URL tab detection - separate useEffect
     useEffect(() => {
@@ -1061,8 +1080,8 @@ export default function JobSeekerDashboard() {
                 <div className="text-4xl mb-4">📄</div>
                 <h3 className="text-xl font-bold mb-3">Welcome, LinkedIn User! 🎉</h3>
                 <p className="text-gray-600 mb-6">
-                  Complete your profile by uploading your resume. This will help employers find you and 
-                  enable you to apply for jobs with one click!
+                  We've auto-filled your profile with LinkedIn data! Complete your setup by uploading your resume. 
+                  This will help employers find you and enable you to apply for jobs with one click!
                 </p>
                 <div className="flex gap-3">
                   <button

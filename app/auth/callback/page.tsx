@@ -58,10 +58,22 @@ function AuthCallbackContent() {
               }
             }
 
-            // For LinkedIn users, store a flag to prompt for resume upload
+            // For LinkedIn users, extract and store profile data for auto-filling
             const isLinkedInUser = data.user?.app_metadata?.provider === 'linkedin_oidc'
             if (isLinkedInUser && storedAccountType === 'job_seeker') {
               localStorage.setItem('linkedin_resume_prompt', 'true')
+              
+              // Extract LinkedIn profile data for auto-filling
+              const linkedinData = {
+                firstName: data.user?.user_metadata?.first_name || data.user?.user_metadata?.given_name || '',
+                lastName: data.user?.user_metadata?.last_name || data.user?.user_metadata?.family_name || '',
+                email: data.user?.email || '',
+                profilePicture: data.user?.user_metadata?.avatar_url || data.user?.user_metadata?.picture || '',
+                linkedinUrl: data.user?.user_metadata?.profile_url || ''
+              }
+              
+              console.log('LinkedIn profile data extracted:', linkedinData)
+              localStorage.setItem('linkedin_profile_data', JSON.stringify(linkedinData))
             }
 
             // Force session refresh before redirect to ensure auth state is properly set
