@@ -71,20 +71,35 @@ export default function JobSeekerDashboard() {
         // Auto-fill profile with LinkedIn data
         const linkedinData = localStorage.getItem('linkedin_profile_data')
         if (linkedinData && profile.id) {
-          const data = JSON.parse(linkedinData)
-          console.log('Auto-filling profile with LinkedIn data:', data)
-          
-          // Update profile state if fields are empty
-          setProfile(prev => ({
-            ...prev,
-            first_name: prev.first_name || data.firstName,
-            last_name: prev.last_name || data.lastName,
-            email: prev.email || data.email,
-            linkedin_url: prev.linkedin_url || data.linkedinUrl
-          }))
-          
-          // Clear the stored data after using it
-          localStorage.removeItem('linkedin_profile_data')
+          try {
+            const data = JSON.parse(linkedinData)
+            console.log('Auto-filling profile with LinkedIn data:', data)
+            console.log('Current profile state:', profile)
+            
+            // Update profile state if fields are empty or have default values
+            const shouldUpdate = 
+              !profile.first_name || 
+              profile.first_name === 'Job' || 
+              !profile.last_name || 
+              profile.last_name === 'Seeker' ||
+              !profile.linkedin_url
+
+            if (shouldUpdate) {
+              console.log('Updating profile with LinkedIn data...')
+              setProfile(prev => ({
+                ...prev,
+                first_name: (prev.first_name === 'Job' || !prev.first_name) ? data.firstName : prev.first_name,
+                last_name: (prev.last_name === 'Seeker' || !prev.last_name) ? data.lastName : prev.last_name,
+                email: prev.email || data.email,
+                linkedin_url: prev.linkedin_url || data.linkedinUrl
+              }))
+            }
+            
+            // Clear the stored data after using it
+            localStorage.removeItem('linkedin_profile_data')
+          } catch (err) {
+            console.error('Error parsing LinkedIn data:', err)
+          }
         }
       } catch (err) {
         console.error('Error processing LinkedIn data:', err)

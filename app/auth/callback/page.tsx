@@ -31,6 +31,8 @@ function AuthCallbackContent() {
           if (data.user) {
             console.log('OAuth sign in successful for:', data.user.email)
             console.log('Full user object:', data.user)
+            console.log('🔍 User metadata:', data.user.user_metadata)
+            console.log('🔍 App metadata:', data.user.app_metadata)
             console.log('Session data:', data.session)
             setStatus('success')
             setMessage('Sign in successful!')
@@ -64,12 +66,14 @@ function AuthCallbackContent() {
               localStorage.setItem('linkedin_resume_prompt', 'true')
               
               // Extract LinkedIn profile data for auto-filling
+              const userData = data.user.user_metadata || {}
               const linkedinData = {
-                firstName: data.user?.user_metadata?.first_name || data.user?.user_metadata?.given_name || '',
-                lastName: data.user?.user_metadata?.last_name || data.user?.user_metadata?.family_name || '',
+                firstName: userData.first_name || userData.given_name || userData.name?.split(' ')[0] || '',
+                lastName: userData.last_name || userData.family_name || userData.name?.split(' ')[1] || '',
                 email: data.user?.email || '',
-                profilePicture: data.user?.user_metadata?.avatar_url || data.user?.user_metadata?.picture || '',
-                linkedinUrl: data.user?.user_metadata?.profile_url || ''
+                profilePicture: userData.avatar_url || userData.picture || userData.profile_image_url || '',
+                linkedinUrl: userData.profile_url || userData.linkedin_url || '',
+                fullName: userData.name || userData.full_name || ''
               }
               
               console.log('LinkedIn profile data extracted:', linkedinData)
