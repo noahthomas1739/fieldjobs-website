@@ -93,6 +93,16 @@ export default function JobSeekerDashboard() {
                 email: prev.email || data.email,
                 linkedin_url: prev.linkedin_url || data.linkedinUrl
               }))
+              
+              // Also save to backend immediately
+              const updatedProfile = {
+                first_name: (prev.first_name === 'Job' || !prev.first_name) ? data.firstName : prev.first_name,
+                last_name: (prev.last_name === 'Seeker' || !prev.last_name) ? data.lastName : prev.last_name,
+                email: prev.email || data.email,
+                linkedin_url: prev.linkedin_url || data.linkedinUrl
+              }
+              
+              saveProfile(updatedProfile)
             }
             
             // Clear the stored data after using it
