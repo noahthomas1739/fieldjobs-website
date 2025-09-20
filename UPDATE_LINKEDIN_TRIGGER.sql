@@ -1,5 +1,5 @@
--- Enhanced Database Trigger for LinkedIn Profile Auto-Fill
--- This will automatically populate profile fields from LinkedIn OAuth data
+-- Quick update to fix LinkedIn name extraction in database trigger
+-- Run this in Supabase SQL Editor to fix the auto-fill
 
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER 
@@ -16,7 +16,7 @@ BEGIN
   -- Get account type from user metadata, default to 'job_seeker'
   user_account_type := COALESCE(NEW.raw_user_meta_data->>'account_type', 'job_seeker');
   
-  -- Extract name data from various possible fields (LinkedIn uses given_name/family_name)
+  -- Extract name data - LinkedIn uses given_name/family_name
   user_first_name := COALESCE(
     NEW.raw_user_meta_data->>'given_name',
     NEW.raw_user_meta_data->>'first_name',
@@ -76,14 +76,3 @@ EXCEPTION
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
--- Grant necessary permissions
-GRANT EXECUTE ON FUNCTION handle_new_user() TO postgres;
-GRANT EXECUTE ON FUNCTION handle_new_user() TO service_role;
-
--- Recreate the trigger (it should already exist, but this ensures it's updated)
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW
-  EXECUTE FUNCTION handle_new_user();

@@ -68,8 +68,8 @@ function AuthCallbackContent() {
               // Extract LinkedIn profile data for auto-filling
               const userData = data.user.user_metadata || {}
               const linkedinData = {
-                firstName: userData.first_name || userData.given_name || userData.name?.split(' ')[0] || '',
-                lastName: userData.last_name || userData.family_name || userData.name?.split(' ')[1] || '',
+                firstName: userData.given_name || userData.first_name || userData.name?.split(' ')[0] || '',
+                lastName: userData.family_name || userData.last_name || userData.name?.split(' ')[1] || '',
                 email: data.user?.email || '',
                 profilePicture: userData.avatar_url || userData.picture || userData.profile_image_url || '',
                 linkedinUrl: userData.profile_url || userData.linkedin_url || '',
