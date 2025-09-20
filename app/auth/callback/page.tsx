@@ -21,8 +21,76 @@ function AuthCallbackContent() {
         
         console.log('Processing auth callback with:', { code, tokenHash, type })
 
-        // Handle OAuth callback (Google, LinkedIn)
-        if (code) {
+        // First check if user is already signed in
+        const { data: sessionData } = await supabase.auth.getSession()
+        
+        if (sessionData.session?.user) {
+          console.log('User already signed in, skipping code exchange')
+          const data = { user: sessionData.session.user, session: sessionData.session }
+          
+          if (data.user) {
+            console.log('OAuth sign in successful for:', data.user.email)
+            console.log('Full user object:', data.user)
+            console.log('Session data:', data.session)
+            setStatus('success')
+            setMessage('Sign in successful!')
+            
+            // Continue with existing logic...
+            // Check if we have a stored account type from signup
+            let storedAccountType = null
+            try {
+              storedAccountType = localStorage.getItem('signup_account_type')
+              console.log('Stored account type from signup:', storedAccountType)
+            } catch (err) {
+              console.error('Error accessing localStorage:', err)
+            }
+
+            // Update user metadata if we have a stored account type but user doesn't have one
+            if (storedAccountType && !data.user?.user_metadata?.account_type) {
+              console.log('Updating user metadata with stored account type:', storedAccountType)
+              try {
+                await supabase.auth.updateUser({
+                  data: { account_type: storedAccountType }
+                })
+                localStorage.removeItem('signup_account_type')
+              } catch (updateError) {
+                console.error('Error updating user metadata:', updateError)
+              }
+            }
+
+            // Force session refresh before redirect to ensure auth state is properly set
+            setTimeout(async () => {
+              console.log('🔄 Forcing session refresh before redirect...')
+
+              // Force session refresh
+              const { data: refreshedSession } = await supabase.auth.getSession()
+              console.log('Refreshed session:', refreshedSession)
+
+              const accountType = storedAccountType || data.user?.user_metadata?.account_type
+
+              console.log('🔍 Redirect Logic Debug:')
+              console.log('- storedAccountType:', storedAccountType)
+              console.log('- user_metadata?.account_type:', data.user?.user_metadata?.account_type)
+              console.log('- final accountType:', accountType)
+              console.log('- Will redirect to:', !accountType ? '/auth/account-type' : (accountType === 'employer' ? '/employer' : '/dashboard'))
+
+              if (!accountType) {
+                console.log('👤 New user - redirecting to account type selection')
+                router.push('/auth/account-type')
+              } else if (accountType === 'employer') {
+                console.log('🏢 Existing employer - redirecting to employer dashboard')
+                router.push('/employer')
+              } else {
+                console.log('👷 Existing job seeker - redirecting to job seeker dashboard')
+                router.push('/dashboard')
+              }
+            }, 1500)
+            return
+          }
+        }
+
+        // Handle OAuth callback (Google, LinkedIn) - only if not already signed in
+        if (code && !sessionData.session?.user) {
           console.log('Processing OAuth callback...')
           setMessage('Completing sign in...')
           
