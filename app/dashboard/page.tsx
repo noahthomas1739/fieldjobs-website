@@ -136,7 +136,7 @@ export default function JobSeekerDashboard() {
         if (isLinkedInUser && (profile.first_name === 'Job' || profile.last_name === 'Seeker')) {
           console.log('🔧 Detected LinkedIn user with incorrect profile data, fixing...')
           
-          const userMetadata = userData.user.user_metadata || {}
+          const userMetadata = userData?.user?.user_metadata || {}
           const correctedProfile = {
             ...profile,
             first_name: userMetadata.given_name || userMetadata.first_name || profile.first_name,
