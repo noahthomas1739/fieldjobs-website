@@ -94,16 +94,20 @@ export default function JobSeekerDashboard() {
                 linkedin_url: prev.linkedin_url || data.linkedinUrl
               }))
               
-            // Also save to backend immediately
+            // Also save to backend immediately after state update
             const updatedProfile = {
               ...profile,
               first_name: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
               last_name: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
+              firstName: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
+              lastName: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
               email: profile.email || data.email,
               linkedin_url: profile.linkedin_url || data.linkedinUrl
             }
-              
-              saveProfile(updatedProfile)
+            
+            // Update state first, then save (setTimeout ensures state is updated)
+            setProfile(updatedProfile)
+            setTimeout(() => saveProfile(), 100)
             }
             
             // Clear the stored data after using it
