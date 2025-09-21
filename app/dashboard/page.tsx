@@ -141,12 +141,15 @@ export default function JobSeekerDashboard() {
             ...profile,
             first_name: userMetadata.given_name || userMetadata.first_name || profile.first_name,
             last_name: userMetadata.family_name || userMetadata.last_name || profile.last_name,
+            firstName: userMetadata.given_name || userMetadata.first_name || profile.first_name,
+            lastName: userMetadata.family_name || userMetadata.last_name || profile.last_name,
             linkedin_url: profile.linkedin_url || userMetadata.profile_url || userMetadata.linkedin_url || ''
           }
           
           if (correctedProfile.first_name !== profile.first_name || correctedProfile.last_name !== profile.last_name) {
             setProfile(correctedProfile)
-            await saveProfile(correctedProfile)
+            // Use setTimeout to ensure state is updated before saving
+            setTimeout(() => saveProfile(), 100)
             console.log('✅ LinkedIn profile corrected automatically')
           }
         }
