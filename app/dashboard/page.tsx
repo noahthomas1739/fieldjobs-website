@@ -116,6 +116,41 @@ export default function JobSeekerDashboard() {
       }
     }, [profile.resumeUploaded, profile.id])
 
+  // PERMANENT FIX: Check for LinkedIn users on every page load
+  useEffect(() => {
+    const checkLinkedInProfile = async () => {
+      if (!user || !profile.id) return
+      
+      try {
+        // Check if this is a LinkedIn user with incorrect data
+        const { data: userData } = await supabase.auth.getUser()
+        const isLinkedInUser = userData?.user?.app_metadata?.provider === 'linkedin_oidc'
+        
+        if (isLinkedInUser && (profile.first_name === 'Job' || profile.last_name === 'Seeker')) {
+          console.log('🔧 Detected LinkedIn user with incorrect profile data, fixing...')
+          
+          const userMetadata = userData.user.user_metadata || {}
+          const correctedProfile = {
+            ...profile,
+            first_name: userMetadata.given_name || userMetadata.first_name || profile.first_name,
+            last_name: userMetadata.family_name || userMetadata.last_name || profile.last_name,
+            linkedin_url: profile.linkedin_url || userMetadata.profile_url || userMetadata.linkedin_url || ''
+          }
+          
+          if (correctedProfile.first_name !== profile.first_name || correctedProfile.last_name !== profile.last_name) {
+            setProfile(correctedProfile)
+            await saveProfile(correctedProfile)
+            console.log('✅ LinkedIn profile corrected automatically')
+          }
+        }
+      } catch (error) {
+        console.error('Error checking LinkedIn profile:', error)
+      }
+    }
+    
+    checkLinkedInProfile()
+  }, [user, profile.id, profile.first_name, profile.last_name])
+
     // URL tab detection - separate useEffect
     useEffect(() => {
       // Check URL for tab parameter
