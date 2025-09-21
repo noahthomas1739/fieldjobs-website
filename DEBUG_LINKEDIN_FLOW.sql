@@ -7,7 +7,6 @@ SELECT
   u.id,
   u.email,
   u.created_at,
-  u.app_metadata,
   u.raw_user_meta_data->>'given_name' as given_name,
   u.raw_user_meta_data->>'family_name' as family_name,
   u.raw_user_meta_data->>'name' as full_name
