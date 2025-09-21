@@ -4,10 +4,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function JobSeekerDashboard() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const supabase = createClientComponentClient()
   
   // State management
   const [activeTab, setActiveTab] = useState('overview')
