@@ -15,11 +15,11 @@ export async function GET(request) {
       return Response.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // Get job seeker profile using user_id
+    // Get profile using id (user_id is the primary key)
     const { data: profile, error } = await supabase
-      .from('job_seeker_profiles')
+      .from('profiles')
       .select('*')
-      .eq('user_id', userId)
+      .eq('id', userId)
       .single()
 
     if (error && error.code !== 'PGRST116') {
@@ -59,9 +59,9 @@ export async function PUT(request) {
       return Response.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    // Update job seeker profile using user_id
+    // Update profile using id (user_id is the primary key)
     const { data: profile, error } = await supabase
-      .from('job_seeker_profiles')
+      .from('profiles')
       .update({
         first_name: firstName,
         last_name: lastName,
@@ -71,7 +71,7 @@ export async function PUT(request) {
         specialization: specialization,
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', userId)
+      .eq('id', userId)
       .select()
       .single()
 
