@@ -64,14 +64,20 @@ export default function JobSeekerDashboard() {
     // Check for LinkedIn resume prompt and auto-fill data
     useEffect(() => {
       try {
+        // Check for OAuth resume prompt (LinkedIn or Google)
+        const oauthPrompt = localStorage.getItem('oauth_resume_prompt')
         const linkedinPrompt = localStorage.getItem('linkedin_resume_prompt')
-        if (linkedinPrompt === 'true' && !profile.resumeUploaded) {
+        
+        if ((oauthPrompt === 'true' || linkedinPrompt === 'true') && !profile.resumeUploaded) {
           setShowLinkedInResumePrompt(true)
+          localStorage.removeItem('oauth_resume_prompt')
           localStorage.removeItem('linkedin_resume_prompt')
         }
 
         // Auto-fill profile with LinkedIn data
         const linkedinData = localStorage.getItem('linkedin_profile_data')
+        // Auto-fill profile with Google data
+        const googleData = localStorage.getItem('google_profile_data')
         if (linkedinData && profile.id) {
           try {
             const data = JSON.parse(linkedinData)
@@ -118,8 +124,45 @@ export default function JobSeekerDashboard() {
             console.error('Error parsing LinkedIn data:', err)
           }
         }
+        
+        // Auto-fill with Google data if available
+        if (googleData && profile.id) {
+          try {
+            const data = JSON.parse(googleData)
+            console.log('Auto-filling profile with Google data:', data)
+            console.log('Current profile state:', profile)
+            
+            // Update profile state if fields are empty or have default values
+            const shouldUpdate = 
+              !profile.first_name || 
+              profile.first_name === 'Job' || 
+              !profile.last_name || 
+              profile.last_name === 'Seeker'
+
+            if (shouldUpdate) {
+              console.log('Updating profile with Google data...')
+              const updatedProfile = {
+                ...profile,
+                first_name: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
+                last_name: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
+                firstName: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
+                lastName: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
+                email: profile.email || data.email
+              }
+              
+              // Update state first, then save (setTimeout ensures state is updated)
+              setProfile(updatedProfile)
+              setTimeout(() => saveProfile(), 100)
+            }
+            
+            // Clear the stored data after using it
+            localStorage.removeItem('google_profile_data')
+          } catch (err) {
+            console.error('Error parsing Google data:', err)
+          }
+        }
       } catch (err) {
-        console.error('Error processing LinkedIn data:', err)
+        console.error('Error processing OAuth data:', err)
       }
     }, [profile.resumeUploaded, profile.id])
 
@@ -1142,15 +1185,15 @@ export default function JobSeekerDashboard() {
           </div>
         )}
 
-        {/* LinkedIn Resume Prompt Modal */}
+        {/* OAuth Resume Prompt Modal */}
         {showLinkedInResumePrompt && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 max-w-md mx-4">
               <div className="text-center">
                 <div className="text-4xl mb-4">📄</div>
-                <h3 className="text-xl font-bold mb-3">Welcome, LinkedIn User! 🎉</h3>
+                <h3 className="text-xl font-bold mb-3">Welcome! 🎉</h3>
                 <p className="text-gray-600 mb-6">
-                  We've auto-filled your profile with LinkedIn data! Complete your setup by uploading your resume. 
+                  We've auto-filled your profile with your account data! Complete your setup by uploading your resume. 
                   This will help employers find you and enable you to apply for jobs with one click!
                 </p>
                 <div className="flex gap-3">

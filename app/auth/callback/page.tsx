@@ -60,24 +60,45 @@ function AuthCallbackContent() {
               }
             }
 
-            // For LinkedIn users, extract and store profile data for auto-filling
+            // For OAuth users, extract and store profile data for auto-filling
             const isLinkedInUser = data.user?.app_metadata?.provider === 'linkedin_oidc'
-            if (isLinkedInUser && storedAccountType === 'job_seeker') {
-              localStorage.setItem('linkedin_resume_prompt', 'true')
+            const isGoogleUser = data.user?.app_metadata?.provider === 'google'
+            
+            if ((isLinkedInUser || isGoogleUser) && storedAccountType === 'job_seeker') {
+              // Set resume prompt for all OAuth job seekers
+              localStorage.setItem('oauth_resume_prompt', 'true')
+              localStorage.setItem('oauth_provider', isLinkedInUser ? 'linkedin' : 'google')
               
-              // Extract LinkedIn profile data for auto-filling
-              const userData = data.user.user_metadata || {}
-              const linkedinData = {
-                firstName: userData.given_name || userData.first_name || userData.name?.split(' ')[0] || '',
-                lastName: userData.family_name || userData.last_name || userData.name?.split(' ')[1] || '',
-                email: data.user?.email || '',
-                profilePicture: userData.avatar_url || userData.picture || userData.profile_image_url || '',
-                linkedinUrl: userData.profile_url || userData.linkedin_url || '',
-                fullName: userData.name || userData.full_name || ''
+              if (isLinkedInUser) {
+                localStorage.setItem('linkedin_resume_prompt', 'true')
+                
+                // Extract LinkedIn profile data for auto-filling
+                const userData = data.user.user_metadata || {}
+                const linkedinData = {
+                  firstName: userData.given_name || userData.first_name || userData.name?.split(' ')[0] || '',
+                  lastName: userData.family_name || userData.last_name || userData.name?.split(' ')[1] || '',
+                  email: data.user?.email || '',
+                  profilePicture: userData.avatar_url || userData.picture || userData.profile_image_url || '',
+                  linkedinUrl: userData.profile_url || userData.linkedin_url || '',
+                  fullName: userData.name || userData.full_name || ''
+                }
+                
+                console.log('LinkedIn profile data extracted:', linkedinData)
+                localStorage.setItem('linkedin_profile_data', JSON.stringify(linkedinData))
+              } else if (isGoogleUser) {
+                // Extract Google profile data for auto-filling
+                const userData = data.user.user_metadata || {}
+                const googleData = {
+                  firstName: userData.given_name || userData.first_name || userData.name?.split(' ')[0] || '',
+                  lastName: userData.family_name || userData.last_name || userData.name?.split(' ')[1] || '',
+                  email: data.user?.email || '',
+                  profilePicture: userData.avatar_url || userData.picture || '',
+                  fullName: userData.name || userData.full_name || ''
+                }
+                
+                console.log('Google profile data extracted:', googleData)
+                localStorage.setItem('google_profile_data', JSON.stringify(googleData))
               }
-              
-              console.log('LinkedIn profile data extracted:', linkedinData)
-              localStorage.setItem('linkedin_profile_data', JSON.stringify(linkedinData))
             }
 
             // Force session refresh before redirect to ensure auth state is properly set
