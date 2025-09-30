@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
   response.headers.set('Content-Security-Policy', csp)
   
   // Rate limiting (basic implementation)
-  const ip = request.ip ?? '127.0.0.1'
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1'
   
   // You can implement more sophisticated rate limiting here
   // For production, consider using a service like Upstash Redis

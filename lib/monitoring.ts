@@ -41,7 +41,7 @@ export function trackEvent(eventName: string, properties?: Record<string, any>) 
 }
 
 // Performance monitoring
-export function measurePerformance(name: string, fn: () => Promise<any>) {
+export function measurePerformance(name: string, fn: (...args: any[]) => Promise<any>) {
   return async (...args: any[]) => {
     const start = performance.now()
     try {
@@ -63,7 +63,7 @@ export function measurePerformance(name: string, fn: () => Promise<any>) {
         name,
         duration,
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       })
       
       logError(error as Error, { functionName: name })

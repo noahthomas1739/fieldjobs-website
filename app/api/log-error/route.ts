@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       context,
       timestamp,
       userAgent: request.headers.get('user-agent'),
-      ip: request.ip || request.headers.get('x-forwarded-for'),
+      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
     })
     
     // You can integrate with external error tracking services here:
