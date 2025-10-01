@@ -7,7 +7,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-bold">FieldJobs</h3>
+            <img 
+              src="/fieldjobs-logo.svg" 
+              alt="FieldJobs - Technical Careers" 
+              className="h-8 w-auto"
+            />
             <p className="text-gray-300 text-sm">
               Connecting skilled professionals with technical careers across energy, construction, and industrial sectors.
             </p>

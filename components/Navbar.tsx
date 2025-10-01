@@ -11,7 +11,11 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
-            <span className="text-2xl font-bold">FieldJobs</span>
+            <img 
+              src="/fieldjobs-logo.svg" 
+              alt="FieldJobs - Technical Careers" 
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* Navigation Links */}
