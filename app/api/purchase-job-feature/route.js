@@ -13,11 +13,30 @@ export async function POST(request) {
       cookies: () => cookieStore 
     })
 
-    const { jobId, featureType, priceId, userId } = await request.json()
+    const { jobId, featureType, userId } = await request.json()
 
     // Validate inputs
-    if (!jobId || !featureType || !priceId || !userId) {
+    if (!jobId || !featureType || !userId) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // Dynamic pricing for job features
+    const featurePricing = {
+      'featured': {
+        name: 'Featured Job Listing',
+        amount: 2900, // $29.00
+        description: 'Your job will appear at the top of search results and get highlighted styling for 30 days.'
+      },
+      'urgent': {
+        name: 'Urgent Job Badge',
+        amount: 1900, // $19.00
+        description: 'Your job will display an "URGENT" badge to attract immediate attention for 14 days.'
+      }
+    }
+
+    const featureConfig = featurePricing[featureType]
+    if (!featureConfig) {
+      return Response.json({ error: 'Invalid feature type' }, { status: 400 })
     }
 
     // Verify job belongs to user
@@ -43,13 +62,20 @@ export async function POST(request) {
       return Response.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session with dynamic pricing
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: profile.email,
       line_items: [
         {
-          price: priceId,
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: featureConfig.name,
+              description: featureConfig.description,
+            },
+            unit_amount: featureConfig.amount,
+          },
           quantity: 1,
         },
       ],

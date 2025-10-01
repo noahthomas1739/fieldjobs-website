@@ -515,18 +515,6 @@ function EmployerDashboardContent() {
     try {
       setIsLoading(true)
       
-      const priceMapping: Record<string, string> = {
-        'featured': process.env.NEXT_PUBLIC_STRIPE_FEATURED_LISTING_PRICE_ID || '',
-        'urgent': process.env.NEXT_PUBLIC_STRIPE_URGENT_BADGE_PRICE_ID || ''
-      }
-      
-      const priceId = priceMapping[featureType]
-      
-      if (!priceId) {
-        alert('Feature not available. Please contact support.')
-        return
-      }
-      
       const response = await fetch('/api/purchase-job-feature', {
         method: 'POST',
         headers: {
@@ -535,7 +523,6 @@ function EmployerDashboardContent() {
         body: JSON.stringify({
           jobId: jobId,
           featureType: featureType,
-          priceId: priceId,
           userId: user.id
         }),
       })
