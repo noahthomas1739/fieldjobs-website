@@ -83,7 +83,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>        
+      <head>
+        {/* Favicon */}
+        <link rel="icon" href="/fieldjobs-logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/fieldjobs-logo.svg" />
+        
         {/* Structured Data */}
         <script
           type="application/ld+json"

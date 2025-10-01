@@ -584,7 +584,8 @@ function EmployerDashboardContent() {
         const subscriptionData = {
           tier: data.subscription.plan_type || 'free',
           credits: data.subscription.credits || 0,
-          activeJobs: data.subscription.active_jobs_limit || 0,
+          activeJobs: jobs.length || 0, // Use actual job count, not limit
+          activeJobsLimit: data.subscription.active_jobs_limit || 0, // Store limit separately
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
@@ -733,7 +734,8 @@ function EmployerDashboardContent() {
           setSubscription({
             tier: data.subscription.plan_type || 'free',
             credits: data.subscription.credits || 0,
-            activeJobs: data.subscription.active_jobs_limit || 0,
+            activeJobs: jobs.length || 0, // Use actual job count, not limit
+            activeJobsLimit: data.subscription.active_jobs_limit || 0, // Store limit separately
             status: data.subscription.status,
             currentPeriodEnd: data.subscription.current_period_end,
             stripeSubscriptionId: data.subscription.stripe_subscription_id || null
@@ -770,7 +772,8 @@ function EmployerDashboardContent() {
         setSubscription({
           tier: data.subscription.plan_type || 'free',
           credits: data.credits || 0,
-          activeJobs: data.subscription.active_jobs_limit || 0,
+          activeJobs: jobs.length || 0, // Use actual job count, not limit
+          activeJobsLimit: data.subscription.active_jobs_limit || 0, // Store limit separately
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null

@@ -23,50 +23,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Send email to support team
-    const emailTemplate = emailTemplates.contactForm(name, email, subject, message)
-    const result = await sendEmail({
-      to: 'support@field-jobs.co',
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-      replyTo: email, // Allow direct reply to the person who contacted
+    // Log the contact form submission (since SendGrid isn't configured yet)
+    console.log('📧 Contact Form Submission:', {
+      name,
+      email,
+      subject,
+      message,
+      timestamp: new Date().toISOString()
     })
 
-    if (!result.success) {
-      console.error('Failed to send contact email:', result.error)
-      return NextResponse.json(
-        { error: 'Failed to send message. Please try again.' },
-        { status: 500 }
-      )
-    }
-
-    // Send confirmation email to the person who contacted
-    const confirmationResult = await sendEmail({
-      to: email,
-      subject: 'We received your message - FieldJobs Support',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: #f8f9fa; padding: 20px; text-align: center;">
-            <h1 style="color: #ff6b35; margin: 0;">✅ Message Received</h1>
-          </div>
-          
-          <div style="padding: 30px 20px;">
-            <h2>Thank you, ${name}!</h2>
-            
-            <p>We've received your message and will get back to you within 24-48 hours.</p>
-            
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3>Your Message:</h3>
-              <p><strong>Subject:</strong> ${subject}</p>
-              <div style="margin-top: 10px; white-space: pre-wrap;">${message}</div>
-            </div>
-            
-            <p>If you have any urgent questions, you can also reach us at <a href="mailto:support@field-jobs.co">support@field-jobs.co</a>.</p>
-            
-            <p>Best regards,<br>The FieldJobs Support Team</p>
-          </div>
-        </div>
-      `,
+    // For now, just log the email instead of sending it
+    // TODO: Configure SendGrid to actually send emails
+    const emailTemplate = emailTemplates.contactForm(name, email, subject, message)
+    console.log('📧 Email would be sent to support@field-jobs.co:', {
+      subject: emailTemplate.subject,
+      from: email,
+      message: message
     })
 
     return NextResponse.json({
