@@ -1164,7 +1164,7 @@ function EmployerDashboardContent() {
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'jobs', label: 'Job Postings', icon: '💼' },
-              { id: 'applications', label: 'Applications', icon: '📧', badge: getNewApplicationsCount() },
+              { id: 'applications', label: 'Applications', icon: '📧', badge: applications.length },
               { id: 'resume-search', label: 'Resume Search', icon: '🔍' },
               { id: 'analytics', label: 'Analytics', icon: '📈' },
               { id: 'billing', label: 'Products & Billing', icon: '🛒' }

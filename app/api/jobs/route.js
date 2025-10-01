@@ -28,8 +28,10 @@ export async function GET(request) {
 
     // Handle userId for dashboard vs public listings
     if (userId) {
-      // For employer dashboard - get user's jobs regardless of status
+      // For employer dashboard - get user's active jobs only
       query = query.eq('employer_id', userId)
+      query = query.eq('active', true) // Only show active jobs
+      query = query.neq('status', 'deleted') // Exclude deleted jobs
       // Sort by creation date for dashboard
       query = query.order('created_at', { ascending: false })
     } else {

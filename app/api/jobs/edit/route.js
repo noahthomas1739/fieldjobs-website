@@ -102,7 +102,7 @@ export async function PUT(request) {
 }
 
 export async function PATCH(request) {
-  try {
+  try { {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 
       cookies: () => cookieStore 

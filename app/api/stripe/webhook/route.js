@@ -243,7 +243,7 @@ async function handleOneTimePayment(session) {
         .from('jobs')
         .update(updateData)
         .eq('id', jobId)
-        .eq('user_id', userId) // Ensure user owns the job
+        .eq('employer_id', userId) // Ensure user owns the job
       
       if (jobUpdateError) {
         console.error(`❌ Error updating job with ${addonType}:`, jobUpdateError)
