@@ -1252,10 +1252,10 @@ function EmployerDashboardContent() {
                           {job.is_free_job && (
                             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">🎁 FREE</span>
                           )}
-                          {job.isFeatured && !isFeatureExpired(job.featuredUntil) && (
+                          {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) && (
                             <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">⭐ Featured</span>
                           )}
-                          {job.isUrgent && !isFeatureExpired(job.urgentUntil) && (
+                          {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) && (
                             <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">🚨 Urgent</span>
                           )}
                         </div>
@@ -1366,10 +1366,10 @@ function EmployerDashboardContent() {
                               {job.is_free_job && (
                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">🎁 FREE</span>
                               )}
-                              {job.isFeatured && !isFeatureExpired(job.featuredUntil) && (
+                              {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) && (
                                 <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">⭐ Featured</span>
                               )}
-                              {job.isUrgent && !isFeatureExpired(job.urgentUntil) && (
+                              {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) && (
                                 <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">🚨 Urgent</span>
                               )}
                             </div>
@@ -1396,18 +1396,30 @@ function EmployerDashboardContent() {
                       
                       <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => openFeaturePurchase(job, 'featured')}
-                            className="text-yellow-600 hover:text-yellow-700 text-sm flex items-center gap-1"
-                          >
-                            ⭐ Feature Job
-                          </button>
-                          <button
-                            onClick={() => openFeaturePurchase(job, 'urgent')}
-                            className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1"
-                          >
-                            🚨 Mark Urgent
-                          </button>
+                          {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) ? (
+                            <span className="text-yellow-600 text-sm flex items-center gap-1 opacity-60">
+                              ⭐ Featured Active
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => openFeaturePurchase(job, 'featured')}
+                              className="text-yellow-600 hover:text-yellow-700 text-sm flex items-center gap-1"
+                            >
+                              ⭐ Feature Job
+                            </button>
+                          )}
+                          {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) ? (
+                            <span className="text-red-600 text-sm flex items-center gap-1 opacity-60">
+                              🚨 Urgent Active
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => openFeaturePurchase(job, 'urgent')}
+                              className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1"
+                            >
+                              🚨 Mark Urgent
+                            </button>
+                          )}
                         </div>
                         <div className="text-sm text-gray-500">
                           {applications.filter((app: any) => app.job_id === job.id).length} applications
