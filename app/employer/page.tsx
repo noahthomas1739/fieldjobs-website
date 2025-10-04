@@ -661,8 +661,21 @@ function EmployerDashboardContent() {
   }
 
   const filteredApplications = applications.filter((app: any) => {
-    const matchesJob = !selectedJobFilter || app.job_id === selectedJobFilter
+    const matchesJob = !selectedJobFilter || app.job_id === parseInt(selectedJobFilter) || app.job_id === selectedJobFilter
     const matchesStatus = !statusFilter || app.status === statusFilter
+    
+    // Debug logging
+    if (applications.length > 0 && filteredApplications.length === 0) {
+      console.log('🔍 Filter Debug:', {
+        selectedJobFilter,
+        statusFilter,
+        appJobId: app.job_id,
+        appStatus: app.status,
+        matchesJob,
+        matchesStatus
+      })
+    }
+    
     return matchesJob && matchesStatus
   })
 
@@ -854,6 +867,14 @@ function EmployerDashboardContent() {
       if (data.success) {
         setApplications(data.applications)
         console.log(`✅ Loaded ${data.applications.length} applications`)
+        
+        // Debug: Log application statuses and current filters
+        console.log('📊 Application statuses:', data.applications.map((app: any) => ({
+          id: app.id,
+          status: app.status,
+          name: `${app.first_name} ${app.last_name}`
+        })))
+        console.log('🔍 Current filters:', { selectedJobFilter, statusFilter })
       } else {
         console.error('❌ Failed to load applications:', data.error)
       }
@@ -924,17 +945,20 @@ function EmployerDashboardContent() {
     
     try {
       const method = editingJob ? 'PUT' : 'POST'
-      const url = editingJob ? `/api/jobs/${editingJob.id}` : '/api/jobs'
+      const url = editingJob ? '/api/jobs/edit' : '/api/jobs'
       
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+        body: JSON.stringify(editingJob ? {
+          jobId: editingJob.id,
+          jobData: jobForm,
+          userId: user.id
+        } : {
           ...jobForm,
-          userId: user.id,
-          id: editingJob?.id
+          userId: user.id
         }),
       })
       
@@ -1026,7 +1050,10 @@ function EmployerDashboardContent() {
       })
       
       if (response.ok) {
+        // Force refresh the job list and update state immediately
         await loadJobs()
+        // Also remove from local state immediately for instant UI update
+        setJobs(prevJobs => prevJobs.filter(job => job.id !== jobId))
         alert('Job deleted successfully!')
       } else {
         const error = await response.json()
