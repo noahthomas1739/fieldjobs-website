@@ -663,21 +663,23 @@ function EmployerDashboardContent() {
   const filteredApplications = applications.filter((app: any) => {
     const matchesJob = !selectedJobFilter || app.job_id === parseInt(selectedJobFilter) || app.job_id === selectedJobFilter
     const matchesStatus = !statusFilter || app.status === statusFilter
-    
-    // Debug logging
-    if (applications.length > 0 && filteredApplications.length === 0) {
-      console.log('🔍 Filter Debug:', {
-        selectedJobFilter,
-        statusFilter,
-        appJobId: app.job_id,
-        appStatus: app.status,
-        matchesJob,
-        matchesStatus
-      })
-    }
-    
     return matchesJob && matchesStatus
   })
+
+  // Debug logging (moved outside filter function)
+  if (applications.length > 0 && filteredApplications.length === 0) {
+    console.log('🔍 Filter Debug:', {
+      selectedJobFilter,
+      statusFilter,
+      totalApplications: applications.length,
+      filteredCount: filteredApplications.length,
+      sampleApp: applications[0] ? {
+        id: applications[0].id,
+        job_id: applications[0].job_id,
+        status: applications[0].status
+      } : null
+    })
+  }
 
   // useEffect hooks
   useEffect(() => {
