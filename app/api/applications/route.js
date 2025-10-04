@@ -295,26 +295,53 @@ export async function PUT(request) {
       )
     }
 
-    // Verify the application belongs to the employer
+    console.log('🔍 Looking for application:', applicationId, 'for user:', userId)
+
+    // First get the application
     const { data: application, error: fetchError } = await supabase
       .from('applications')
-      .select(`
-        *,
-        jobs!inner(employer_id)
-      `)
+      .select('*')
       .eq('id', applicationId)
       .single()
 
-    if (fetchError || !application) {
-      console.error('Error fetching application:', fetchError)
+    if (fetchError) {
+      console.error('❌ Error fetching application:', fetchError)
+      return NextResponse.json(
+        { error: 'Application not found: ' + fetchError.message },
+        { status: 404 }
+      )
+    }
+
+    if (!application) {
+      console.error('❌ Application not found')
       return NextResponse.json(
         { error: 'Application not found' },
         { status: 404 }
       )
     }
 
+    console.log('✅ Found application:', application.id, 'for job:', application.job_id)
+
+    // Then get the job to verify employer
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .select('employer_id')
+      .eq('id', application.job_id)
+      .single()
+
+    if (jobError || !job) {
+      console.error('❌ Error fetching job:', jobError)
+      return NextResponse.json(
+        { error: 'Job not found for this application' },
+        { status: 404 }
+      )
+    }
+
+    console.log('✅ Found job with employer:', job.employer_id, 'requesting user:', userId)
+
     // Check if user is the employer of the job
-    if (application.jobs.employer_id !== userId) {
+    if (job.employer_id !== userId) {
+      console.error('❌ Unauthorized: User', userId, 'is not employer', job.employer_id)
       return NextResponse.json(
         { error: 'Unauthorized: You can only update applications for your jobs' },
         { status: 403 }
