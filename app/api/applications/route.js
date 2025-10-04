@@ -282,6 +282,7 @@ export async function PUT(request) {
     console.log('🔄 Updating application status')
     
     const { applicationId, status, userId } = await request.json()
+    console.log('📥 Request body:', { applicationId, status, userId })
 
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 
@@ -289,6 +290,7 @@ export async function PUT(request) {
     })
 
     if (!applicationId || !status || !userId) {
+      console.error('❌ Missing required fields:', { applicationId, status, userId })
       return NextResponse.json(
         { error: 'Missing required fields: applicationId, status, userId' },
         { status: 400 }
@@ -338,9 +340,12 @@ export async function PUT(request) {
     }
 
     console.log('✅ Found job with employer:', job.employer_id, 'requesting user:', userId)
+    console.log('🔍 Employer ID type:', typeof job.employer_id, 'User ID type:', typeof userId)
+    console.log('🔍 Employer ID === User ID:', job.employer_id === userId)
+    console.log('🔍 Employer ID == User ID:', job.employer_id == userId)
 
-    // Check if user is the employer of the job
-    if (job.employer_id !== userId) {
+    // Check if user is the employer of the job (handle string/UUID comparison)
+    if (job.employer_id !== userId && job.employer_id !== String(userId)) {
       console.error('❌ Unauthorized: User', userId, 'is not employer', job.employer_id)
       return NextResponse.json(
         { error: 'Unauthorized: You can only update applications for your jobs' },
