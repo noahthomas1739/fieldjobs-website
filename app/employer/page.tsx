@@ -91,7 +91,7 @@ function EmployerDashboardContent() {
 
   // Application filtering states
   const [selectedJobFilter, setSelectedJobFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('') // Empty = show all statuses
 
   // Track notification state to prevent duplicates
   const [notificationShown, setNotificationShown] = useState(false)
@@ -877,6 +877,12 @@ function EmployerDashboardContent() {
           name: `${app.first_name} ${app.last_name}`
         })))
         console.log('🔍 Current filters:', { selectedJobFilter, statusFilter })
+        
+        // Reset filters to show all applications by default
+        if (statusFilter && statusFilter !== '') {
+          console.log('🔄 Resetting statusFilter from', statusFilter, 'to empty (show all)')
+          setStatusFilter('')
+        }
       } else {
         console.error('❌ Failed to load applications:', data.error)
       }
@@ -1450,12 +1456,32 @@ function EmployerDashboardContent() {
                     >
                       <option value="">All Statuses</option>
                       <option value="new">New</option>
+                      <option value="submitted">Submitted</option>
                       <option value="shortlisted">Shortlisted</option>
                       <option value="interviewed">Interviewed</option>
                       <option value="rejected">Rejected</option>
                     </select>
                   </div>
                 </div>
+                
+                {/* Filter Status and Clear Button */}
+                {(selectedJobFilter || statusFilter) && (
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                    <div className="text-sm text-gray-600">
+                      Showing {filteredApplications.length} of {applications.length} applications
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedJobFilter('')
+                        setStatusFilter('')
+                        console.log('🔄 Filters reset to show all applications')
+                      }}
+                      className="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
+                )}
               </div>
 
               {filteredApplications.length === 0 ? (
