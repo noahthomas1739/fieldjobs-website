@@ -276,3 +276,83 @@ export async function POST(request) {
     )
   }
 }
+
+export async function PUT(request) {
+  try {
+    console.log('🔄 Updating application status')
+    
+    const { applicationId, status, userId } = await request.json()
+
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+
+    if (!applicationId || !status || !userId) {
+      return NextResponse.json(
+        { error: 'Missing required fields: applicationId, status, userId' },
+        { status: 400 }
+      )
+    }
+
+    // Verify the application belongs to the employer
+    const { data: application, error: fetchError } = await supabase
+      .from('applications')
+      .select(`
+        *,
+        jobs!inner(employer_id)
+      `)
+      .eq('id', applicationId)
+      .single()
+
+    if (fetchError || !application) {
+      console.error('Error fetching application:', fetchError)
+      return NextResponse.json(
+        { error: 'Application not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user is the employer of the job
+    if (application.jobs.employer_id !== userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized: You can only update applications for your jobs' },
+        { status: 403 }
+      )
+    }
+
+    // Update application status
+    const { data: updatedApplication, error: updateError } = await supabase
+      .from('applications')
+      .update({ 
+        status: status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', applicationId)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error updating application status:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to update application status' },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ Application status updated successfully')
+
+    return NextResponse.json({
+      success: true,
+      message: 'Application status updated successfully',
+      application: updatedApplication
+    })
+
+  } catch (error) {
+    console.error('Error updating application status:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

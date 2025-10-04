@@ -84,9 +84,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Favicon */}
-        <link rel="icon" href="/fieldjobs-logo.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/fieldjobs-logo.svg" />
+        {/* Favicon - Gear only for better recognition */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.svg" />
         
         {/* Structured Data */}
         <script

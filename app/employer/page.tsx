@@ -878,10 +878,15 @@ function EmployerDashboardContent() {
         })))
         console.log('🔍 Current filters:', { selectedJobFilter, statusFilter })
         
-        // Reset filters to show all applications by default
-        if (statusFilter && statusFilter !== '') {
+        // Force reset filters to show all applications by default
+        console.log('🔄 Current statusFilter:', statusFilter)
+        if (statusFilter !== '') {
           console.log('🔄 Resetting statusFilter from', statusFilter, 'to empty (show all)')
           setStatusFilter('')
+        }
+        if (selectedJobFilter !== '') {
+          console.log('🔄 Resetting selectedJobFilter from', selectedJobFilter, 'to empty (show all)')
+          setSelectedJobFilter('')
         }
       } else {
         console.error('❌ Failed to load applications:', data.error)
