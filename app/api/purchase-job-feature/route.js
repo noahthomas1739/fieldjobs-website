@@ -84,9 +84,9 @@ export async function POST(request) {
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?feature_cancelled=true`,
       metadata: {
         type: 'job_feature',
-        userId: userId,
-        jobId: jobId,
-        featureType: featureType,
+        user_id: userId,
+        job_id: jobId,
+        addon_type: featureType,
       },
     })
 

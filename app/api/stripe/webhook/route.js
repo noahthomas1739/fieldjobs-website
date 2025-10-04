@@ -113,12 +113,13 @@ async function handleOneTimePayment(session) {
       cookies: () => cookieStore 
     })
     
-    const userId = session.metadata?.user_id
-    const addonType = session.metadata?.addon_type
+    const userId = session.metadata?.user_id || session.metadata?.userId
+    const addonType = session.metadata?.addon_type || session.metadata?.featureType
     const creditsAmount = session.metadata?.credits_amount
-    const jobId = session.metadata?.job_id
+    const jobId = session.metadata?.job_id || session.metadata?.jobId
     
     console.log('🔵 Payment metadata:', { userId, addonType, creditsAmount, jobId })
+    console.log('🔵 Full session metadata:', session.metadata)
     
     if (!userId) {
       console.error('❌ No userId found in payment metadata')
@@ -218,7 +219,7 @@ async function handleOneTimePayment(session) {
     }
     
     // Handle job feature purchases (featured listing, urgent badge)
-    else if (addonType === 'featured_listing' || addonType === 'urgent_badge') {
+    else if (addonType === 'featured_listing' || addonType === 'urgent_badge' || addonType === 'featured' || addonType === 'urgent') {
       console.log(`🎯 Processing ${addonType} purchase for job ${jobId}...`)
       
       if (!jobId) {
@@ -231,12 +232,14 @@ async function handleOneTimePayment(session) {
         updated_at: new Date().toISOString()
       }
       
-      if (addonType === 'featured_listing') {
+      if (addonType === 'featured_listing' || addonType === 'featured') {
         updateData.is_featured = true
         updateData.featured_until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
-      } else if (addonType === 'urgent_badge') {
+        console.log('🌟 Setting job as FEATURED until:', updateData.featured_until)
+      } else if (addonType === 'urgent_badge' || addonType === 'urgent') {
         updateData.is_urgent = true
         updateData.urgent_until = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days
+        console.log('🚨 Setting job as URGENT until:', updateData.urgent_until)
       }
       
       const { error: jobUpdateError } = await supabase
