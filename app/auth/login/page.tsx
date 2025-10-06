@@ -63,7 +63,7 @@ export default function LoginPage() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `https://field-jobs.co/auth/callback`,
           scopes: 'openid profile email',
           queryParams: {
             prompt: 'select_account'

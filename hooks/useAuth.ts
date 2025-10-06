@@ -37,7 +37,7 @@ export function useAuth() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: `https://field-jobs.co/auth/callback`
       }
     })
   }
