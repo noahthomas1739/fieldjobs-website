@@ -25,14 +25,15 @@ export async function PUT(request) {
     console.log('🧪 TEST: Directly updating application without employer check')
 
     // Update application status directly
-    const { data: updatedApplication, error: updateError } = await supabase
+    const { data: updatedApplications, error: updateError } = await supabase
       .from('applications')
       .update({ 
         status: status
       })
       .eq('id', applicationId)
       .select()
-      .single()
+
+    const updatedApplication = updatedApplications?.[0]
 
     if (updateError) {
       console.error('❌ TEST: Error updating application:', updateError)

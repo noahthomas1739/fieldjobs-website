@@ -120,6 +120,8 @@ async function handleOneTimePayment(session) {
     
     console.log('🔵 Payment metadata:', { userId, addonType, creditsAmount, jobId })
     console.log('🔵 Full session metadata:', session.metadata)
+    console.log('🔵 Session mode:', session.mode)
+    console.log('🔵 Session amount_total:', session.amount_total)
     
     if (!userId) {
       console.error('❌ No userId found in payment metadata')
