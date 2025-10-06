@@ -66,9 +66,9 @@ export default function ResourcesPage() {
       </div>
       
       <div className="mt-8 bg-gray-50 p-6 rounded-lg">
-        <h4 className="text-lg font-bold mb-3">Need Help?</h4>
+        <h4 className="text-lg font-bold mb-3">Questions?</h4>
         <p>
-          Contact our support team at{' '}
+          Contact us at{' '}
           <a 
             href="mailto:support@field-jobs.co" 
             className="text-orange-500 hover:text-orange-600 font-bold"
@@ -76,7 +76,6 @@ export default function ResourcesPage() {
             support@field-jobs.co
           </a>
         </p>
-
       </div>
 
     </div>
