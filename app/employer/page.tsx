@@ -1008,6 +1008,8 @@ function EmployerDashboardContent() {
   const updateApplicationStatus = async (applicationId: number, newStatus: string) => {
     if (!user?.id) return
     
+    console.log('🔄 Updating application status:', { applicationId, newStatus, userId: user.id })
+    
     try {
       const response = await fetch('/api/applications', {
         method: 'PUT',
@@ -1021,15 +1023,20 @@ function EmployerDashboardContent() {
         }),
       })
       
+      console.log('📡 Response status:', response.status, response.statusText)
+      
       if (response.ok) {
+        const result = await response.json()
+        console.log('✅ Update successful:', result)
         await loadApplications()
         alert('Application status updated successfully!')
       } else {
         const error = await response.json()
+        console.error('❌ Update failed:', error)
         alert('Error: ' + error.error)
       }
     } catch (error) {
-      console.error('Error updating application:', error)
+      console.error('❌ Network error updating application:', error)
       alert('Error updating application status')
     }
   }

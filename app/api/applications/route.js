@@ -365,14 +365,22 @@ export async function PUT(request) {
     const updatedApplication = updatedApplications?.[0]
 
     if (updateError) {
-      console.error('Error updating application status:', updateError)
+      console.error('❌ Database update error:', updateError)
       return NextResponse.json(
-        { error: 'Failed to update application status' },
+        { error: 'Failed to update application status: ' + updateError.message },
         { status: 500 }
       )
     }
 
-    console.log('✅ Application status updated successfully')
+    if (!updatedApplication) {
+      console.error('❌ No application was updated - possibly wrong ID or permissions')
+      return NextResponse.json(
+        { error: 'No application was updated. Check application ID and permissions.' },
+        { status: 404 }
+      )
+    }
+
+    console.log('✅ Application status updated successfully:', updatedApplication)
 
     return NextResponse.json({
       success: true,
