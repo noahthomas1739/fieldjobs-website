@@ -369,15 +369,11 @@ export async function PUT(request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     )
     
-    // Check what status values are actually allowed by the constraint
+    // Use the status value directly - database constraint should allow it
     console.log('🔍 Current application status:', application.status)
-    console.log('🔍 Trying to set status to:', status)
+    console.log('🔍 Setting status to:', status)
     
-    // The constraint might only allow specific status transitions
-    // Let's try using the current status first to test if constraint works
-    let dbStatus = application.status // Use current status to test constraint
-    
-    console.log('🔄 Using current status for test:', dbStatus)
+    const dbStatus = status
     
     const { data: updatedApplications, error: updateError } = await supabaseAdmin
       .from('applications')
