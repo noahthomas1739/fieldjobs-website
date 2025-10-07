@@ -369,13 +369,15 @@ export async function PUT(request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     )
     
-    // Map frontend status to database status
-    let dbStatus = status
-    if (status === 'shortlisted') {
-      dbStatus = 'new' // Try 'new' first to test if constraint works
-    }
+    // Check what status values are actually allowed by the constraint
+    console.log('🔍 Current application status:', application.status)
+    console.log('🔍 Trying to set status to:', status)
     
-    console.log('🔄 Mapping status:', status, '→', dbStatus)
+    // The constraint might only allow specific status transitions
+    // Let's try using the current status first to test if constraint works
+    let dbStatus = application.status // Use current status to test constraint
+    
+    console.log('🔄 Using current status for test:', dbStatus)
     
     const { data: updatedApplications, error: updateError } = await supabaseAdmin
       .from('applications')
