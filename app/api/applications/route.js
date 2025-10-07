@@ -360,6 +360,7 @@ export async function PUT(request) {
 
     // Update application status using service role to bypass RLS
     console.log('🔄 Attempting database update for application:', applicationId)
+    console.log('📝 Status being set:', status)
     
     // Create service role client to bypass RLS for this update
     const { createClient } = require('@supabase/supabase-js')
@@ -368,10 +369,18 @@ export async function PUT(request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY
     )
     
+    // Map frontend status to database status
+    let dbStatus = status
+    if (status === 'shortlisted') {
+      dbStatus = 'new' // Try 'new' first to test if constraint works
+    }
+    
+    console.log('🔄 Mapping status:', status, '→', dbStatus)
+    
     const { data: updatedApplications, error: updateError } = await supabaseAdmin
       .from('applications')
       .update({ 
-        status: status
+        status: dbStatus
       })
       .eq('id', applicationId)
       .select()
