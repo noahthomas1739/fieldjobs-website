@@ -306,6 +306,8 @@ export async function PUT(request) {
       .eq('id', applicationId)
       .single()
 
+    console.log('🔍 Application fetch result:', { application, fetchError })
+
     if (fetchError) {
       console.error('❌ Error fetching application:', fetchError)
       return NextResponse.json(
@@ -330,6 +332,8 @@ export async function PUT(request) {
       .select('employer_id')
       .eq('id', application.job_id)
       .single()
+
+    console.log('🔍 Job fetch result:', { job, jobError, jobId: application.job_id })
 
     if (jobError || !job) {
       console.error('❌ Error fetching job:', jobError)
