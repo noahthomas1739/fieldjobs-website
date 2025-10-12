@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gearGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF8C42"/>
+      <stop offset="100%" style="stop-color:#FF6B35"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Gear icon centered and scaled for favicon -->
+  <g transform="translate(256, 256) scale(11)">
+    <!-- Main gear body -->
+    <circle cx="0" cy="0" r="18" fill="url(#gearGradient)"/>
+    
+    <!-- Gear teeth - 8 teeth matching the logo exactly -->
+    <path d="M 0,-22 L 4,-20 L 4,-16 L 0,-18 L -4,-16 L -4,-20 Z" fill="url(#gearGradient)"/>
+    <path d="M 15.56,-15.56 L 20,-4 L 16,-4 L 12.73,-12.73 L 15.56,-15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    <path d="M 22,0 L 20,4 L 16,4 L 18,0 L 16,-4 L 20,-4 Z" fill="url(#gearGradient)"/>
+    <path d="M 15.56,15.56 L 4,20 L 4,16 L 12.73,12.73 L 15.56,15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    <path d="M 0,22 L -4,20 L -4,16 L 0,18 L 4,16 L 4,20 Z" fill="url(#gearGradient)"/>
+    <path d="M -15.56,15.56 L -20,4 L -16,4 L -12.73,12.73 L -15.56,15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    <path d="M -22,0 L -20,-4 L -16,-4 L -18,0 L -16,4 L -20,4 Z" fill="url(#gearGradient)"/>
+    <path d="M -15.56,-15.56 L -4,-20 L -4,-16 L -12.73,-12.73 L -15.56,-15.56 Z" fill="url(#gearGradient)" transform="rotate(45)"/>
+    
+    <!-- Center hole - white outer ring -->
+    <circle cx="0" cy="0" r="7" fill="white"/>
+    <!-- Dark center -->
+    <circle cx="0" cy="0" r="5" fill="#333"/>
+  </g>
+</svg>
