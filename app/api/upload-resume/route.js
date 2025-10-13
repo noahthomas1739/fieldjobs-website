@@ -17,9 +17,20 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing file or user ID' }, { status: 400 })
     }
 
-    // Generate unique filename
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: 'Invalid file type. Please upload PDF or Word document.' }, { status: 400 })
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 })
+    }
+
+    // Generate unique filename with user folder structure
     const fileExtension = file.name.split('.').pop()
-    const fileName = `${userId}_resume_${Date.now()}.${fileExtension}`
+    const fileName = `${userId}/resume_${Date.now()}.${fileExtension}`
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
@@ -30,12 +41,12 @@ export async function POST(request) {
       .from('resumes')
       .upload(fileName, buffer, {
         contentType: file.type,
-        upsert: true
+        upsert: true // Allow replacing existing resume
       })
 
     if (uploadError) {
       console.error('Upload error:', uploadError)
-      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to upload file: ' + uploadError.message }, { status: 500 })
     }
 
     // Get public URL
@@ -43,15 +54,18 @@ export async function POST(request) {
       .from('resumes')
       .getPublicUrl(fileName)
 
-    // Update user profile with resume URL
+    // FIXED: Update profiles table (not job_seeker_profiles)
     const { error: updateError } = await supabase
-      .from('job_seeker_profiles')
-      .update({ resume_url: publicUrl })
-      .eq('user_id', userId)
+      .from('profiles')
+      .update({ 
+        resume_url: publicUrl,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
 
     if (updateError) {
       console.error('Profile update error:', updateError)
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to update profile: ' + updateError.message }, { status: 500 })
     }
 
     return NextResponse.json({
@@ -62,6 +76,6 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Server error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error: ' + error.message }, { status: 500 })
   }
 }
