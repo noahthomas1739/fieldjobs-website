@@ -38,133 +38,133 @@ export default function JobSeekerDashboard() {
 
   const [isUploading, setIsUploading] = useState(false)
 
-    useEffect(() => {
-      console.log('Dashboard useEffect - user:', user)
-      console.log('Dashboard useEffect - loading:', loading)
+  useEffect(() => {
+    console.log('Dashboard useEffect - user:', user)
+    console.log('Dashboard useEffect - loading:', loading)
+    
+    if (!loading && !user) {
+      console.log('No user found, redirecting to login')
+      router.push('/auth/login')
+      return
+    }
+    
+    if (user) {
+      console.log('User found, loading dashboard data')
+      loadDashboardData()
       
-      if (!loading && !user) {
-        console.log('No user found, redirecting to login')
-        router.push('/auth/login')
-        return
-      }
+      // Auto-refresh applied jobs every 45 seconds to see status updates
+      const interval = setInterval(() => {
+        loadAppliedJobs()
+      }, 45000)
       
-      if (user) {
-        console.log('User found, loading dashboard data')
-        loadDashboardData()
-        
-        // Auto-refresh applied jobs every 45 seconds to see status updates
-        const interval = setInterval(() => {
-          loadAppliedJobs()
-        }, 45000)
-        
-        return () => clearInterval(interval)
+      return () => clearInterval(interval)
+    }
+  }, [user, loading, router])
+
+  // Check for LinkedIn resume prompt and auto-fill data
+  useEffect(() => {
+    try {
+      // Check for OAuth resume prompt (LinkedIn or Google)
+      const oauthPrompt = localStorage.getItem('oauth_resume_prompt')
+      const linkedinPrompt = localStorage.getItem('linkedin_resume_prompt')
+      
+      if ((oauthPrompt === 'true' || linkedinPrompt === 'true') && !profile.resumeUploaded) {
+        setShowLinkedInResumePrompt(true)
+        localStorage.removeItem('oauth_resume_prompt')
+        localStorage.removeItem('linkedin_resume_prompt')
       }
-    }, [user, loading, router])
 
-    // Check for LinkedIn resume prompt and auto-fill data
-    useEffect(() => {
-      try {
-        // Check for OAuth resume prompt (LinkedIn or Google)
-        const oauthPrompt = localStorage.getItem('oauth_resume_prompt')
-        const linkedinPrompt = localStorage.getItem('linkedin_resume_prompt')
-        
-        if ((oauthPrompt === 'true' || linkedinPrompt === 'true') && !profile.resumeUploaded) {
-          setShowLinkedInResumePrompt(true)
-          localStorage.removeItem('oauth_resume_prompt')
-          localStorage.removeItem('linkedin_resume_prompt')
-        }
+      // Auto-fill profile with LinkedIn data
+      const linkedinData = localStorage.getItem('linkedin_profile_data')
+      // Auto-fill profile with Google data
+      const googleData = localStorage.getItem('google_profile_data')
+      if (linkedinData && profile.id) {
+        try {
+          const data = JSON.parse(linkedinData)
+          console.log('Auto-filling profile with LinkedIn data:', data)
+          console.log('Current profile state:', profile)
+          
+          // Update profile state if fields are empty or have default values
+          const shouldUpdate = 
+            !profile.first_name || 
+            profile.first_name === 'Job' || 
+            !profile.last_name || 
+            profile.last_name === 'Seeker' ||
+            !profile.linkedin_url
 
-        // Auto-fill profile with LinkedIn data
-        const linkedinData = localStorage.getItem('linkedin_profile_data')
-        // Auto-fill profile with Google data
-        const googleData = localStorage.getItem('google_profile_data')
-        if (linkedinData && profile.id) {
-          try {
-            const data = JSON.parse(linkedinData)
-            console.log('Auto-filling profile with LinkedIn data:', data)
-            console.log('Current profile state:', profile)
+          if (shouldUpdate) {
+            console.log('Updating profile with LinkedIn data...')
+            setProfile((prev: any) => ({
+              ...prev,
+              first_name: (prev.first_name === 'Job' || !prev.first_name) ? data.firstName : prev.first_name,
+              last_name: (prev.last_name === 'Seeker' || !prev.last_name) ? data.lastName : prev.last_name,
+              email: prev.email || data.email,
+              linkedin_url: prev.linkedin_url || data.linkedinUrl
+            }))
             
-            // Update profile state if fields are empty or have default values
-            const shouldUpdate = 
-              !profile.first_name || 
-              profile.first_name === 'Job' || 
-              !profile.last_name || 
-              profile.last_name === 'Seeker' ||
-              !profile.linkedin_url
+          // Also save to backend immediately after state update
+          const updatedProfile = {
+            ...profile,
+            first_name: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
+            last_name: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
+            firstName: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
+            lastName: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
+            email: profile.email || data.email,
+            linkedin_url: profile.linkedin_url || data.linkedinUrl
+          }
+          
+          // Update state first, then save (setTimeout ensures state is updated)
+          setProfile(updatedProfile)
+          setTimeout(() => saveProfile(), 100)
+          }
+          
+          // Clear the stored data after using it
+          localStorage.removeItem('linkedin_profile_data')
+        } catch (err) {
+          console.error('Error parsing LinkedIn data:', err)
+        }
+      }
+      
+      // Auto-fill with Google data if available
+      if (googleData && profile.id) {
+        try {
+          const data = JSON.parse(googleData)
+          console.log('Auto-filling profile with Google data:', data)
+          console.log('Current profile state:', profile)
+          
+          // Update profile state if fields are empty or have default values
+          const shouldUpdate = 
+            !profile.first_name || 
+            profile.first_name === 'Job' || 
+            !profile.last_name || 
+            profile.last_name === 'Seeker'
 
-            if (shouldUpdate) {
-              console.log('Updating profile with LinkedIn data...')
-              setProfile((prev: any) => ({
-                ...prev,
-                first_name: (prev.first_name === 'Job' || !prev.first_name) ? data.firstName : prev.first_name,
-                last_name: (prev.last_name === 'Seeker' || !prev.last_name) ? data.lastName : prev.last_name,
-                email: prev.email || data.email,
-                linkedin_url: prev.linkedin_url || data.linkedinUrl
-              }))
-              
-            // Also save to backend immediately after state update
+          if (shouldUpdate) {
+            console.log('Updating profile with Google data...')
             const updatedProfile = {
               ...profile,
               first_name: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
               last_name: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
               firstName: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
               lastName: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
-              email: profile.email || data.email,
-              linkedin_url: profile.linkedin_url || data.linkedinUrl
+              email: profile.email || data.email
             }
             
             // Update state first, then save (setTimeout ensures state is updated)
             setProfile(updatedProfile)
             setTimeout(() => saveProfile(), 100)
-            }
-            
-            // Clear the stored data after using it
-            localStorage.removeItem('linkedin_profile_data')
-          } catch (err) {
-            console.error('Error parsing LinkedIn data:', err)
           }
+          
+          // Clear the stored data after using it
+          localStorage.removeItem('google_profile_data')
+        } catch (err) {
+          console.error('Error parsing Google data:', err)
         }
-        
-        // Auto-fill with Google data if available
-        if (googleData && profile.id) {
-          try {
-            const data = JSON.parse(googleData)
-            console.log('Auto-filling profile with Google data:', data)
-            console.log('Current profile state:', profile)
-            
-            // Update profile state if fields are empty or have default values
-            const shouldUpdate = 
-              !profile.first_name || 
-              profile.first_name === 'Job' || 
-              !profile.last_name || 
-              profile.last_name === 'Seeker'
-
-            if (shouldUpdate) {
-              console.log('Updating profile with Google data...')
-              const updatedProfile = {
-                ...profile,
-                first_name: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
-                last_name: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
-                firstName: (profile.first_name === 'Job' || !profile.first_name) ? data.firstName : profile.first_name,
-                lastName: (profile.last_name === 'Seeker' || !profile.last_name) ? data.lastName : profile.last_name,
-                email: profile.email || data.email
-              }
-              
-              // Update state first, then save (setTimeout ensures state is updated)
-              setProfile(updatedProfile)
-              setTimeout(() => saveProfile(), 100)
-            }
-            
-            // Clear the stored data after using it
-            localStorage.removeItem('google_profile_data')
-          } catch (err) {
-            console.error('Error parsing Google data:', err)
-          }
-        }
-      } catch (err) {
-        console.error('Error processing OAuth data:', err)
       }
-    }, [profile.resumeUploaded, profile.id])
+    } catch (err) {
+      console.error('Error processing OAuth data:', err)
+    }
+  }, [profile.resumeUploaded, profile.id])
 
   // PERMANENT FIX: Check for LinkedIn users on every page load
   useEffect(() => {
@@ -204,18 +204,18 @@ export default function JobSeekerDashboard() {
     checkLinkedInProfile()
   }, [user, profile.id, profile.first_name, profile.last_name])
 
-    // URL tab detection - separate useEffect
-    useEffect(() => {
-      // Check URL for tab parameter
-      const urlParams = new URLSearchParams(window.location.search)
-      const tabParam = urlParams.get('tab')
-      if (tabParam && ['overview', 'saved', 'applied', 'alerts', 'profile'].includes(tabParam)) {
-        setActiveTab(tabParam)
-      }
-    }, [])
+  // URL tab detection - separate useEffect
+  useEffect(() => {
+    // Check URL for tab parameter
+    const urlParams = new URLSearchParams(window.location.search)
+    const tabParam = urlParams.get('tab')
+    if (tabParam && ['overview', 'saved', 'applied', 'alerts', 'profile'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [])
 
   const loadDashboardData = async () => {
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     try {
       setIsLoading(true)
@@ -238,7 +238,6 @@ export default function JobSeekerDashboard() {
         }
       } catch (error) {
         console.error('Error loading saved jobs:', error)
-        // Keep empty array if error
       }
       
       // Load real applied jobs from API
@@ -263,7 +262,6 @@ export default function JobSeekerDashboard() {
         }
       } catch (error) {
         console.error('Error loading applied jobs:', error)
-        // Keep empty array if error
       }
       
       // Load real job alerts from API
@@ -289,19 +287,19 @@ export default function JobSeekerDashboard() {
         }
       } catch (error) {
         console.error('Error loading job alerts:', error)
-        // Keep empty array if error
       }
       
       // Load real profile data with proper fallbacks
       let realProfile = {
-        firstName: 'Job',  // ← Default fallback, not email-derived
+        firstName: 'Job',
         lastName: 'Seeker',
         email: user.email,
         phone: '',
         location: '',
         classification: '',
         specialization: '',
-        resumeUploaded: false
+        resumeUploaded: false,
+        resumeFileName: ''
       }
 
       try {
@@ -310,20 +308,20 @@ export default function JobSeekerDashboard() {
           const profileData = await profileResponse.json()
           if (profileData.profile) {
             realProfile = {
-              firstName: profileData.profile.first_name || 'Job',  // ← Use clean fallbacks
+              firstName: profileData.profile.first_name || 'Job',
               lastName: profileData.profile.last_name || 'Seeker',
               email: user.email,
               phone: profileData.profile.phone || '',
               location: profileData.profile.location || '',
               classification: profileData.profile.classification || '',
               specialization: profileData.profile.specialization || '',
-              resumeUploaded: !!profileData.profile.resume_url
+              resumeUploaded: !!profileData.profile.resume_url,
+              resumeFileName: profileData.profile.resume_url ? profileData.profile.resume_url.split('/').pop() : ''
             }
           }
         }
       } catch (error) {
         console.error('Error loading profile:', error)
-        // realProfile already has good defaults
       }
       
       // Mock messages for now
@@ -352,7 +350,7 @@ export default function JobSeekerDashboard() {
   }
 
   const saveProfile = async () => {
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     try {
       const response = await fetch('/api/profile', {
@@ -422,7 +420,8 @@ export default function JobSeekerDashboard() {
         setProfile((prev: any) => ({
           ...prev,
           resumeUploaded: true,
-          resumeUrl: data.resumeUrl
+          resumeUrl: data.resumeUrl,
+          resumeFileName: file.name
         }))
         alert('✅ Resume uploaded successfully!')
       } else {
@@ -440,7 +439,7 @@ export default function JobSeekerDashboard() {
   const createJobAlert = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     try {
       const response = await fetch('/api/job-alerts', {
@@ -502,7 +501,7 @@ export default function JobSeekerDashboard() {
   }
 
   const deleteJobAlert = async (alertId: number) => {
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     if (!confirm('Are you sure you want to delete this job alert?')) {
       return
@@ -528,7 +527,7 @@ export default function JobSeekerDashboard() {
   }
 
   const toggleJobAlert = async (alertId: number, currentActive: boolean) => {
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     try {
       const response = await fetch('/api/job-alerts', {
@@ -562,7 +561,7 @@ export default function JobSeekerDashboard() {
   }
 
   const loadAppliedJobs = async () => {
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     try {
       const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
@@ -589,7 +588,7 @@ export default function JobSeekerDashboard() {
   }
 
   const removeSavedJob = async (jobId: number) => {
-    if (!user?.id) return // Add null check
+    if (!user?.id) return
     
     if (!confirm('Remove this job from your saved jobs?')) {
       return
@@ -628,7 +627,6 @@ export default function JobSeekerDashboard() {
     }
     
     // For now, just redirect to homepage to apply
-    // You can enhance this later with a modal
     window.open(`/?search=${encodeURIComponent(job.title)}`, '_blank')
   }
 
@@ -1037,13 +1035,14 @@ export default function JobSeekerDashboard() {
                       />
                     </div>
                     <div>
-
                       <label className="block text-sm font-medium text-gray-700 mb-1">Resume *</label>
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                         {profile.resumeUploaded ? (
                           <div>
                             <div className="text-2xl mb-2">📄</div>
-                            <div className="mb-4 text-green-600 font-medium">Resume uploaded successfully</div>
+                            <div className="mb-4 text-green-600 font-medium">
+                              {profile.resumeFileName || 'Resume uploaded successfully'}
+                            </div>
                             <div className="mb-4">
                               <label className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg cursor-pointer inline-block">
                                 {isUploading ? 'Uploading...' : 'Replace Resume'}
