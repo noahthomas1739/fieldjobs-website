@@ -83,6 +83,11 @@ export async function POST(request) {
     }
     
     console.log('🎯 Creating Stripe session with metadata:', metadata)
+    console.log('🎯 Session config:', {
+      customer_email: profile.email,
+      line_items: featureConfig,
+      metadata: metadata
+    })
     
     // Create Stripe checkout session with dynamic pricing
     const session = await stripe.checkout.sessions.create({
@@ -108,6 +113,7 @@ export async function POST(request) {
     })
     
     console.log('✅ Stripe session created:', session.id)
+    console.log('✅ Session metadata attached:', session.metadata)
     console.log('🎯 === JOB FEATURE PURCHASE API COMPLETED ===')
     
     return Response.json({ 
