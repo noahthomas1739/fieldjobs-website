@@ -510,10 +510,16 @@ function EmployerDashboardContent() {
   }
 
   const handleJobFeaturePurchase = async (jobId: number, featureType: string) => {
-    if (!user?.id) return
+    console.log('🎯 CLIENT: Feature purchase clicked!', { jobId, featureType, userId: user?.id })
+    
+    if (!user?.id) {
+      console.log('❌ CLIENT: No user ID, aborting')
+      return
+    }
     
     try {
       setIsLoading(true)
+      console.log('🎯 CLIENT: Calling API /api/purchase-job-feature')
       
       const response = await fetch('/api/purchase-job-feature', {
         method: 'POST',
@@ -527,17 +533,21 @@ function EmployerDashboardContent() {
         }),
       })
       
+      console.log('📡 CLIENT: API response status:', response.status)
       const data = await response.json()
+      console.log('📡 CLIENT: API response data:', data)
       
       if (data.sessionId) {
+        console.log('✅ CLIENT: Got session ID, redirecting to Stripe')
         const { getStripe } = await import('@/lib/stripe')
         const stripe = await getStripe()
         await stripe.redirectToCheckout({ sessionId: data.sessionId })
       } else {
+        console.log('❌ CLIENT: No session ID in response')
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
-      console.error('Error purchasing job feature:', error)
+      console.error('❌ CLIENT: Error purchasing job feature:', error)
       alert('Error starting checkout. Please try again.')
     } finally {
       setIsLoading(false)
