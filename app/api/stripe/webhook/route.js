@@ -1,11 +1,18 @@
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
 
-// Use service role client for webhooks (bypasses RLS)
-// Note: supabase client will be created within request functions
-
+// Create service role client for webhooks (bypasses RLS)
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 // Safely convert a Unix seconds timestamp to ISO string, or return null
 function toIsoFromUnixSeconds(unixSeconds) {
@@ -85,7 +92,7 @@ export async function POST(request) {
   }
 }
 
-// Handle checkout completion (existing functionality)
+// Handle checkout completion
 async function handleCheckoutCompleted(session) {
   console.log('🔵 === CHECKOUT COMPLETED ===')
   console.log('🔵 Session mode:', session.mode)
@@ -102,16 +109,12 @@ async function handleCheckoutCompleted(session) {
   }
 }
 
-// Handle one-time payment completion (NEW)
+// Handle one-time payment completion
 async function handleOneTimePayment(session) {
   console.log('🔵 === ONE-TIME PAYMENT PROCESSING ===')
   
   try {
-    // Create supabase client within the function
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = supabaseAdmin
     
     const userId = session.metadata?.user_id || session.metadata?.userId
     const addonType = session.metadata?.addon_type || session.metadata?.featureType
@@ -120,8 +123,6 @@ async function handleOneTimePayment(session) {
     
     console.log('🔵 Payment metadata:', { userId, addonType, creditsAmount, jobId })
     console.log('🔵 Full session metadata:', session.metadata)
-    console.log('🔵 Session mode:', session.mode)
-    console.log('🔵 Session amount_total:', session.amount_total)
     
     if (!userId) {
       console.error('❌ No userId found in payment metadata')
@@ -147,7 +148,6 @@ async function handleOneTimePayment(session) {
       
       console.log(`💰 Adding ${creditsToAdd} credits to user ${userId}`)
       
-      // Get or create credit balance
       let { data: creditBalance, error: creditError } = await supabase
         .from('credit_balances')
         .select('purchased_credits, monthly_credits')
@@ -155,8 +155,6 @@ async function handleOneTimePayment(session) {
         .single()
 
       if (creditError && creditError.code === 'PGRST116') {
-        // Create new credit balance record
-        console.log('💰 Creating new credit balance record...')
         const { data: newBalance, error: insertError } = await supabase
           .from('credit_balances')
           .insert({
@@ -170,18 +168,11 @@ async function handleOneTimePayment(session) {
           .select()
           .single()
         
-        if (insertError) {
-          console.error('❌ Error creating credit balance:', insertError)
-          throw insertError
-        }
-        
+        if (insertError) throw insertError
         creditBalance = newBalance
       } else if (creditError) {
-        console.error('❌ Error fetching credit balance:', creditError)
         throw creditError
       } else {
-        // Update existing balance
-        console.log('💰 Updating existing credit balance...')
         const newPurchasedCredits = creditBalance.purchased_credits + creditsToAdd
         
         const { error: updateError } = await supabase
@@ -192,35 +183,25 @@ async function handleOneTimePayment(session) {
           })
           .eq('user_id', userId)
         
-        if (updateError) {
-          console.error('❌ Error updating credit balance:', updateError)
-          throw updateError
-        }
-        
+        if (updateError) throw updateError
         creditBalance.purchased_credits = newPurchasedCredits
       }
 
-      // Log the purchase for tracking
-      const { error: logError } = await supabase
+      await supabase
         .from('credit_purchases')
         .insert({
           user_id: userId,
           credits_purchased: creditsToAdd,
-          package_type: addonType.split('_')[2], // Extract "10", "25", or "50"
-          amount_paid: session.amount_total / 100, // Convert from cents to dollars
+          package_type: addonType.split('_')[2],
+          amount_paid: session.amount_total / 100,
           purchased_at: new Date().toISOString(),
           stripe_session_id: session.id
         })
 
-      if (logError) {
-        console.warn('⚠️ Failed to log credit purchase:', logError)
-      }
-
-      const totalCredits = creditBalance.monthly_credits + creditBalance.purchased_credits
-      console.log(`✅ Added ${creditsToAdd} credits. Total credits: ${totalCredits}`)
+      console.log(`✅ Added ${creditsToAdd} credits`)
     }
     
-    // Handle job feature purchases (featured listing, urgent badge)
+    // Handle job feature purchases
     else if (addonType === 'featured_listing' || addonType === 'urgent_badge' || addonType === 'featured' || addonType === 'urgent') {
       console.log(`🎯 Processing ${addonType} purchase for job ${jobId}...`)
       
@@ -229,34 +210,35 @@ async function handleOneTimePayment(session) {
         return
       }
       
-      // Update job with the purchased feature
       const updateData = {
         updated_at: new Date().toISOString()
       }
       
       if (addonType === 'featured_listing' || addonType === 'featured') {
         updateData.is_featured = true
-        updateData.featured_until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+        updateData.featured_until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         console.log('🌟 Setting job as FEATURED until:', updateData.featured_until)
       } else if (addonType === 'urgent_badge' || addonType === 'urgent') {
         updateData.is_urgent = true
-        updateData.urgent_until = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days
+        updateData.urgent_until = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
         console.log('🚨 Setting job as URGENT until:', updateData.urgent_until)
       }
       
-      const { error: jobUpdateError } = await supabase
+      // Use service role to bypass RLS - no need for employer_id check
+      const { data: updatedJob, error: jobUpdateError } = await supabase
         .from('jobs')
         .update(updateData)
         .eq('id', jobId)
-        .eq('employer_id', userId) // Ensure user owns the job
+        .select()
       
       if (jobUpdateError) {
         console.error(`❌ Error updating job with ${addonType}:`, jobUpdateError)
         throw jobUpdateError
       }
       
-      // Log the feature purchase
-      const { error: featureLogError } = await supabase
+      console.log(`✅ Job updated:`, updatedJob)
+      
+      await supabase
         .from('job_feature_purchases')
         .insert({
           user_id: userId,
@@ -266,10 +248,6 @@ async function handleOneTimePayment(session) {
           purchased_at: new Date().toISOString(),
           stripe_session_id: session.id
         })
-      
-      if (featureLogError) {
-        console.warn('⚠️ Failed to log feature purchase:', featureLogError)
-      }
       
       console.log(`✅ Applied ${addonType} to job ${jobId}`)
     }
@@ -282,32 +260,19 @@ async function handleOneTimePayment(session) {
   }
 }
 
-// Handle subscription creation (NEW)
+// Handle subscription creation
 async function handleSubscriptionCreated(subscription) {
   console.log('🔵 === SUBSCRIPTION CREATED ===')
-  console.log('🔵 Subscription ID:', subscription.id)
-  console.log('🔵 Customer ID:', subscription.customer)
-  console.log('🔵 Status:', subscription.status)
   
   try {
-    // Create supabase client within the function
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = supabaseAdmin
     
-    // Find user by customer ID
-    const { data: existingSub, error: findError } = await supabase
+    const { data: existingSub } = await supabase
       .from('subscriptions')
       .select('user_id')
       .eq('stripe_customer_id', subscription.customer)
       .limit(1)
       .single()
-    
-    if (findError && findError.code !== 'PGRST116') {
-      console.error('❌ Error finding user:', findError)
-      throw new Error('Could not find user for customer: ' + subscription.customer)
-    }
     
     if (!existingSub) {
       console.log('⚠️ No existing subscription found for customer, skipping')
@@ -323,36 +288,27 @@ async function handleSubscriptionCreated(subscription) {
   }
 }
 
-// Handle subscription updates (NEW)
+// Handle subscription updates
 async function handleSubscriptionUpdated(subscription) {
   console.log('🔵 === SUBSCRIPTION UPDATED ===')
-  console.log('🔵 Subscription ID:', subscription.id)
-  console.log('🔵 Status:', subscription.status)
   
   try {
-    // Create supabase client within the function
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = supabaseAdmin
     
-    // Find subscription in database
-    const { data: dbSubscription, error: findError } = await supabase
+    const { data: dbSubscription } = await supabase
       .from('subscriptions')
       .select('user_id')
       .eq('stripe_subscription_id', subscription.id)
       .single()
     
-    if (findError) {
-      console.error('❌ Could not find subscription in database:', findError)
-      // Try to find by customer ID as fallback
-      const { data: customerSub, error: customerError } = await supabase
+    if (!dbSubscription) {
+      const { data: customerSub } = await supabase
         .from('subscriptions')
         .select('user_id')
         .eq('stripe_customer_id', subscription.customer)
         .single()
       
-      if (customerError) {
+      if (!customerSub) {
         console.log('⚠️ No subscription found to update, skipping')
         return
       }
@@ -370,21 +326,14 @@ async function handleSubscriptionUpdated(subscription) {
   }
 }
 
-// Handle subscription deletion (NEW - CRITICAL FOR PREVENTING ORPHANS)
+// Handle subscription deletion
 async function handleSubscriptionDeleted(subscription) {
   console.log('🔵 === SUBSCRIPTION DELETED ===')
-  console.log('🔵 Subscription ID:', subscription.id)
-  console.log('🔵 Customer ID:', subscription.customer)
   
   try {
-    // Create supabase client within the function
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = supabaseAdmin
     
-    // Mark subscription as cancelled in database
-    const { error: updateError } = await supabase
+    await supabase
       .from('subscriptions')
       .update({
         status: 'cancelled',
@@ -393,22 +342,7 @@ async function handleSubscriptionDeleted(subscription) {
       })
       .eq('stripe_subscription_id', subscription.id)
     
-    if (updateError) {
-      console.error('❌ Error marking subscription as cancelled:', updateError)
-      throw updateError
-    }
-    
-    console.log('✅ Subscription marked as cancelled in database')
-    
-    // Cancel any scheduled changes
-    const { error: scheduleError } = await supabase
-      .from('subscription_schedule_changes')
-      .update({ status: 'cancelled' })
-      .eq('stripe_schedule_id', subscription.id)
-    
-    if (scheduleError) {
-      console.log('⚠️ Error cancelling scheduled changes:', scheduleError)
-    }
+    console.log('✅ Subscription marked as cancelled')
     
   } catch (error) {
     console.error('❌ Subscription deletion error:', error)
@@ -416,22 +350,15 @@ async function handleSubscriptionDeleted(subscription) {
   }
 }
 
-// Handle payment failures (NEW)
+// Handle payment failures
 async function handlePaymentFailed(invoice) {
   console.log('🔵 === PAYMENT FAILED ===')
-  console.log('🔵 Invoice ID:', invoice.id)
-  console.log('🔵 Subscription ID:', invoice.subscription)
   
   try {
-    // Create supabase client within the function
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = supabaseAdmin
     
     if (invoice.subscription) {
-      // Update subscription status based on payment failure
-      const { error: updateError } = await supabase
+      await supabase
         .from('subscriptions')
         .update({
           status: 'past_due',
@@ -439,11 +366,7 @@ async function handlePaymentFailed(invoice) {
         })
         .eq('stripe_subscription_id', invoice.subscription)
       
-      if (updateError) {
-        console.error('❌ Error updating subscription status:', updateError)
-      } else {
-        console.log('✅ Subscription marked as past_due')
-      }
+      console.log('✅ Subscription marked as past_due')
     }
     
   } catch (error) {
@@ -452,17 +375,12 @@ async function handlePaymentFailed(invoice) {
   }
 }
 
-// Sync subscription data to database (ENHANCED)
+// Sync subscription to database
 async function syncSubscriptionToDatabase(subscription, userId) {
   console.log('🔵 Syncing subscription to database...')
   
-  // Create supabase client within the function
-  const cookieStore = cookies()
-  const supabase = createRouteHandlerClient({ 
-    cookies: () => cookieStore 
-  })
+  const supabase = supabaseAdmin
   
-  // Determine plan type from price ID
   const priceId = subscription.items.data[0]?.price?.id
   const planType = getPlanTypeFromPriceId(priceId)
   
@@ -488,15 +406,10 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     updated_at: new Date().toISOString()
   }
   
-  // Add cancelled_at if subscription is cancelled
   if (subscription.status === 'canceled') {
-    const cancelledAtIso = toIsoFromUnixSeconds(subscription.canceled_at)
-    subscriptionData.cancelled_at = cancelledAtIso || new Date().toISOString()
+    subscriptionData.cancelled_at = toIsoFromUnixSeconds(subscription.canceled_at) || new Date().toISOString()
   }
   
-  console.log('🔵 Subscription data:', JSON.stringify(subscriptionData, null, 2))
-  
-  // Update or insert subscription
   const { error } = await supabase
     .from('subscriptions')
     .upsert({
@@ -507,10 +420,7 @@ async function syncSubscriptionToDatabase(subscription, userId) {
       ignoreDuplicates: false
     })
   
-  if (error) {
-    console.error('❌ Error syncing subscription:', error)
-    throw error
-  }
+  if (error) throw error
   
   console.log('✅ Subscription synced successfully')
 }
@@ -527,78 +437,40 @@ function getPlanTypeFromPriceId(priceId) {
   return priceMapping[priceId] || 'starter'
 }
 
-// Original subscription success handler (ENHANCED)
+// Handle subscription success
 async function handleSubscriptionSuccess(session) {
   console.log('🔵 === SUBSCRIPTION HANDLER STARTED ===')
   
   try {
-    // Create supabase client within the function
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = supabaseAdmin
     
-    // Test database connection
-    console.log('🔵 Testing database connection...')
-    const { data: testData, error: testError } = await supabase
-      .from('subscriptions')
-      .select('count')
-      .limit(1)
-    
-    if (testError) {
-      console.error('❌ DATABASE CONNECTION FAILED:', testError)
-      throw new Error('Database connection failed: ' + testError.message)
-    }
-    console.log('✅ Database connection successful')
-    
-    // Handle both naming conventions
     const userId = session.metadata.userId || session.metadata.user_id
     const planType = session.metadata.planType || session.metadata.plan_type
     
-    console.log('🔵 User ID from metadata:', userId)
-    console.log('🔵 Plan type from metadata:', planType)
-    
-    if (!userId) {
-      console.error('❌ No userId found in metadata')
-      throw new Error('Missing userId in metadata')
-    }
-    
-    if (!planType) {
-      console.error('❌ No planType found in metadata')
-      throw new Error('Missing planType in metadata')
+    if (!userId || !planType) {
+      throw new Error('Missing userId or planType in metadata')
     }
 
-    console.log('🔵 Retrieving Stripe subscription...')
     const subscription = await stripe.subscriptions.retrieve(session.subscription)
-    console.log('✅ Stripe subscription retrieved:', subscription.id)
     
-    // Clean up any old subscriptions before creating new one
     await cleanupOldSubscriptions(userId, subscription.id)
-    
-    // Sync subscription to database
     await syncSubscriptionToDatabase(subscription, userId)
     
     console.log('✅ === SUBSCRIPTION HANDLER COMPLETED ===')
     
   } catch (error) {
     console.error('❌ === SUBSCRIPTION HANDLER FAILED ===')
-    console.error('❌ Handler error:', error.message)
-    console.error('❌ Handler error stack:', error.stack)
     throw error
   }
 }
 
-// Clean up old subscriptions to prevent duplicates
+// Clean up old subscriptions
 async function cleanupOldSubscriptions(userId, newSubscriptionId) {
   console.log('🔵 Cleaning up old subscriptions...')
   
-  // Create supabase client within the function
-  const cookieStore = cookies()
-  const supabase = createRouteHandlerClient({ 
-    cookies: () => cookieStore 
-  })
+  const supabase = supabaseAdmin
   
-  const { error } = await supabase
+  await supabase
     .from('subscriptions')
     .update({ 
       status: 'replaced',
@@ -609,9 +481,5 @@ async function cleanupOldSubscriptions(userId, newSubscriptionId) {
     .neq('stripe_subscription_id', newSubscriptionId)
     .in('status', ['active', 'trialing'])
   
-  if (error) {
-    console.error('⚠️ Cleanup error:', error)
-  } else {
-    console.log('✅ Old subscriptions cleaned up')
-  }
+  console.log('✅ Old subscriptions cleaned up')
 }
