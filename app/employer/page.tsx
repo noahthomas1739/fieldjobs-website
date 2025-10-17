@@ -1578,8 +1578,16 @@ function EmployerDashboardContent() {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Resume Search</h2>
-                <div className="text-sm text-gray-600">
-                  Credits: {userCredits} • Each contact unlock uses 1 credit
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-gray-600">
+                    Credits: {userCredits} • Each contact unlock uses 1 credit
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('billing')}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium"
+                  >
+                    Buy Credits
+                  </button>
                 </div>
               </div>
 
