@@ -485,7 +485,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       {/* Billing History Tab */}
       {activeTab === 'billing' && (
         <div className="space-y-6">
-          {/* Subscription Management Section */}
+          {/* Subscription Management Section - REMOVED CANCEL BUTTON FROM HERE */}
           {subscription?.plan_type !== 'free' && (
             <div className="bg-gray-50 rounded-lg p-6">
               <h4 className="text-lg font-semibold mb-4">Subscription Management</h4>
@@ -497,15 +497,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 >
                   Manage Payment Methods
                 </button>
-                {!isSubscriptionCancelled ? (
-                  <button
-                    onClick={() => setShowCancelConfirm(true)}
-                    disabled={isLoading}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                  >
-                    Cancel Subscription
-                  </button>
-                ) : (
+                {isSubscriptionCancelled && (
                   <button
                     onClick={handleReactivateSubscription}
                     disabled={isLoading}
@@ -590,6 +582,19 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* MOVED: Cancel subscription link to bottom - small and subtle */}
+          {subscription?.plan_type !== 'free' && !isSubscriptionCancelled && (
+            <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+              <button
+                onClick={() => setShowCancelConfirm(true)}
+                disabled={isLoading}
+                className="text-xs text-gray-400 hover:text-gray-600 underline disabled:opacity-50 transition-colors"
+              >
+                Cancel subscription
+              </button>
             </div>
           )}
         </div>
