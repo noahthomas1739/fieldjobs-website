@@ -958,7 +958,7 @@ function EmployerDashboardContent() {
   }
 
   const getNewApplicationsCount = () => {
-    return applications.filter((app: any) => app.status === 'new').length
+    return applications.filter((app: any) => app.status === 'submitted').length
   }
 
   const submitJob = async (e: React.FormEvent) => {
@@ -1206,7 +1206,7 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-orange-500">{getNewApplicationsCount()}</div>
-              <div className="text-sm text-gray-600">New Applications</div>
+              <div className="text-sm text-gray-600">Submitted Applications</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-500">{userCredits}</div>
@@ -1295,13 +1295,13 @@ function EmployerDashboardContent() {
                           <div className="text-gray-500 text-xs">Applied: {new Date(app.created_at).toLocaleDateString()}</div>
                         </div>
                         <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          app.status === 'new' ? 'bg-blue-100 text-blue-800' : 
+                          app.status === 'submitted' ? 'bg-blue-100 text-blue-800' : 
                           app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
                           app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
                           app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
-                          {app.status || 'new'}
+                          {app.status || 'submitted'}
                         </div>
                       </div>
                     </div>
@@ -1489,7 +1489,6 @@ function EmployerDashboardContent() {
                       className="w-full p-2 border border-gray-300 rounded"
                     >
                       <option value="">All Statuses</option>
-                      <option value="new">New</option>
                       <option value="submitted">Submitted</option>
                       <option value="shortlisted">Shortlisted</option>
                       <option value="interviewed">Interviewed</option>
@@ -1533,7 +1532,7 @@ function EmployerDashboardContent() {
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-lg font-semibold">{app.first_name} {app.last_name}</h3>
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              app.status === 'new' ? 'bg-blue-100 text-blue-800' : 
+                              app.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
                               app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
                               app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
                               app.status === 'rejected' ? 'bg-red-100 text-red-800' :
@@ -1556,11 +1555,11 @@ function EmployerDashboardContent() {
                             View Details
                           </button>
                           <select
-                            value={app.status || 'new'}
+                            value={app.status || 'submitted'}
                             onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
                             className="px-2 py-1 border border-gray-300 rounded text-sm"
                           >
-                            <option value="new">New</option>
+                            <option value="submitted">Submitted</option>
                             <option value="shortlisted">Shortlisted</option>
                             <option value="interviewed">Interviewed</option>
                             <option value="rejected">Rejected</option>
@@ -2510,14 +2509,14 @@ function EmployerDashboardContent() {
                 <div>
                   <strong>Status:</strong> 
                   <select
-                    value={selectedApplication.status || 'new'}
+                    value={selectedApplication.status || 'submitted'}
                     onChange={(e) => {
                       updateApplicationStatus(selectedApplication.id, e.target.value)
                       setSelectedApplication((prev: any) => ({ ...prev, status: e.target.value }))
                     }}
                     className="ml-2 px-2 py-1 border border-gray-300 rounded"
                   >
-                    <option value="new">New</option>
+                    <option value="submitted">Submitted</option>
                     <option value="shortlisted">Shortlisted</option>
                     <option value="interviewed">Interviewed</option>
                     <option value="rejected">Rejected</option>
