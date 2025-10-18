@@ -2515,7 +2515,22 @@ function EmployerDashboardContent() {
                   <strong>Applied on:</strong> {formatDate(selectedApplication.applied_at)}
                 </div>
                 <div>
-                  <strong>Status:</strong> 
+                  <strong>Resume:</strong>{' '}
+                  {selectedApplication.resume_url ? (
+                    <a 
+                      href={selectedApplication.resume_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      {selectedApplication.resume_filename || 'View Resume'}
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 italic">No resume uploaded</span>
+                  )}
+                </div>
+                <div>
+                  <strong>Status:</strong>
                   <select
                     value={selectedApplication.status || 'submitted'}
                     onChange={(e) => {
