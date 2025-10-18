@@ -1560,8 +1560,8 @@ function EmployerDashboardContent() {
                             View Details
                           </button>
                           {app.resume_url && (
-                            
-                              href={app.resume_url}
+                          <a
+                            href={app.resume_url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
