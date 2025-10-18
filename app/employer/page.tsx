@@ -1554,6 +1554,14 @@ function EmployerDashboardContent() {
                           >
                             View Details
                           </button>
+                          {app.resume_url && (
+                            <button
+                              onClick={() => openProtectedResumeViewer(app)}
+                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                            >
+                              📄 View Resume
+                            </button>
+                          )}
                           <select
                             value={app.status || 'submitted'}
                             onChange={(e) => updateApplicationStatus(app.id, e.target.value)}
