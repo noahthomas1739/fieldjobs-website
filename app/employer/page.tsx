@@ -1553,14 +1553,21 @@ function EmployerDashboardContent() {
                             className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
                           >
                             View Details
+                          <button
+                            onClick={() => openApplicationModal(app)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                          >
+                            View Details
                           </button>
                           {app.resume_url && (
-                            <button
-                              onClick={() => openProtectedResumeViewer(app)}
-                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                            
+                              href={app.resume_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
                             >
                               📄 View Resume
-                            </button>
+                            </a>
                           )}
                           <select
                             value={app.status || 'submitted'}
