@@ -238,12 +238,12 @@ function ResetPasswordContent() {
       <div className="mt-8 text-center">
         <p className="text-sm text-gray-600">
           Need help?{' '}
-          <a 
-            href="mailto:support@field-jobs.co" 
+          <Link 
+            href="/contact" 
             className="font-medium text-orange-500 hover:text-orange-600"
           >
-            Contact Support
-          </a>
+            Contact Us
+          </Link>
         </p>
       </div>
     </div>

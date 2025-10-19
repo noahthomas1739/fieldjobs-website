@@ -33,8 +33,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
+    // Handle billing portal action separately (doesn't need subscription validation)
+    if (action === 'get_billing_portal') {
+      return await getBillingPortal(supabase, userId)
+    }
+
     // ROBUST: Get and validate user's subscription
-    const validSubscription = await getValidUserSubscription(userId)
+    const validSubscription = await getValidUserSubscription(supabase, userId)
     
     if (!validSubscription) {
       return NextResponse.json({ 
@@ -53,16 +58,19 @@ export async function POST(request) {
 
     switch (action) {
       case 'upgrade_immediate':
-        return await upgradeSubscriptionImmediate(validSubscription, newPriceId, newPlanType)
+        return await upgradeSubscriptionImmediate(supabase, validSubscription, newPriceId, newPlanType)
       
       case 'downgrade_end_cycle':
-        return await downgradeSubscriptionEndCycle(validSubscription, newPriceId, newPlanType)
+        return await downgradeSubscriptionEndCycle(supabase, validSubscription, newPriceId, newPlanType)
       
       case 'cancel':
-        return await cancelSubscription(validSubscription)
+        return await cancelSubscription(supabase, validSubscription)
       
       case 'reactivate':
-        return await reactivateSubscription(validSubscription)
+        return await reactivateSubscription(supabase, validSubscription)
+      
+      case 'get_billing_history':
+        return await getBillingHistory(userId)
       
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
@@ -85,7 +93,7 @@ export async function POST(request) {
  * ROBUST: Get and validate user's subscription
  * This function ensures we have a valid, active subscription that exists in both DB and Stripe
  */
-async function getValidUserSubscription(userId) {
+async function getValidUserSubscription(supabase, userId) {
   console.log('🔍 Finding valid subscription for user:', userId)
   
   // Get all subscriptions for user, ordered by most recent
@@ -141,7 +149,7 @@ async function getValidUserSubscription(userId) {
       console.log(`  - Items: ${stripeSubscription.items?.data?.length || 0}`)
 
       // Sync database status with Stripe if needed
-      await syncSubscriptionStatus(subscription, stripeSubscription)
+      await syncSubscriptionStatus(supabase, subscription, stripeSubscription)
 
       // RELAXED: Accept more subscription statuses for testing
       const validStatuses = ['active', 'trialing', 'past_due', 'unpaid']
@@ -164,7 +172,7 @@ async function getValidUserSubscription(userId) {
       // Mark invalid subscriptions
       if (stripeError.message.includes('No such subscription')) {
         console.log(`🗑️ Marking subscription as invalid due to Stripe error`)
-        await markSubscriptionAsInvalid(subscription.id)
+        await markSubscriptionAsInvalid(supabase, subscription.id)
       }
       continue
     }
@@ -178,7 +186,7 @@ async function getValidUserSubscription(userId) {
 /**
  * ROBUST: Sync database status with Stripe reality
  */
-async function syncSubscriptionStatus(dbSubscription, stripeSubscription) {
+async function syncSubscriptionStatus(supabase, dbSubscription, stripeSubscription) {
   const dbStatus = dbSubscription.status
   const stripeStatus = stripeSubscription.status
   
@@ -220,7 +228,7 @@ async function syncSubscriptionStatus(dbSubscription, stripeSubscription) {
 /**
  * ROBUST: Mark invalid subscriptions to prevent future issues
  */
-async function markSubscriptionAsInvalid(subscriptionId) {
+async function markSubscriptionAsInvalid(supabase, subscriptionId) {
   console.log(`🗑️ Marking subscription ${subscriptionId} as invalid`)
   
   // Use 'cancelled' instead of 'invalid' since database constraint doesn't allow 'invalid'
@@ -243,7 +251,7 @@ async function markSubscriptionAsInvalid(subscriptionId) {
 /**
  * ROBUST: Immediate upgrade with comprehensive validation
  */
-async function upgradeSubscriptionImmediate(validSubscription, newPriceId, newPlanType) {
+async function upgradeSubscriptionImmediate(supabase, validSubscription, newPriceId, newPlanType) {
   try {
     console.log('⬆️ Starting immediate upgrade...')
     
@@ -302,7 +310,7 @@ async function upgradeSubscriptionImmediate(validSubscription, newPriceId, newPl
     }
 
     // Clean up any old subscriptions
-    await cleanupOldSubscriptions(validSubscription.user_id, stripeSubscription.id)
+    await cleanupOldSubscriptions(supabase, validSubscription.user_id, stripeSubscription.id)
 
     return NextResponse.json({
       success: true,
@@ -323,7 +331,7 @@ async function upgradeSubscriptionImmediate(validSubscription, newPriceId, newPl
 /**
  * ROBUST: End-of-cycle downgrade with proper scheduling
  */
-async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newPlanType) {
+async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPriceId, newPlanType) {
   try {
     console.log('⬇️ Starting end-cycle downgrade...')
     
@@ -445,7 +453,7 @@ async function downgradeSubscriptionEndCycle(validSubscription, newPriceId, newP
 /**
  * ROBUST: Cancel subscription
  */
-async function cancelSubscription(validSubscription) {
+async function cancelSubscription(supabase, validSubscription) {
   try {
     console.log('❌ Cancelling subscription...')
     
@@ -489,7 +497,7 @@ async function cancelSubscription(validSubscription) {
 /**
  * ROBUST: Reactivate subscription
  */
-async function reactivateSubscription(validSubscription) {
+async function reactivateSubscription(supabase, validSubscription) {
   try {
     console.log('🔄 Reactivating subscription...')
     
@@ -532,7 +540,7 @@ async function reactivateSubscription(validSubscription) {
 /**
  * UTILITY: Clean up old invalid subscriptions
  */
-async function cleanupOldSubscriptions(userId, activeStripeSubscriptionId) {
+async function cleanupOldSubscriptions(supabase, userId, activeStripeSubscriptionId) {
   console.log('🧹 Cleaning up old subscriptions...')
   
   const { error } = await supabase
@@ -550,6 +558,110 @@ async function cleanupOldSubscriptions(userId, activeStripeSubscriptionId) {
     console.error('⚠️ Cleanup error:', error)
   } else {
     console.log('✅ Old subscriptions cleaned up')
+  }
+}
+
+/**
+ * Get Stripe Billing Portal session
+ */
+async function getBillingPortal(supabase, userId) {
+  try {
+    console.log('🔗 Creating billing portal session for user:', userId)
+    
+    // Get user's Stripe customer ID
+    const { data: subscription, error } = await supabase
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    
+    if (error || !subscription?.stripe_customer_id) {
+      console.error('❌ No Stripe customer found:', error)
+      return NextResponse.json({ 
+        error: 'No billing information found',
+        message: 'Please create a subscription first.'
+      }, { status: 404 })
+    }
+    
+    // Create billing portal session
+    const session = await stripe.billingPortal.sessions.create({
+      customer: subscription.stripe_customer_id,
+      return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?tab=subscription`,
+    })
+    
+    return NextResponse.json({
+      success: true,
+      url: session.url
+    })
+    
+  } catch (error) {
+    console.error('❌ Billing portal error:', error)
+    return NextResponse.json({ 
+      error: 'Failed to create billing portal session',
+      details: error.message
+    }, { status: 500 })
+  }
+}
+
+/**
+ * Get billing history from Stripe
+ */
+async function getBillingHistory(userId) {
+  try {
+    console.log('📜 Fetching billing history for user:', userId)
+    
+    // Get user's Stripe customer ID
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ 
+      cookies: () => cookieStore 
+    })
+    
+    const { data: subscription, error } = await supabase
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    
+    if (error || !subscription?.stripe_customer_id) {
+      console.error('❌ No Stripe customer found:', error)
+      return NextResponse.json({ 
+        success: true,
+        billingHistory: []
+      })
+    }
+    
+    // Fetch invoices from Stripe
+    const invoices = await stripe.invoices.list({
+      customer: subscription.stripe_customer_id,
+      limit: 100,
+    })
+    
+    const billingHistory = invoices.data.map(invoice => ({
+      id: invoice.id,
+      date: new Date(invoice.created * 1000).toISOString(),
+      amount: invoice.amount_paid / 100,
+      status: invoice.status,
+      invoice_pdf: invoice.invoice_pdf,
+      hosted_invoice_url: invoice.hosted_invoice_url,
+      description: invoice.lines.data[0]?.description || 'Subscription payment'
+    }))
+    
+    return NextResponse.json({
+      success: true,
+      billingHistory
+    })
+    
+  } catch (error) {
+    console.error('❌ Billing history error:', error)
+    return NextResponse.json({ 
+      success: false,
+      error: 'Failed to fetch billing history',
+      details: error.message
+    }, { status: 500 })
   }
 }
 

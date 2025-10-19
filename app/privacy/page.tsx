@@ -61,10 +61,10 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-xl font-semibold mb-4">Contact Us</h2>
             <p className="text-gray-700">
-              If you have questions about this Privacy Policy, please contact us at{' '}
-              <a href="mailto:privacy@field-jobs.co" className="text-blue-600 hover:underline">
-                privacy@field-jobs.co
-              </a>
+              If you have questions about this Privacy Policy, please{' '}
+              <Link href="/contact" className="text-blue-600 hover:underline">
+                contact us
+              </Link>
             </p>
           </section>
 
