@@ -567,14 +567,24 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        {invoice.invoiceUrl && (
+                        {invoice.hosted_invoice_url && (
                           <a 
-                            href={invoice.invoiceUrl}
+                            href={invoice.hosted_invoice_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700"
+                            className="text-blue-500 hover:text-blue-700 font-medium"
                           >
-                            View Invoice
+                            View Invoice →
+                          </a>
+                        )}
+                        {!invoice.hosted_invoice_url && invoice.invoice_pdf && (
+                          <a 
+                            href={invoice.invoice_pdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:text-blue-700 font-medium"
+                          >
+                            Download PDF →
                           </a>
                         )}
                       </td>

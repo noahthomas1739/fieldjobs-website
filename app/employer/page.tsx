@@ -82,6 +82,7 @@ function EmployerDashboardContent() {
     hourlyRate: '',
     duration: '',
     startDate: '',
+    applicationDeadline: '',
     industry: '',
     classification: '',
     benefits: '',
@@ -159,7 +160,7 @@ function EmployerDashboardContent() {
         setShowFreeJobForm(false)
         setJobForm({
           title: '', company: '', description: '', requirements: '', region: '',
-          hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
+          hourlyRate: '', duration: '', startDate: '', applicationDeadline: '', industry: '', classification: '',
           benefits: '', contactEmail: '', contactPhone: ''
         })
       } else {
@@ -998,6 +999,7 @@ function EmployerDashboardContent() {
           hourlyRate: '',
           duration: '',
           startDate: '',
+          applicationDeadline: '',
           industry: '',
           classification: '',
           benefits: '',
@@ -2260,7 +2262,7 @@ function EmployerDashboardContent() {
                     setEditingJob(null)
                     setJobForm({
                       title: '', company: '', description: '', requirements: '', region: '',
-                      hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
+                      hourlyRate: '', duration: '', startDate: '', applicationDeadline: '', industry: '', classification: '',
                       benefits: '', contactEmail: '', contactPhone: ''
                     })
                   }}
@@ -2315,27 +2317,41 @@ function EmployerDashboardContent() {
                   />
                 </div>
                 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Region *</label>
-                    <input
-                      type="text"
+                    <select
                       value={jobForm.region}
                       onChange={(e) => setJobForm(prev => ({ ...prev, region: e.target.value }))}
                       required
                       className="w-full p-2 border border-gray-300 rounded"
-                    />
+                    >
+                      <option value="">Select Region</option>
+                      <option value="northeast">Northeast US</option>
+                      <option value="southeast">Southeast US</option>
+                      <option value="midwest">Midwest US</option>
+                      <option value="southwest">Southwest US</option>
+                      <option value="west">West US</option>
+                      <option value="canada">Canada</option>
+                      <option value="mexico">Mexico</option>
+                      <option value="nationwide">US Nationwide</option>
+                      <option value="international">International</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Hourly Rate</label>
+                    <label className="block text-sm font-medium mb-1">Hourly Rate *</label>
                     <input
                       type="text"
                       value={jobForm.hourlyRate}
                       onChange={(e) => setJobForm(prev => ({ ...prev, hourlyRate: e.target.value }))}
                       placeholder="$50-75/hr"
+                      required
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Duration</label>
                     <input
@@ -2346,9 +2362,6 @@ function EmployerDashboardContent() {
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Start Date</label>
                     <input
@@ -2359,20 +2372,81 @@ function EmployerDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Industry</label>
+                    <label className="block text-sm font-medium mb-1">Application Deadline</label>
+                    <input
+                      type="date"
+                      value={jobForm.applicationDeadline}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, applicationDeadline: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Industry *</label>
                     <select
                       value={jobForm.industry}
                       onChange={(e) => setJobForm(prev => ({ ...prev, industry: e.target.value }))}
+                      required
                       className="w-full p-2 border border-gray-300 rounded"
                     >
                       <option value="">Select Industry</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Healthcare">Healthcare</option>
-                      <option value="Finance">Finance</option>
-                      <option value="Education">Education</option>
+                      <option value="Energy">Energy</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Nuclear">Nuclear</option>
+                      <option value="Industrial">Industrial</option>
                       <option value="Manufacturing">Manufacturing</option>
+                      <option value="Oil & Gas">Oil & Gas</option>
+                      <option value="Renewable Energy">Renewable Energy</option>
+                      <option value="Utilities">Utilities</option>
                       <option value="Other">Other</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Classification</label>
+                    <input
+                      type="text"
+                      value={jobForm.classification}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, classification: e.target.value }))}
+                      placeholder="e.g., Technician, Engineer, Operator"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Benefits</label>
+                  <textarea
+                    value={jobForm.benefits}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, benefits: e.target.value }))}
+                    rows={2}
+                    placeholder="Health insurance, 401k, paid time off, etc."
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Contact Email *</label>
+                    <input
+                      type="email"
+                      value={jobForm.contactEmail}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, contactEmail: e.target.value }))}
+                      required
+                      placeholder="hiring@company.com"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Contact Phone</label>
+                    <input
+                      type="tel"
+                      value={jobForm.contactPhone}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, contactPhone: e.target.value }))}
+                      placeholder="(555) 123-4567"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
                   </div>
                 </div>
                 
