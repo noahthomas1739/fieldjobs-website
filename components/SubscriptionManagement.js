@@ -383,20 +383,20 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       {/* Change Plans Tab */}
       {activeTab === 'plans' && (
         <div className="space-y-6">
-          <h4 className="text-lg font-semibold">Choose Your Plan</h4>
+          <h4 className="text-lg font-semibold">Subscription Plans</h4>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Starter Plan */}
             <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'starter' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Starter</div>
-                <div className="text-3xl font-bold text-orange-500 mb-2">$249</div>
+                <div className="text-3xl font-bold text-orange-500 mb-2">$199</div>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
-                  <li>✓ 5 active job postings</li>
+                  <li>✓ 3 active job postings</li>
                   <li>✓ Jobs stay active indefinitely</li>
-                  <li>✓ 10 resume credits</li>
-                  <li>✓ Standard support</li>
+                  <li>✓ Basic applicant management</li>
+                  <li>✓ Email support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'starter' ? (
@@ -405,7 +405,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   </div>
                 ) : subscription?.plan_type === 'free' ? (
                   <button
-                    onClick={() => handleUpgradeSubscription('price_1Rk5wTRC3IxXIgoOJXQeNds5', 'Starter')}
+                    onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '', 'Starter')}
                     disabled={isLoading}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
@@ -413,7 +413,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleDowngradeSubscription('price_1Rk5wTRC3IxXIgoOJXQeNds5', 'Starter')}
+                    onClick={() => handleDowngradeSubscription(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '', 'Starter')}
                     disabled={isLoading}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
@@ -423,13 +423,49 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
               </div>
             </div>
 
-            {/* Professional Plan */}
-            <div className={`border-2 rounded-lg p-6 relative ${subscription?.plan_type === 'professional' ? 'border-orange-500 bg-orange-50' : 'border-orange-500'}`}>
-              {subscription?.plan_type !== 'professional' && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold">
+            {/* Growth Plan */}
+            <div className={`border-2 rounded-lg p-6 relative ${subscription?.plan_type === 'growth' ? 'border-orange-500 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
+              {subscription?.plan_type !== 'growth' && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-xs font-bold">
                   MOST POPULAR
                 </div>
               )}
+              <div className="text-center">
+                <div className="text-xl font-bold mb-2">Growth</div>
+                <div className="text-3xl font-bold text-orange-500 mb-2">$299</div>
+                <div className="text-gray-600 mb-4">per month</div>
+                <ul className="text-left space-y-2 mb-6 text-sm">
+                  <li>✓ 6 active job postings</li>
+                  <li>✓ Jobs stay active indefinitely</li>
+                  <li>✓ Resume credits included</li>
+                  <li>✓ Priority support</li>
+                </ul>
+                
+                {subscription?.plan_type === 'growth' ? (
+                  <div className="bg-orange-500 text-white py-2 px-4 rounded-lg">
+                    Current Plan
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const isUpgrade = subscription?.plan_type === 'free' || subscription?.plan_type === 'starter';
+                      if (isUpgrade) {
+                        handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '', 'Growth');
+                      } else {
+                        handleDowngradeSubscription(process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '', 'Growth');
+                      }
+                    }}
+                    disabled={isLoading}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                  >
+                    {isLoading ? 'Processing...' : (subscription?.plan_type === 'professional' || subscription?.plan_type === 'enterprise') ? 'Downgrade' : 'Upgrade Now'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Professional Plan */}
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'professional' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Professional</div>
                 <div className="text-3xl font-bold text-orange-500 mb-2">$599</div>
@@ -438,8 +474,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   <li>✓ 15 active job postings</li>
                   <li>✓ Jobs stay active indefinitely</li>
                   <li>✓ 25 resume credits</li>
-                  <li>✓ Priority support</li>
-                  <li>✓ Featured job placement</li>
+                  <li>✓ Advanced analytics</li>
+                  <li>✓ Featured listings</li>
                 </ul>
                 
                 {subscription?.plan_type === 'professional' ? (
@@ -449,8 +485,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 ) : (
                   <button
                     onClick={() => subscription?.plan_type === 'enterprise' 
-                      ? handleDowngradeSubscription('price_1Rk5xGRC3IxXIgoOKFM0DRZd', 'Professional')
-                      : handleUpgradeSubscription('price_1Rk5xGRC3IxXIgoOKFM0DRZd', 'Professional')
+                      ? handleDowngradeSubscription(process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '', 'Professional')
+                      : handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '', 'Professional')
                     }
                     disabled={isLoading}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
@@ -465,14 +501,13 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'enterprise' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Enterprise</div>
-                <div className="text-3xl font-bold text-orange-500 mb-2">$1,199</div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">$1,999</div>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ Unlimited job postings</li>
                   <li>✓ Jobs stay active indefinitely</li>
                   <li>✓ Unlimited resume access</li>
                   <li>✓ Dedicated account manager</li>
-                  <li>✓ Custom integrations</li>
                 </ul>
                 
                 {subscription?.plan_type === 'enterprise' ? (
@@ -481,7 +516,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   </div>
                 ) : (
                   <button
-                    onClick={() => handleUpgradeSubscription('price_1Rk5xzRC3IxXIgoO9EtZ0zny', 'Enterprise')}
+                    onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '', 'Enterprise')}
                     disabled={isLoading}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
