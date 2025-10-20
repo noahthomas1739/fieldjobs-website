@@ -84,7 +84,6 @@ function EmployerDashboardContent() {
     hourlyRate: '',
     duration: '',
     startDate: '',
-    applicationDeadline: '',
     industry: '',
     classification: '',
     benefits: '',
@@ -162,7 +161,7 @@ function EmployerDashboardContent() {
         setShowFreeJobForm(false)
         setJobForm({
           title: '', company: '', description: '', requirements: '', region: '',
-          hourlyRate: '', duration: '', startDate: '', applicationDeadline: '', industry: '', classification: '',
+          hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
           benefits: '', contactEmail: '', contactPhone: ''
         })
       } else {
@@ -1066,7 +1065,6 @@ function EmployerDashboardContent() {
       hourlyRate: job.hourly_rate || '',
       duration: job.duration || '',
       startDate: job.start_date || '',
-      applicationDeadline: job.application_deadline || '',
       industry: job.industry || '',
       classification: job.classification || '',
       benefits: job.benefits || '',
@@ -2338,14 +2336,15 @@ function EmployerDashboardContent() {
                   </div>
                 </div>
                 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Duration</label>
+                    <label className="block text-sm font-medium mb-1">Duration *</label>
                     <input
                       type="text"
                       value={jobForm.duration}
                       onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
                       placeholder="6 months"
+                      required
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
@@ -2355,15 +2354,6 @@ function EmployerDashboardContent() {
                       type="date"
                       value={jobForm.startDate}
                       onChange={(e) => setJobForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Application Deadline</label>
-                    <input
-                      type="date"
-                      value={jobForm.applicationDeadline}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, applicationDeadline: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
@@ -2391,14 +2381,18 @@ function EmployerDashboardContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Classification</label>
-                    <input
-                      type="text"
+                    <label className="block text-sm font-medium mb-1">Experience Level</label>
+                    <select
                       value={jobForm.classification}
                       onChange={(e) => setJobForm(prev => ({ ...prev, classification: e.target.value }))}
-                      placeholder="e.g., Technician, Engineer, Operator"
                       className="w-full p-2 border border-gray-300 rounded"
-                    />
+                    >
+                      <option value="">Select Experience Level</option>
+                      <option value="0-2">0-2 years</option>
+                      <option value="3-5">3-5 years</option>
+                      <option value="6-10">6-10 years</option>
+                      <option value="10+">10+ years</option>
+                    </select>
                   </div>
                 </div>
                 

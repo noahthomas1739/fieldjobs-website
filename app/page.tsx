@@ -870,9 +870,11 @@ export default function HomePage() {
             }}>
               {[
                 { key: 'nuclear', label: 'Nuclear Power', icon: '⚛️' },
-                { key: 'power-generation', label: 'Power Generation', icon: '⚡' },
-                { key: 'petrochem', label: 'Petro-Chem/Fossil/Offshore', icon: '🛢️' },
-                { key: 'alt-energy', label: 'Alt Energy', icon: '🌱' },
+                { key: 'power-generation', label: 'Power Gen (Fossil)', icon: '⚡' },
+                { key: 'ogc', label: 'OG&C', icon: '🛢️' },
+                { key: 'offshore', label: 'Offshore', icon: '🌊' },
+                { key: 'renewable', label: 'Renewable', icon: '🌱' },
+                { key: 'pulp-paper', label: 'Pulp & Paper', icon: '📄' },
                 { key: 'electric-td', label: 'Electric T&D', icon: '🔌' },
                 { key: 'construction', label: 'Construction', icon: '🏗️' },
                 { key: 'homeland', label: 'Homeland/DoD/Fed Gov', icon: '🛡️' },
