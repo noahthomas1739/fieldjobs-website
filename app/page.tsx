@@ -855,42 +855,90 @@ export default function HomePage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
         {/* Filters Container */}
         <div style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-          {/* Industry Filters */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-            {[
-              { key: 'nuclear', label: 'Nuclear Power' },
-              { key: 'power-generation', label: 'Power Generation' },
-              { key: 'petrochem', label: 'Petro-Chem/Fossil/Offshore' },
-              { key: 'alt-energy', label: 'Alt Energy' },
-              { key: 'electric-td', label: 'Electric T&D' },
-              { key: 'construction', label: 'Construction' },
-              { key: 'homeland', label: 'Homeland/DoD/Fed Gov' },
-              { key: 'shipyard', label: 'Shipyard/Marine' },
-              { key: 'computer', label: 'Computer/Telecom' },
-              { key: 'aerospace', label: 'Aerospace' },
-              { key: 'overseas', label: 'Overseas' },
-              { key: 'medical', label: 'Medical/Pharma' },
-              { key: 'manufacturing', label: 'Manufacturing' }
-            ].map((industry) => (
-              <button
-                key={industry.key}
-                onClick={() => toggleFilter(industry.key)}
-                style={{
-                  padding: '0.75rem',
-                  background: activeFilters.includes(industry.key) ? '#ff6b35' : 'white',
-                  color: activeFilters.includes(industry.key) ? 'white' : 'black',
-                  border: `2px solid ${activeFilters.includes(industry.key) ? '#ff6b35' : '#ddd'}`,
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.3s ease',
-                  fontWeight: '500',
-                  fontSize: '0.9rem'
-                }}
-              >
-                {industry.label}
-              </button>
-            ))}
+          {/* Industry Filters - Horizontal Scrollable Carousel */}
+          <div style={{ position: 'relative', marginBottom: '2rem' }}>
+            <div style={{ 
+              display: 'flex', 
+              gap: '0.75rem', 
+              overflowX: 'auto', 
+              overflowY: 'hidden',
+              padding: '0.5rem 0',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#ff6b35 #f0f0f0',
+              WebkitOverflowScrolling: 'touch',
+              msOverflowStyle: '-ms-autohiding-scrollbar'
+            }}>
+              {[
+                { key: 'nuclear', label: 'Nuclear Power', icon: '⚛️' },
+                { key: 'power-generation', label: 'Power Generation', icon: '⚡' },
+                { key: 'petrochem', label: 'Petro-Chem/Fossil/Offshore', icon: '🛢️' },
+                { key: 'alt-energy', label: 'Alt Energy', icon: '🌱' },
+                { key: 'electric-td', label: 'Electric T&D', icon: '🔌' },
+                { key: 'construction', label: 'Construction', icon: '🏗️' },
+                { key: 'homeland', label: 'Homeland/DoD/Fed Gov', icon: '🛡️' },
+                { key: 'shipyard', label: 'Shipyard/Marine', icon: '⚓' },
+                { key: 'computer', label: 'Computer/Telecom', icon: '💻' },
+                { key: 'aerospace', label: 'Aerospace', icon: '✈️' },
+                { key: 'overseas', label: 'Overseas', icon: '🌍' },
+                { key: 'medical', label: 'Medical/Pharma', icon: '⚕️' },
+                { key: 'manufacturing', label: 'Manufacturing', icon: '🏭' }
+              ].map((industry) => (
+                <button
+                  key={industry.key}
+                  onClick={() => toggleFilter(industry.key)}
+                  style={{
+                    padding: '0.75rem 1.25rem',
+                    background: activeFilters.includes(industry.key) ? '#ff6b35' : 'white',
+                    color: activeFilters.includes(industry.key) ? 'white' : '#333',
+                    border: `2px solid ${activeFilters.includes(industry.key) ? '#ff6b35' : '#ddd'}`,
+                    borderRadius: '50px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.3s ease',
+                    fontWeight: '500',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    flexShrink: 0,
+                    boxShadow: activeFilters.includes(industry.key) ? '0 4px 6px rgba(255, 107, 53, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!activeFilters.includes(industry.key)) {
+                      e.currentTarget.style.borderColor = '#ff6b35';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!activeFilters.includes(industry.key)) {
+                      e.currentTarget.style.borderColor = '#ddd';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                    }
+                  }}
+                >
+                  <span>{industry.icon}</span>
+                  <span>{industry.label}</span>
+                </button>
+              ))}
+            </div>
+            <style jsx>{`
+              div::-webkit-scrollbar {
+                height: 8px;
+              }
+              div::-webkit-scrollbar-track {
+                background: #f0f0f0;
+                border-radius: 10px;
+              }
+              div::-webkit-scrollbar-thumb {
+                background: #ff6b35;
+                border-radius: 10px;
+              }
+              div::-webkit-scrollbar-thumb:hover {
+                background: #e55a25;
+              }
+            `}</style>
           </div>
 
           {/* Advanced Filters */}
