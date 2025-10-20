@@ -1064,6 +1064,7 @@ function EmployerDashboardContent() {
       hourlyRate: job.hourly_rate || '',
       duration: job.duration || '',
       startDate: job.start_date || '',
+      applicationDeadline: job.application_deadline || '',
       industry: job.industry || '',
       classification: job.classification || '',
       benefits: job.benefits || '',
