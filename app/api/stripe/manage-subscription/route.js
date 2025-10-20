@@ -360,6 +360,35 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
 
     // Get plan details
     const planDetails = getPlanDetails(newPlanType)
+    const currentPlanDetails = getPlanDetails(validSubscription.plan_type)
+    
+    // Check if user has more active jobs than new plan allows
+    const { data: activeJobs, error: jobsError } = await supabase
+      .from('jobs')
+      .select('id, title')
+      .eq('employer_id', validSubscription.user_id)
+      .eq('active', true)
+      .neq('status', 'deleted')
+    
+    if (!jobsError && activeJobs) {
+      const activeJobCount = activeJobs.length
+      const newJobLimit = planDetails.jobLimit
+      
+      console.log(`📊 Job slots check: ${activeJobCount} active jobs, new limit: ${newJobLimit}`)
+      
+      if (activeJobCount > newJobLimit) {
+        const excessJobs = activeJobCount - newJobLimit
+        return NextResponse.json({
+          success: false,
+          error: 'Too many active jobs',
+          message: `You currently have ${activeJobCount} active job${activeJobCount > 1 ? 's' : ''}, but the ${planDetails.planType} plan only allows ${newJobLimit}. Please deactivate ${excessJobs} job${excessJobs > 1 ? 's' : ''} before downgrading.`,
+          activeJobCount,
+          newJobLimit,
+          excessJobs,
+          requiresAction: true
+        }, { status: 400 })
+      }
+    }
     
     // Debug the period end timestamp - check both possible locations
     console.log('🐛 DEBUG stripeSubscription.current_period_end:', stripeSubscription.current_period_end)

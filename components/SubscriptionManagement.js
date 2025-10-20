@@ -164,7 +164,12 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
         onSubscriptionUpdate()
         loadScheduledChanges() // Reload scheduled changes
       } else {
-        alert(`Error scheduling downgrade: ${data.error || 'Please try again.'}`)
+        // Show detailed error message for job slot issues
+        if (data.requiresAction && data.activeJobCount && data.newJobLimit) {
+          alert(`⚠️ ${data.message}\n\nYou have ${data.activeJobCount} active jobs, but the new plan only allows ${data.newJobLimit}.\n\nPlease go to the Jobs tab and deactivate ${data.excessJobs} job${data.excessJobs > 1 ? 's' : ''} before downgrading.`)
+        } else {
+          alert(`Error scheduling downgrade: ${data.message || data.error || 'Please try again.'}`)
+        }
       }
     } catch (error) {
       console.error('Error scheduling downgrade:', error)

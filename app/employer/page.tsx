@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import SecureResumeViewer from '@/components/SecureResumeViewer'
 import SubscriptionManagement from '@/components/SubscriptionManagement'
 
 function EmployerDashboardContent() {
@@ -48,6 +49,7 @@ function EmployerDashboardContent() {
   const [showJobForm, setShowJobForm] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
   const [showFeatureModal, setShowFeatureModal] = useState(false)
+  const [showResumeViewer, setShowResumeViewer] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState<any>(null)
   const [selectedJobForFeature, setSelectedJobForFeature] = useState<any>(null)
   const [featureType, setFeatureType] = useState('') // 'featured' or 'urgent'
@@ -2614,14 +2616,12 @@ function EmployerDashboardContent() {
                 <div>
                   <strong>Resume:</strong>{' '}
                   {selectedApplication.resume_url ? (
-                    <a 
-                      href={selectedApplication.resume_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline"
+                    <button
+                      onClick={() => setShowResumeViewer(true)}
+                      className="text-blue-600 hover:text-blue-800 underline font-medium"
                     >
-                      {selectedApplication.resume_filename || 'View Resume'}
-                    </a>
+                      📄 {selectedApplication.resume_filename || 'View Resume'}
+                    </button>
                   ) : (
                     <span className="text-gray-500 italic">No resume uploaded</span>
                   )}
@@ -2654,6 +2654,16 @@ function EmployerDashboardContent() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Secure Resume Viewer */}
+        {showResumeViewer && selectedApplication?.resume_url && (
+          <SecureResumeViewer
+            resumeUrl={selectedApplication.resume_url}
+            resumeFilename={selectedApplication.resume_filename}
+            applicantName={`${selectedApplication.first_name} ${selectedApplication.last_name}`}
+            onClose={() => setShowResumeViewer(false)}
+          />
         )}
 
         {/* Feature Purchase Modal */}
