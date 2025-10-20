@@ -606,20 +606,31 @@ async function getBillingPortal(supabase, userId) {
       .limit(1)
       .single()
     
-    if (error || !subscription?.stripe_customer_id) {
-      console.error('❌ No Stripe customer found:', error)
+    if (error) {
+      console.error('❌ Database error fetching subscription:', error)
+      return NextResponse.json({ 
+        error: 'Database error',
+        message: 'Unable to fetch subscription information. Please try again.'
+      }, { status: 500 })
+    }
+    
+    if (!subscription?.stripe_customer_id) {
+      console.error('❌ No Stripe customer ID found for user:', userId)
       return NextResponse.json({ 
         error: 'No billing information found',
-        message: 'Please create a subscription first.'
+        message: 'No payment method on file. Please upgrade to a paid plan first to manage payment methods.',
+        requiresSubscription: true
       }, { status: 404 })
     }
     
     // Create billing portal session
+    console.log('✅ Creating Stripe billing portal for customer:', subscription.stripe_customer_id)
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?tab=subscription`,
     })
     
+    console.log('✅ Billing portal session created:', session.id)
     return NextResponse.json({
       success: true,
       url: session.url
