@@ -1193,25 +1193,21 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-indigo-500">
-                {subscription.tier === 'enterprise' 
+                {subscription.plan_type === 'enterprise' 
                   ? 'Unlimited'
-                  : `${Math.max(0, (subscription.activeJobs || 0) - jobs.length)}`
+                  : `${Math.max(0, (subscription.active_jobs_limit || 0) - jobs.length)}`
                 }
               </div>
               <div className="text-sm text-gray-600">
-                {subscription.tier === 'enterprise' ? 'Job Postings' : 'Jobs Left'}
+                {subscription.plan_type === 'enterprise' ? 'Job Postings' : 'Jobs Left'}
               </div>
-              {subscription.tier !== 'enterprise' && subscription.activeJobs === 0 && (
+              {subscription.plan_type !== 'enterprise' && subscription.active_jobs_limit === 0 && (
                 <div className="text-xs text-gray-500 mt-1">Upgrade for more</div>
               )}
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-green-500">{applications.length}</div>
               <div className="text-sm text-gray-600">Total Applications</div>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-orange-500">{getNewApplicationsCount()}</div>
-              <div className="text-sm text-gray-600">Submitted Applications</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-500">{userCredits}</div>
