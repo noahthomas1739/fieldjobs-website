@@ -223,10 +223,13 @@ export default function JobSeekerDashboard() {
       // Load real saved jobs from API
       let realSavedJobs: any[] = []
       try {
+        console.log('💾 Loading saved jobs for user:', user.id)
         const response = await fetch(`/api/saved-jobs?userId=${user.id}`)
+        console.log('💾 Saved jobs response status:', response.status)
         if (response.ok) {
           const data = await response.json()
-          realSavedJobs = data.savedJobs.map((saved: any) => ({
+          console.log('💾 Saved jobs data:', data)
+          realSavedJobs = (data.savedJobs || []).map((saved: any) => ({
             id: saved.jobs.id,
             title: saved.jobs.title,
             company: saved.jobs.company,
@@ -235,18 +238,25 @@ export default function JobSeekerDashboard() {
             savedDate: new Date(saved.created_at).toLocaleDateString(),
             status: saved.jobs.status || 'active'
           }))
+          console.log('💾 Processed saved jobs:', realSavedJobs.length, 'jobs')
+        } else {
+          const errorData = await response.json()
+          console.error('❌ Error response from saved-jobs API:', errorData)
         }
       } catch (error) {
-        console.error('Error loading saved jobs:', error)
+        console.error('❌ Error loading saved jobs:', error)
       }
       
       // Load real applied jobs from API
       let realAppliedJobs: any[] = []
       try {
+        console.log('📝 Loading applied jobs for user:', user.id)
         const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
+        console.log('📝 Applied jobs response status:', appliedResponse.status)
         if (appliedResponse.ok) {
           const appliedData = await appliedResponse.json()
-          realAppliedJobs = appliedData.appliedJobs.map((app: any) => ({
+          console.log('📝 Applied jobs data:', appliedData)
+          realAppliedJobs = (appliedData.appliedJobs || []).map((app: any) => ({
             id: app.jobs.id,
             title: app.jobs.title,
             company: app.jobs.company,
@@ -259,9 +269,13 @@ export default function JobSeekerDashboard() {
                               app.status === 'interviewed' ? 'Interview Scheduled' :
                               app.status === 'rejected' ? 'Not Selected' : 'Under Review'
           }))
+          console.log('📝 Processed applied jobs:', realAppliedJobs.length, 'jobs')
+        } else {
+          const errorData = await appliedResponse.json()
+          console.error('❌ Error response from applied-jobs API:', errorData)
         }
       } catch (error) {
-        console.error('Error loading applied jobs:', error)
+        console.error('❌ Error loading applied jobs:', error)
       }
       
       // Load real job alerts from API
@@ -564,10 +578,13 @@ export default function JobSeekerDashboard() {
     if (!user?.id) return
     
     try {
+      console.log('🔄 Refreshing applied jobs for user:', user.id)
       const appliedResponse = await fetch(`/api/applied-jobs?userId=${user.id}`)
+      console.log('🔄 Applied jobs refresh status:', appliedResponse.status)
       if (appliedResponse.ok) {
         const appliedData = await appliedResponse.json()
-        const realAppliedJobs = appliedData.appliedJobs.map((app: any) => ({
+        console.log('🔄 Applied jobs refresh data:', appliedData)
+        const realAppliedJobs = (appliedData.appliedJobs || []).map((app: any) => ({
           id: app.jobs.id,
           title: app.jobs.title,
           company: app.jobs.company,
@@ -580,10 +597,14 @@ export default function JobSeekerDashboard() {
                             app.status === 'interviewed' ? 'Interview Scheduled' :
                             app.status === 'rejected' ? 'Not Selected' : 'Under Review'
         }))
+        console.log('🔄 Refreshed applied jobs:', realAppliedJobs.length, 'jobs')
         setAppliedJobs(realAppliedJobs)
+      } else {
+        const errorData = await appliedResponse.json()
+        console.error('❌ Error response from applied-jobs API (refresh):', errorData)
       }
     } catch (error) {
-      console.error('Error loading applied jobs:', error)
+      console.error('❌ Error loading applied jobs:', error)
     }
   }
 
