@@ -1860,7 +1860,7 @@ function EmployerDashboardContent() {
                 subscription={{
                   plan_type: subscription.tier,
                   credits: subscription.credits,
-                  active_jobs_limit: subscription.activeJobs,
+                  active_jobs_limit: subscription.activeJobsLimit,
                   status: subscription.status,
                   current_period_end: subscription.currentPeriodEnd,
                   stripe_subscription_id: subscription.stripeSubscriptionId,

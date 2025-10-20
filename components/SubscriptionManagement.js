@@ -356,13 +356,6 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             <h4 className="font-semibold">Quick Actions</h4>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={handleBillingPortal}
-                disabled={isLoading || subscription?.plan_type === 'free'}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Manage Payment Methods
-              </button>
-              <button
                 onClick={() => setActiveTab('billing')}
                 disabled={subscription?.plan_type === 'free'}
                 className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -532,35 +525,24 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       {/* Billing History Tab */}
       {activeTab === 'billing' && (
         <div className="space-y-6">
-          {/* Subscription Management Section - REMOVED CANCEL BUTTON FROM HERE */}
-          {subscription?.plan_type !== 'free' && (
+          {/* Subscription Management Section */}
+          {subscription?.plan_type !== 'free' && isSubscriptionCancelled && (
             <div className="bg-gray-50 rounded-lg p-6">
               <h4 className="text-lg font-semibold mb-4">Subscription Management</h4>
               <div className="flex flex-wrap gap-3">
                 <button
-                  onClick={handleBillingPortal}
-                  disabled={isLoading || subscription?.plan_type === 'free'}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                  onClick={handleReactivateSubscription}
+                  disabled={isLoading}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                 >
-                  Manage Payment Methods
+                  {isLoading ? 'Processing...' : 'Reactivate Subscription'}
                 </button>
-                {isSubscriptionCancelled && (
-                  <button
-                    onClick={handleReactivateSubscription}
-                    disabled={isLoading}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-                  >
-                    {isLoading ? 'Processing...' : 'Reactivate Subscription'}
-                  </button>
-                )}
               </div>
-              {isSubscriptionCancelled && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 text-sm">
-                    ⚠️ Your subscription is cancelled and will end on {getNextBillingDate()}. You can reactivate it before then to continue your plan.
-                  </p>
-                </div>
-              )}
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm">
+                  ⚠️ Your subscription is cancelled and will end on {getNextBillingDate()}. You can reactivate it before then to continue your plan.
+                </p>
+              </div>
             </div>
           )}
 
