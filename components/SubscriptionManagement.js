@@ -24,6 +24,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
   const loadBillingHistory = async () => {
     try {
       setIsLoading(true)
+      console.log('📜 Loading billing history for user:', user.id)
       const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,11 +35,17 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       })
 
       const data = await response.json()
+      console.log('📜 Billing history response:', data)
       if (data.success) {
-        setBillingHistory(data.billingHistory)
+        console.log('✅ Setting billing history:', data.billingHistory?.length || 0, 'invoices')
+        setBillingHistory(data.billingHistory || [])
+      } else {
+        console.error('❌ Error loading billing history:', data.error)
+        alert(`Unable to load billing history: ${data.message || data.error}`)
       }
     } catch (error) {
-      console.error('Error loading billing history:', error)
+      console.error('❌ Error loading billing history:', error)
+      alert('Error loading billing history. Please try again.')
     } finally {
       setIsLoading(false)
     }
