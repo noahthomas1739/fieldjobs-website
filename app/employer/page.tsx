@@ -1461,18 +1461,6 @@ function EmployerDashboardContent() {
                 <h2 className="text-xl font-bold">Applications ({applications.length})</h2>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      setActiveTab('subscription')
-                      // Scroll to top smoothly
-                      window.scrollTo({ top: 0, behavior: 'smooth' })
-                    }}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium flex items-center gap-2"
-                    title="Purchase more resume credits"
-                  >
-                    <span>💳</span>
-                    <span>Buy Resume Credits</span>
-                  </button>
-                  <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
                     className={`px-3 py-1 rounded text-sm ${autoRefresh ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
                   >
