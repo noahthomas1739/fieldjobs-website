@@ -663,6 +663,13 @@ export default function HomePage() {
         div::-webkit-scrollbar-thumb:hover {
           background: #e55a25;
         }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
       `}</style>
       {/* Thin Free Job Notification Bar */}
       {shouldShowThinBanner() && freeJobEligible && user && (
@@ -804,15 +811,17 @@ export default function HomePage() {
 
         {/* Industry Filters - Horizontal Scrollable Carousel */}
         <div style={{ position: 'relative', marginTop: '2rem' }}>
-          <div style={{ 
-            display: 'flex', 
-            gap: '0.75rem', 
-            overflowX: 'auto',
-            padding: '1rem 0',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitScrollbar: { display: 'none' }
-          }}>
+          <div 
+            style={{ 
+              display: 'flex', 
+              gap: '0.75rem', 
+              overflowX: 'auto',
+              padding: '1rem 0',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+            className="scrollbar-hide"
+          >
             {[
               { key: 'nuclear', label: 'Nuclear Power', icon: '❄️' },
               { key: 'power-generation', label: 'Power Gen (Fossil)', icon: '⚡' },
