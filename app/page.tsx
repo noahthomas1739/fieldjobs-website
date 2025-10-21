@@ -1122,7 +1122,7 @@ export default function HomePage() {
         </div>
 
         {/* UPDATED: Job Listings with Enhanced Featured Display and Free Job Badges */}
-        <div style={{ display: 'grid', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1rem' }}>
           {isLoading ? (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
@@ -1149,6 +1149,7 @@ export default function HomePage() {
               return (
                 <div
                   key={job.id}
+                  onClick={() => showJobDetails(job)}
                   style={{
                     background: isFeatured 
                       ? 'linear-gradient(135deg, #fff5f0 0%, #ffffff 100%)' 
@@ -1163,7 +1164,7 @@ export default function HomePage() {
                           ? '2px solid #22c55e'
                           : '1px solid #e0e0e0',
                     borderRadius: '12px',
-                    padding: '1.5rem',
+                    padding: '1rem',
                     boxShadow: isFeatured 
                       ? '0 12px 30px rgba(255, 215, 0, 0.3)' 
                       : isUrgent 
@@ -1173,7 +1174,10 @@ export default function HomePage() {
                           : '0 2px 10px rgba(0,0,0,0.1)',
                     transition: 'all 0.3s ease',
                     position: 'relative',
-                    transform: isFeatured ? 'translateY(-2px)' : isUrgent ? 'translateY(-1px)' : 'none'
+                    transform: isFeatured ? 'translateY(-2px)' : isUrgent ? 'translateY(-1px)' : 'none',
+                    cursor: 'pointer',
+                    height: 'fit-content',
+                    minHeight: '280px'
                   }}
                 >
                   
@@ -1275,24 +1279,24 @@ export default function HomePage() {
                   </div>
                   
                   <div style={{ 
-                    fontSize: isFeatured ? '1.4rem' : '1.3rem', 
+                    fontSize: isFeatured ? '1.2rem' : '1.1rem', 
                     fontWeight: 'bold', 
-                    marginBottom: '0.5rem', 
+                    marginBottom: '0.3rem', 
                     color: '#1a1a1a',
                     textShadow: isFeatured ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
                   }}>
                     {job.title}
                   </div>
                   <div style={{ 
-                    fontSize: '1rem', 
+                    fontSize: '0.9rem', 
                     color: '#666', 
-                    marginBottom: '1rem',
+                    marginBottom: '0.8rem',
                     fontWeight: isFeatured ? '500' : 'normal'
                   }}>
                     {job.company}
                   </div>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginBottom: '0.8rem', fontSize: '0.85rem' }}>
                     <div style={{ fontWeight: isFeatured ? '600' : 'normal' }}>
                       💰 {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
                     </div>
@@ -1301,88 +1305,32 @@ export default function HomePage() {
                     <div>💼 {job.jobType || job.job_type || 'Full Time'}</div>
                   </div>
                   
-                  <div style={{ margin: '1rem 0', padding: '0.75rem 0', color: '#666', lineHeight: 1.5, fontSize: '0.95rem', borderTop: '1px solid #f0f0f0' }}>
-                    {expandedJobs.includes(job.id) ? (
-                      <>
-                        {job.description}
-                        <span
-                          onClick={() => toggleJobDescription(job.id)}
-                          style={{ color: '#ff6b35', cursor: 'pointer', fontWeight: '500', textDecoration: 'none', marginLeft: '0.5rem' }}
-                        >
-                          See less
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        {job.description.substring(0, 200)}...
-                        <span
-                          onClick={() => toggleJobDescription(job.id)}
-                          style={{ color: '#ff6b35', cursor: 'pointer', fontWeight: '500', textDecoration: 'none', marginLeft: '0.5rem' }}
-                        >
-                          See more
-                        </span>
-                      </>
-                    )}
+                  <div style={{ margin: '0.5rem 0', padding: '0.5rem 0', color: '#666', lineHeight: 1.4, fontSize: '0.85rem', borderTop: '1px solid #f0f0f0' }}>
+                    {job.description.substring(0, 120)}...
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                    <button 
-                      onClick={() => applyToJob(job)}
-                      disabled={appliedJobs.includes(job.id)}
-                      style={{ 
-                        background: appliedJobs.includes(job.id) 
-                          ? '#6c757d' 
-                          : isFeatured 
-                            ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
-                            : '#ff6b35', 
-                        color: appliedJobs.includes(job.id) 
-                          ? 'white' 
-                          : isFeatured 
-                            ? '#b8860b' 
-                            : 'white',
-                        padding: '0.6rem 1.2rem', 
-                        border: 'none', 
-                        borderRadius: '8px', 
-                        cursor: appliedJobs.includes(job.id) ? 'not-allowed' : 'pointer', 
-                        fontWeight: '600',
-                        fontSize: '0.9rem',
-                        opacity: appliedJobs.includes(job.id) ? 0.6 : 1,
-                        boxShadow: isFeatured ? '0 3px 10px rgba(255, 215, 0, 0.3)' : '0 2px 8px rgba(255, 107, 53, 0.2)',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      {appliedJobs.includes(job.id) ? 'Applied' : 'Apply Now'}
-                    </button>
-                    <button
-                      onClick={() => toggleSaveJob(job.id)}
-                      style={{
-                        background: savedJobs.includes(job.id) ? '#ff6b35' : 'transparent',
-                        color: savedJobs.includes(job.id) ? 'white' : '#ff6b35',
-                        border: '2px solid #ff6b35',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
-                    </button>
-                    <button
-                      onClick={() => showJobDetails(job)}
-                      style={{
-                        background: 'transparent',
-                        color: '#007bff',
-                        border: '2px solid #007bff',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: '500',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      View Details
-                    </button>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginTop: '0.8rem',
+                    paddingTop: '0.5rem',
+                    borderTop: '1px solid #f0f0f0',
+                    fontSize: '0.8rem',
+                    color: '#666'
+                  }}>
+                    <span style={{ 
+                      color: appliedJobs.includes(job.id) ? '#28a745' : '#ff6b35',
+                      fontWeight: '600'
+                    }}>
+                      {appliedJobs.includes(job.id) ? '✓ Applied' : 'Click to view details'}
+                    </span>
+                    <span style={{ 
+                      color: savedJobs.includes(job.id) ? '#ff6b35' : '#999',
+                      fontWeight: '500'
+                    }}>
+                      {savedJobs.includes(job.id) ? '★ Saved' : '☆ Save'}
+                    </span>
                   </div>
                 </div>
               )
