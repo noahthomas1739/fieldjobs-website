@@ -1793,7 +1793,7 @@ function EmployerDashboardContent() {
               
               <div className="grid md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{analytics.totalViews || 'N/A'}</div>
+                  <div className="text-2xl font-bold text-blue-600">{analytics.totalViews || 0}</div>
                   <div className="text-sm text-gray-600">Total Job Views</div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">

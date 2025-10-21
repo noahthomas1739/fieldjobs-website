@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useJobViewTracking } from '@/hooks/useJobViewTracking'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -40,6 +41,9 @@ export default function HomePage() {
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false)
   const [selectedJob, setSelectedJob] = useState<any>(null)
   const [searchComplete, setSearchComplete] = useState<boolean>(false)
+  
+  // Track job views when job detail modal is open
+  useJobViewTracking(selectedJob?.id, user?.id)
   
   // NEW: Employer banner state variables
   const [showEmployerBanner, setShowEmployerBanner] = useState<boolean>(true)
