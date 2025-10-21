@@ -2438,7 +2438,7 @@ function EmployerDashboardContent() {
                       setEditingJob(null)
                       setJobForm({
                         title: '', company: '', description: '', requirements: '', region: '',
-                        hourlyRate: '', duration: '', startDate: '', applicationDeadline: '', industry: '', classification: '',
+                        hourlyRate: '', duration: '', startDate: '', industry: '', classification: '',
                         benefits: '', contactEmail: '', contactPhone: ''
                       })
                     }}
