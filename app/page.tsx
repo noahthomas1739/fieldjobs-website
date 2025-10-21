@@ -43,7 +43,7 @@ export default function HomePage() {
   const [searchComplete, setSearchComplete] = useState<boolean>(false)
   
   // Track job views when job detail modal is open
-  useJobViewTracking(selectedJob?.id, user?.id)
+  useJobViewTracking(selectedJob?.id, user?.id || null)
   
   // NEW: Employer banner state variables
   const [showEmployerBanner, setShowEmployerBanner] = useState<boolean>(true)
