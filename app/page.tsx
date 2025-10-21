@@ -802,36 +802,71 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Quick Filter Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-          {[
-            { key: 'nuclear', label: 'Nuclear' },
-            { key: 'power-generation', label: 'Power' },
-            { key: 'construction', label: 'Construction' },
-            { key: 'aerospace', label: 'Aerospace' },
-            { key: 'electric-td', label: 'Electric' }
-          ].map((industry) => (
-            <button
-              key={industry.key}
-              onClick={() => {
-                toggleFilter(industry.key)
-                performSearch()
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                background: activeFilters.includes(industry.key) ? '#ff6b35' : 'transparent',
-                color: activeFilters.includes(industry.key) ? 'white' : '#ff6b35',
-                border: `2px solid #ff6b35`,
-                borderRadius: '25px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {industry.label}
-            </button>
-          ))}
+        {/* Industry Filters - Horizontal Scrollable Carousel */}
+        <div style={{ position: 'relative', marginTop: '2rem' }}>
+          <div style={{ 
+            display: 'flex', 
+            gap: '0.75rem', 
+            overflowX: 'auto',
+            padding: '1rem 0',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitScrollbar: { display: 'none' }
+          }}>
+            {[
+              { key: 'nuclear', label: 'Nuclear Power', icon: '❄️' },
+              { key: 'power-generation', label: 'Power Gen (Fossil)', icon: '⚡' },
+              { key: 'ogc', label: 'OG&C', icon: '🛢️' },
+              { key: 'offshore', label: 'Offshore', icon: '🚢' },
+              { key: 'renewable', label: 'Renewable', icon: '🌱' },
+              { key: 'construction', label: 'Construction', icon: '🏗️' },
+              { key: 'aerospace', label: 'Aerospace', icon: '🚀' },
+              { key: 'defense', label: 'Defense', icon: '🛡️' },
+              { key: 'electric-td', label: 'Electric T&D', icon: '⚡' },
+              { key: 'pulp-paper', label: 'Pulp & Paper', icon: '📄' },
+              { key: 'manufacturing', label: 'Manufacturing', icon: '🏭' },
+              { key: 'mining', label: 'Mining', icon: '⛏️' }
+            ].map((industry) => (
+              <button
+                key={industry.key}
+                onClick={() => {
+                  toggleFilter(industry.key)
+                  performSearch()
+                }}
+                style={{
+                  minWidth: '140px',
+                  padding: '1rem',
+                  background: activeFilters.includes(industry.key) ? '#ff6b35' : '#1a1a1a',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  transition: 'all 0.3s ease',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  if (!activeFilters.includes(industry.key)) {
+                    (e.target as HTMLButtonElement).style.background = '#333'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!activeFilters.includes(industry.key)) {
+                    (e.target as HTMLButtonElement).style.background = '#1a1a1a'
+                  }
+                }}
+              >
+                <span style={{ fontSize: '1.2rem' }}>{industry.icon}</span>
+                <span>{industry.label}</span>
+              </button>
+            ))}
+          </div>
         </div>        
         
         {/* UPDATED: Search hero buttons section */}
@@ -874,77 +909,6 @@ export default function HomePage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
         {/* Filters Container */}
         <div style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-          {/* Industry Filters - Horizontal Scrollable Carousel */}
-          <div style={{ position: 'relative', marginBottom: '2rem' }}>
-            <div style={{ 
-              display: 'flex', 
-              gap: '0.75rem', 
-              overflowX: 'auto', 
-              overflowY: 'hidden',
-              padding: '0.5rem 0',
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#ff6b35 #f0f0f0',
-              WebkitOverflowScrolling: 'touch',
-              msOverflowStyle: '-ms-autohiding-scrollbar'
-            }}>
-              {[
-                { key: 'nuclear', label: 'Nuclear Power', icon: '⚛️' },
-                { key: 'power-generation', label: 'Power Gen (Fossil)', icon: '⚡' },
-                { key: 'ogc', label: 'OG&C', icon: '🛢️' },
-                { key: 'offshore', label: 'Offshore', icon: '🌊' },
-                { key: 'renewable', label: 'Renewable', icon: '🌱' },
-                { key: 'pulp-paper', label: 'Pulp & Paper', icon: '📄' },
-                { key: 'electric-td', label: 'Electric T&D', icon: '🔌' },
-                { key: 'construction', label: 'Construction', icon: '🏗️' },
-                { key: 'homeland', label: 'Homeland/DoD/Fed Gov', icon: '🛡️' },
-                { key: 'shipyard', label: 'Shipyard/Marine', icon: '⚓' },
-                { key: 'computer', label: 'Computer/Telecom', icon: '💻' },
-                { key: 'aerospace', label: 'Aerospace', icon: '✈️' },
-                { key: 'overseas', label: 'Overseas', icon: '🌍' },
-                { key: 'medical', label: 'Medical/Pharma', icon: '⚕️' },
-                { key: 'manufacturing', label: 'Manufacturing', icon: '🏭' }
-              ].map((industry) => (
-                <button
-                  key={industry.key}
-                  onClick={() => toggleFilter(industry.key)}
-                  style={{
-                    padding: '0.75rem 1.25rem',
-                    background: activeFilters.includes(industry.key) ? '#ff6b35' : 'white',
-                    color: activeFilters.includes(industry.key) ? 'white' : '#333',
-                    border: `2px solid ${activeFilters.includes(industry.key) ? '#ff6b35' : '#ddd'}`,
-                    borderRadius: '50px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.3s ease',
-                    fontWeight: '500',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    flexShrink: 0,
-                    boxShadow: activeFilters.includes(industry.key) ? '0 4px 6px rgba(255, 107, 53, 0.3)' : '0 2px 4px rgba(0, 0, 0, 0.1)'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!activeFilters.includes(industry.key)) {
-                      e.currentTarget.style.borderColor = '#ff6b35';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!activeFilters.includes(industry.key)) {
-                      e.currentTarget.style.borderColor = '#ddd';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-                    }
-                  }}
-                >
-                  <span>{industry.icon}</span>
-                  <span>{industry.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Advanced Filters */}
           <div style={{ borderTop: '1px solid #eee', paddingTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>

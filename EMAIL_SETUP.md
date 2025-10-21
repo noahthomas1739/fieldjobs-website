@@ -47,7 +47,9 @@ The email system is ready to use! You just need to call the API routes when acti
 
 #### A. Send Emails When Application is Submitted
 
-In your application submission code (wherever applications are created), add:
+**Location:** In your application submission form (where users apply for jobs)
+
+**What to do:** Add this code after successfully creating an application:
 
 ```typescript
 // After successfully creating application
@@ -63,9 +65,16 @@ try {
 }
 ```
 
+**Where to find this:** Look for your job application form submission code, usually in a file like:
+- `app/api/job-applications/route.js` (if using API routes)
+- `app/apply/[jobId]/page.tsx` (if using a separate apply page)
+- Any component that handles job applications
+
 #### B. Send Emails When Status Changes
 
-In your employer dashboard where you update application status, add:
+**Location:** In your employer dashboard where you update application status
+
+**What to do:** Add this code to your status update function:
 
 ```typescript
 const updateApplicationStatus = async (applicationId: number, newStatus: string) => {
@@ -86,6 +95,10 @@ const updateApplicationStatus = async (applicationId: number, newStatus: string)
   }
 }
 ```
+
+**Where to find this:** Look in your employer dashboard code, usually in:
+- `app/employer/page.tsx` (employer dashboard)
+- Any component that handles application status updates
 
 ## 📝 Email Templates Included
 

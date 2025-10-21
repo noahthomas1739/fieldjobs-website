@@ -32,7 +32,7 @@ export default function JobSeekerDashboard() {
     keywords: '',
     region: '',
     industry: '',
-    classification: '',
+    experienceLevel: '',
     frequency: 'daily'
   })
 
@@ -290,7 +290,7 @@ export default function JobSeekerDashboard() {
             keywords: alert.keywords,
             region: alert.region,
             industry: alert.industry,
-            classification: alert.classification,
+            experienceLevel: alert.experienceLevel,
             frequency: alert.frequency,
             active: alert.active,
             created: new Date(alert.created_at).toLocaleDateString(),
@@ -310,7 +310,7 @@ export default function JobSeekerDashboard() {
         email: user.email,
         phone: '',
         location: '',
-        classification: '',
+        experienceLevel: '',
         specialization: '',
         resumeUploaded: false,
         resumeFileName: ''
@@ -327,7 +327,7 @@ export default function JobSeekerDashboard() {
               email: user.email,
               phone: profileData.profile.phone || '',
               location: profileData.profile.location || '',
-              classification: profileData.profile.classification || '',
+              experienceLevel: profileData.profile.experienceLevel || '',
               specialization: profileData.profile.specialization || '',
               resumeUploaded: !!profileData.profile.resume_url,
               resumeFileName: profileData.profile.resume_url ? profileData.profile.resume_url.split('/').pop() : ''
@@ -378,7 +378,7 @@ export default function JobSeekerDashboard() {
           lastName: profile.lastName,
           phone: profile.phone,
           location: profile.location,
-          classification: profile.classification,
+          experienceLevel: profile.experienceLevel,
           specialization: profile.specialization
         }),
       })
@@ -467,7 +467,7 @@ export default function JobSeekerDashboard() {
           keywords: newAlert.keywords,
           region: newAlert.region,
           industry: newAlert.industry,
-          classification: newAlert.classification,
+          experienceLevel: newAlert.experienceLevel,
           salary: '',
           frequency: newAlert.frequency
         }),
@@ -483,7 +483,7 @@ export default function JobSeekerDashboard() {
           keywords: data.jobAlert.keywords,
           region: data.jobAlert.region,
           industry: data.jobAlert.industry,
-          classification: data.jobAlert.classification,
+          experienceLevel: data.jobAlert.experienceLevel,
           frequency: data.jobAlert.frequency,
           active: data.jobAlert.active,
           created: new Date(data.jobAlert.created_at).toLocaleDateString(),
@@ -500,7 +500,7 @@ export default function JobSeekerDashboard() {
           keywords: '',
           region: '',
           industry: '',
-          classification: '',
+          experienceLevel: '',
           frequency: 'daily'
         })
         setShowAlertModal(false)
@@ -1031,18 +1031,17 @@ export default function JobSeekerDashboard() {
                   <h3 className="text-lg font-semibold mb-4">Professional Information</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Classification</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Experience Level</label>
                       <select
-                        value={profile.classification}
-                        onChange={(e) => updateProfile('classification', e.target.value)}
+                        value={profile.experienceLevel}
+                        onChange={(e) => updateProfile('experienceLevel', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       >
-                        <option value="">Select Classification</option>
-                        <option value="junior">Junior (0-5 years)</option>
-                        <option value="intermediate">Intermediate (5-10 years)</option>
-                        <option value="senior">Senior (10-15 years)</option>
-                        <option value="expert">Expert (15+ years)</option>
-                        <option value="specialist">Specialist</option>
+                        <option value="">Select Experience Level</option>
+                        <option value="0-2 years">0-2 years</option>
+                        <option value="3-5 years">3-5 years</option>
+                        <option value="6-10 years">6-10 years</option>
+                        <option value="10+ years">10+ years</option>
                       </select>
                     </div>
                     <div>
