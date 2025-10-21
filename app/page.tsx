@@ -879,12 +879,11 @@ export default function HomePage() {
               display: 'flex', 
               gap: '0.75rem', 
               overflowX: 'auto',
-              padding: '1rem 0',
+              padding: '1rem',
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
               border: '2px solid #ff6b35',
-              borderRadius: '12px',
-              padding: '1rem'
+              borderRadius: '12px'
             }}
             className="scrollbar-hide"
           >
