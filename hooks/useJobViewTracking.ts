@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 
-export function useJobViewTracking(jobId, userId = null) {
+export function useJobViewTracking(jobId: string | number | null | undefined, userId: string | null | undefined = null) {
   const hasTracked = useRef(false)
-  const trackingTimeout = useRef(null)
+  const trackingTimeout = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (!jobId || hasTracked.current) return
