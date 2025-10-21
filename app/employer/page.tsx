@@ -1192,7 +1192,7 @@ function EmployerDashboardContent() {
               <div className="text-2xl font-bold text-indigo-500">
                 {subscription.plan_type === 'enterprise' 
                   ? 'Unlimited'
-                  : `${Math.max(0, (subscription.active_jobs_limit || 0) - jobs.length)}`
+                  : `${Math.max(0, (subscription.activeJobsLimit || 0) - jobs.length)}`
                 }
               </div>
               <div className="text-sm text-gray-600">
@@ -2380,11 +2380,12 @@ function EmployerDashboardContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Experience Level</label>
+                    <label className="block text-sm font-medium mb-1">Experience Level *</label>
                     <select
                       value={jobForm.classification}
                       onChange={(e) => setJobForm(prev => ({ ...prev, classification: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded"
+                      required
                     >
                       <option value="">Select Experience Level</option>
                       <option value="0-2">0-2 years</option>

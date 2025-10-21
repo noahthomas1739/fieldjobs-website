@@ -811,14 +811,80 @@ export default function HomePage() {
 
         {/* Industry Filters - Horizontal Scrollable Carousel */}
         <div style={{ position: 'relative', marginTop: '2rem' }}>
+          {/* Left Arrow */}
+          <button
+            onClick={() => {
+              const container = document.getElementById('industry-carousel')
+              if (container) {
+                container.scrollBy({ left: -200, behavior: 'smooth' })
+              }
+            }}
+            style={{
+              position: 'absolute',
+              left: '-10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#ff6b35',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}
+          >
+            ‹
+          </button>
+          
+          {/* Right Arrow */}
+          <button
+            onClick={() => {
+              const container = document.getElementById('industry-carousel')
+              if (container) {
+                container.scrollBy({ left: 200, behavior: 'smooth' })
+              }
+            }}
+            style={{
+              position: 'absolute',
+              right: '-10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#ff6b35',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}
+          >
+            ›
+          </button>
+          
           <div 
+            id="industry-carousel"
             style={{ 
               display: 'flex', 
               gap: '0.75rem', 
               overflowX: 'auto',
               padding: '1rem 0',
               scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
+              msOverflowStyle: 'none',
+              border: '2px solid #ff6b35',
+              borderRadius: '12px',
+              padding: '1rem'
             }}
             className="scrollbar-hide"
           >

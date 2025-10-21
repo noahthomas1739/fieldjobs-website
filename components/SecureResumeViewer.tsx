@@ -80,7 +80,7 @@ export default function SecureResumeViewer({
             </div>
           )}
           <iframe
-            src={`/api/secure-resume?url=${encodeURIComponent(resumeUrl)}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+            src={`/api/secure-resume?url=${encodeURIComponent(resumeUrl)}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&disableDownload=1`}
             className="w-full h-full border border-gray-300 rounded"
             title={`Resume - ${applicantName}`}
             onLoad={() => setIsLoading(false)}
@@ -89,6 +89,7 @@ export default function SecureResumeViewer({
               pointerEvents: 'auto',
               userSelect: 'none',
             }}
+            sandbox="allow-same-origin allow-scripts"
           />
         </div>
 
