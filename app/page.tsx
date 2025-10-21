@@ -1368,23 +1368,64 @@ export default function HomePage() {
                     justifyContent: 'space-between', 
                     alignItems: 'center',
                     paddingTop: '1rem',
-                    borderTop: '1px solid #e5e7eb',
-                    fontSize: '0.875rem'
+                    borderTop: '1px solid #e5e7eb'
                   }}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <span style={{ 
-                        color: appliedJobs.includes(job.id) ? '#059669' : '#6b7280',
-                        fontWeight: '500'
-                      }}>
-                        {appliedJobs.includes(job.id) ? '✓ Applied' : 'Click to view details'}
-                      </span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          applyToJob(job)
+                        }}
+                        disabled={appliedJobs.includes(job.id)}
+                        style={{ 
+                          background: appliedJobs.includes(job.id) 
+                            ? '#6b7280' 
+                            : isFeatured 
+                              ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
+                              : '#ff6b35', 
+                          color: appliedJobs.includes(job.id) 
+                            ? 'white' 
+                            : isFeatured 
+                              ? '#b8860b' 
+                              : 'white',
+                          padding: '0.75rem 1.5rem', 
+                          border: 'none', 
+                          borderRadius: '6px', 
+                          cursor: appliedJobs.includes(job.id) ? 'not-allowed' : 'pointer', 
+                          fontWeight: '600',
+                          fontSize: '0.875rem',
+                          opacity: appliedJobs.includes(job.id) ? 0.6 : 1,
+                          boxShadow: isFeatured ? '0 2px 8px rgba(255, 215, 0, 0.3)' : '0 2px 4px rgba(255, 107, 53, 0.2)',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {appliedJobs.includes(job.id) ? 'Applied' : 'Apply Now'}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleSaveJob(job.id)
+                        }}
+                        style={{
+                          background: savedJobs.includes(job.id) ? '#ff6b35' : 'transparent',
+                          color: savedJobs.includes(job.id) ? 'white' : '#ff6b35',
+                          border: '2px solid #ff6b35',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: '500',
+                          fontSize: '0.875rem',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
+                      </button>
                     </div>
                     <div style={{ 
-                      color: savedJobs.includes(job.id) ? '#ff6b35' : '#9ca3af',
-                      fontWeight: '500',
-                      cursor: 'pointer'
+                      color: '#6b7280',
+                      fontSize: '0.875rem'
                     }}>
-                      {savedJobs.includes(job.id) ? '★ Saved' : '☆ Save'}
+                      Click anywhere to view details
                     </div>
                   </div>
                 </div>
