@@ -644,6 +644,25 @@ export default function HomePage() {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        div::-webkit-scrollbar {
+          height: 8px;
+        }
+        div::-webkit-scrollbar-track {
+          background: #f0f0f0;
+          border-radius: 10px;
+        }
+        div::-webkit-scrollbar-thumb {
+          background: #ff6b35;
+          border-radius: 10px;
+        }
+        div::-webkit-scrollbar-thumb:hover {
+          background: #e55a25;
+        }
       `}</style>
       {/* Thin Free Job Notification Bar */}
       {shouldShowThinBanner() && freeJobEligible && user && (
@@ -925,22 +944,6 @@ export default function HomePage() {
                 </button>
               ))}
             </div>
-            <style jsx>{`
-              div::-webkit-scrollbar {
-                height: 8px;
-              }
-              div::-webkit-scrollbar-track {
-                background: #f0f0f0;
-                border-radius: 10px;
-              }
-              div::-webkit-scrollbar-thumb {
-                background: #ff6b35;
-                border-radius: 10px;
-              }
-              div::-webkit-scrollbar-thumb:hover {
-                background: #e55a25;
-              }
-            `}</style>
           </div>
 
           {/* Advanced Filters */}
@@ -1413,15 +1416,6 @@ export default function HomePage() {
           </div>
         )}
       </div>
-
-      {/* Add CSS animation for urgent badge pulse */}
-      <style jsx>{`
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-      `}</style>
 
       {/* All existing modals remain the same... */}
       {/* Enhanced Job Alert Modal */}
