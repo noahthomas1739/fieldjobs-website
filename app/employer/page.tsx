@@ -1000,7 +1000,6 @@ function EmployerDashboardContent() {
           hourlyRate: '',
           duration: '',
           startDate: '',
-          applicationDeadline: '',
           industry: '',
           classification: '',
           benefits: '',
