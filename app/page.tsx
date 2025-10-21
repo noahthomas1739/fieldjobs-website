@@ -881,9 +881,7 @@ export default function HomePage() {
               overflowX: 'auto',
               padding: '1rem',
               scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              border: '2px solid #ff6b35',
-              borderRadius: '12px'
+              msOverflowStyle: 'none'
             }}
             className="scrollbar-hide"
           >
@@ -912,7 +910,7 @@ export default function HomePage() {
                   padding: '1rem',
                   background: activeFilters.includes(industry.key) ? '#ff6b35' : '#1a1a1a',
                   color: 'white',
-                  border: 'none',
+                  border: '2px solid #ff6b35',
                   borderRadius: '12px',
                   cursor: 'pointer',
                   fontSize: '0.9rem',

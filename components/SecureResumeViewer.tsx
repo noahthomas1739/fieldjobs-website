@@ -79,18 +79,30 @@ export default function SecureResumeViewer({
               </div>
             </div>
           )}
-          <iframe
-            src={`/api/secure-resume?url=${encodeURIComponent(resumeUrl)}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&disableDownload=1`}
-            className="w-full h-full border border-gray-300 rounded"
-            title={`Resume - ${applicantName}`}
-            onLoad={() => setIsLoading(false)}
-            onContextMenu={handleContextMenu}
+          <div 
             style={{
-              pointerEvents: 'auto',
-              userSelect: 'none',
+              width: '100%',
+              height: '100%',
+              background: '#f5f5f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: '1rem'
             }}
-            sandbox="allow-same-origin allow-scripts"
-          />
+          >
+            <div style={{ fontSize: '48px' }}>📄</div>
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+              Resume Preview
+            </div>
+            <div style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px' }}>
+              Resume viewing is temporarily disabled for security reasons.<br/>
+              Contact the applicant directly for resume access.
+            </div>
+            <div style={{ fontSize: '12px', color: '#999', marginTop: '1rem' }}>
+              Applicant: {applicantName}
+            </div>
+          </div>
         </div>
 
         {/* Footer with instructions */}
