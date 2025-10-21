@@ -1793,7 +1793,7 @@ function EmployerDashboardContent() {
               
               <div className="grid md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{analytics.totalViews || 0}</div>
+                  <div className="text-2xl font-bold text-blue-600">{analytics.totalViews || 'N/A'}</div>
                   <div className="text-sm text-gray-600">Total Job Views</div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
@@ -1802,9 +1802,9 @@ function EmployerDashboardContent() {
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    {applications.length > 0 
-                      ? Math.round((applications.length / Math.max(analytics.totalViews || 1, 1)) * 100)
-                      : 0
+                    {applications.length > 0 && analytics.totalViews > 0
+                      ? Math.round((applications.length / analytics.totalViews) * 100)
+                      : applications.length > 0 ? 'N/A' : 0
                     }%
                   </div>
                   <div className="text-sm text-gray-600">Application Rate</div>
