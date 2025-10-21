@@ -251,7 +251,6 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       <div className="flex gap-2 mb-6 border-b">
         {[
           { id: 'overview', label: 'Overview' },
-          { id: 'plans', label: 'Change Plan' },
           { id: 'billing', label: 'Billing History' }
         ].map(tab => (
           <button
@@ -373,8 +372,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
         </div>
       )}
 
-      {/* Change Plans Tab */}
-      {activeTab === 'plans' && (
+      {/* Change Plans Tab - REMOVED */}
+      {false && (
         <div className="space-y-6">
           <h4 className="text-lg font-semibold">Subscription Plans</h4>
           

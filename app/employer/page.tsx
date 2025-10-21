@@ -1040,6 +1040,22 @@ function EmployerDashboardContent() {
       if (response.ok) {
         const result = await response.json()
         console.log('✅ Update successful:', result)
+        
+        // Send status update email
+        try {
+          await fetch('/api/send-status-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              applicationId,
+              newStatus 
+            })
+          })
+          console.log('📧 Status update email sent')
+        } catch (emailError) {
+          console.error('📧 Status update email failed:', emailError)
+        }
+        
         await loadApplications()
         alert('Application status updated successfully!')
       } else {
@@ -1553,14 +1569,15 @@ function EmployerDashboardContent() {
                             View Details
                           </button>
                           {app.resume_url && (
-                          <a
-                            href={app.resume_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
-                            >
-                              📄 View Resume
-                            </a>
+                          <button
+                            onClick={() => {
+                              setSelectedApplication(app)
+                              setShowResumeViewer(true)
+                            }}
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
+                          >
+                            📄 View Resume
+                          </button>
                           )}
                           <select
                             value={app.status || 'submitted'}
@@ -1780,20 +1797,20 @@ function EmployerDashboardContent() {
                   <div className="text-sm text-gray-600">Total Job Views</div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{analytics.totalApplications || 0}</div>
+                  <div className="text-2xl font-bold text-green-600">{applications.length}</div>
                   <div className="text-sm text-gray-600">Total Applications</div>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    {analytics.totalApplications > 0 
-                      ? Math.round((analytics.totalApplications / Math.max(analytics.totalViews, 1)) * 100)
+                    {applications.length > 0 
+                      ? Math.round((applications.length / Math.max(analytics.totalViews || 1, 1)) * 100)
                       : 0
                     }%
                   </div>
                   <div className="text-sm text-gray-600">Application Rate</div>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{analytics.activeJobs || 0}</div>
+                  <div className="text-2xl font-bold text-orange-600">{jobs.length}</div>
                   <div className="text-sm text-gray-600">Active Jobs</div>
                 </div>
               </div>
