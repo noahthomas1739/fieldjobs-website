@@ -1121,8 +1121,8 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* UPDATED: Job Listings with Enhanced Featured Display and Free Job Badges */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1rem' }}>
+        {/* UPDATED: Job Listings - Single Column Layout for Better Readability */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
           {isLoading ? (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
@@ -1157,27 +1157,47 @@ export default function HomePage() {
                         ? 'linear-gradient(135deg, #f0fff4 0%, #ffffff 100%)'
                         : 'white',
                     border: isFeatured 
-                      ? '3px solid #ffd700' 
+                      ? '2px solid #ffd700' 
                       : isUrgent 
                         ? '2px solid #ff4444' 
                         : isFreeJob
                           ? '2px solid #22c55e'
-                          : '1px solid #e0e0e0',
-                    borderRadius: '12px',
-                    padding: '1rem',
+                          : '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    padding: '1.5rem',
                     boxShadow: isFeatured 
-                      ? '0 12px 30px rgba(255, 215, 0, 0.3)' 
+                      ? '0 4px 20px rgba(255, 215, 0, 0.15)' 
+                      : isUrgent 
+                        ? '0 4px 20px rgba(255, 68, 68, 0.15)' 
+                        : isFreeJob
+                          ? '0 4px 20px rgba(34, 197, 94, 0.15)'
+                          : '0 1px 3px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s ease',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = isFeatured 
+                      ? '0 8px 25px rgba(255, 215, 0, 0.2)' 
                       : isUrgent 
                         ? '0 8px 25px rgba(255, 68, 68, 0.2)' 
                         : isFreeJob
                           ? '0 8px 25px rgba(34, 197, 94, 0.2)'
-                          : '0 2px 10px rgba(0,0,0,0.1)',
-                    transition: 'all 0.3s ease',
-                    position: 'relative',
-                    transform: isFeatured ? 'translateY(-2px)' : isUrgent ? 'translateY(-1px)' : 'none',
-                    cursor: 'pointer',
-                    height: 'fit-content',
-                    minHeight: '280px'
+                          : '0 4px 12px rgba(0,0,0,0.15)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = isFeatured 
+                      ? '0 4px 20px rgba(255, 215, 0, 0.15)' 
+                      : isUrgent 
+                        ? '0 4px 20px rgba(255, 68, 68, 0.15)' 
+                        : isFreeJob
+                          ? '0 4px 20px rgba(34, 197, 94, 0.15)'
+                          : '0 1px 3px rgba(0,0,0,0.1)'
                   }}
                 >
                   
@@ -1278,59 +1298,94 @@ export default function HomePage() {
                     )}
                   </div>
                   
-                  <div style={{ 
-                    fontSize: isFeatured ? '1.2rem' : '1.1rem', 
-                    fontWeight: 'bold', 
-                    marginBottom: '0.3rem', 
-                    color: '#1a1a1a',
-                    textShadow: isFeatured ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
-                  }}>
-                    {job.title}
-                  </div>
-                  <div style={{ 
-                    fontSize: '0.9rem', 
-                    color: '#666', 
-                    marginBottom: '0.8rem',
-                    fontWeight: isFeatured ? '500' : 'normal'
-                  }}>
-                    {job.company}
-                  </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginBottom: '0.8rem', fontSize: '0.85rem' }}>
-                    <div style={{ fontWeight: isFeatured ? '600' : 'normal' }}>
-                      💰 {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
+                  {/* Header Section */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ 
+                        fontSize: isFeatured ? '1.3rem' : '1.2rem', 
+                        fontWeight: '700', 
+                        color: '#1f2937',
+                        marginBottom: '0.25rem',
+                        lineHeight: '1.3'
+                      }}>
+                        {job.title}
+                      </div>
+                      <div style={{ 
+                        fontSize: '1rem', 
+                        color: '#6b7280',
+                        fontWeight: '500'
+                      }}>
+                        {job.company}
+                      </div>
                     </div>
-                    <div>📍 {job.region || job.location}</div>
-                    <div>📅 {getPostedText(job)}</div>
-                    <div>💼 {job.jobType || job.job_type || 'Full Time'}</div>
+                    <div style={{ 
+                      fontSize: '0.875rem', 
+                      color: '#6b7280',
+                      textAlign: 'right'
+                    }}>
+                      {getPostedText(job)}
+                    </div>
+                  </div>
+
+                  {/* Job Details Row */}
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '2rem', 
+                    marginBottom: '1rem',
+                    fontSize: '0.875rem',
+                    color: '#4b5563',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1rem' }}>💰</span>
+                      <span style={{ fontWeight: '600' }}>
+                        {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1rem' }}>📍</span>
+                      <span>{job.region || job.location}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1rem' }}>💼</span>
+                      <span>{job.jobType || job.job_type || 'Full Time'}</span>
+                    </div>
                   </div>
                   
-                  <div style={{ margin: '0.5rem 0', padding: '0.5rem 0', color: '#666', lineHeight: 1.4, fontSize: '0.85rem', borderTop: '1px solid #f0f0f0' }}>
-                    {job.description.substring(0, 120)}...
+                  {/* Description */}
+                  <div style={{ 
+                    color: '#4b5563', 
+                    lineHeight: '1.5', 
+                    fontSize: '0.9rem',
+                    marginBottom: '1rem'
+                  }}>
+                    {job.description.substring(0, 200)}...
                   </div>
                   
+                  {/* Footer */}
                   <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'center',
-                    marginTop: '0.8rem',
-                    paddingTop: '0.5rem',
-                    borderTop: '1px solid #f0f0f0',
-                    fontSize: '0.8rem',
-                    color: '#666'
+                    paddingTop: '1rem',
+                    borderTop: '1px solid #e5e7eb',
+                    fontSize: '0.875rem'
                   }}>
-                    <span style={{ 
-                      color: appliedJobs.includes(job.id) ? '#28a745' : '#ff6b35',
-                      fontWeight: '600'
-                    }}>
-                      {appliedJobs.includes(job.id) ? '✓ Applied' : 'Click to view details'}
-                    </span>
-                    <span style={{ 
-                      color: savedJobs.includes(job.id) ? '#ff6b35' : '#999',
-                      fontWeight: '500'
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <span style={{ 
+                        color: appliedJobs.includes(job.id) ? '#059669' : '#6b7280',
+                        fontWeight: '500'
+                      }}>
+                        {appliedJobs.includes(job.id) ? '✓ Applied' : 'Click to view details'}
+                      </span>
+                    </div>
+                    <div style={{ 
+                      color: savedJobs.includes(job.id) ? '#ff6b35' : '#9ca3af',
+                      fontWeight: '500',
+                      cursor: 'pointer'
                     }}>
                       {savedJobs.includes(job.id) ? '★ Saved' : '☆ Save'}
-                    </span>
+                    </div>
                   </div>
                 </div>
               )

@@ -53,18 +53,26 @@ export async function GET(request) {
       }
 
       // Get view count for this job
-      const { data: views, error: viewsError } = await supabase
-        .from('job_views')
-        .select('id, viewed_at')
-        .eq('job_id', job.id)
-      
-      console.log('🔍 Analytics: Found views for job', job.id, ':', views?.length || 0)
-
-      if (viewsError) {
-        console.error('Error fetching views:', viewsError)
+      let jobViews = 0
+      try {
+        const { data: views, error: viewsError } = await supabase
+          .from('job_views')
+          .select('id, viewed_at')
+          .eq('job_id', job.id)
+        
+        if (viewsError) {
+          console.log('⚠️ Job views table not found or error:', viewsError.message)
+          // If table doesn't exist, just use 0 views
+          jobViews = 0
+        } else {
+          jobViews = views?.length || 0
+          console.log('🔍 Analytics: Found views for job', job.id, ':', jobViews)
+        }
+      } catch (error) {
+        console.log('⚠️ Job views table not available:', error.message)
+        jobViews = 0
       }
 
-      const jobViews = views?.length || 0
       const jobApplications = applications?.length || 0
 
       analytics.totalViews += jobViews
