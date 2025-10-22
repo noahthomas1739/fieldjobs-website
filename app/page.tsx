@@ -1002,26 +1002,25 @@ export default function HomePage() {
                 <option value="temp-perm">Temp-to-Perm</option>
                 <option value="full-time">Full Time</option>
                 <option value="part-time">Part Time</option>
-                <option value="contract">Contract</option>
                 <option value="freelance">Freelance</option>
               </select>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Classification</label>
-              <select
-                value={classificationFilter}
-                onChange={(e) => setClassificationFilter(e.target.value)}
-                style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
-              >
-                <option value="">All Classifications</option>
-                <option value="junior">Junior (0-5 years)</option>
-                <option value="intermediate">Intermediate (5-10 years)</option>
-                <option value="senior">Senior (10-15 years)</option>
-                <option value="expert">Expert (15+ years)</option>
-                <option value="specialist">Specialist</option>
-              </select>
-            </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Experience Level</label>
+                  <select
+                    value={classificationFilter}
+                    onChange={(e) => setClassificationFilter(e.target.value)}
+                    style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
+                  >
+                    <option value="">All Experience Levels</option>
+                    <option value="junior">Junior (0-5 years)</option>
+                    <option value="intermediate">Intermediate (5-10 years)</option>
+                    <option value="senior">Senior (10-15 years)</option>
+                    <option value="expert">Expert (15+ years)</option>
+                    <option value="specialist">Specialist</option>
+                  </select>
+                </div>
             
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Posted Date</label>

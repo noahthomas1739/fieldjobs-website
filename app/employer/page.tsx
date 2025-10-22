@@ -1702,7 +1702,6 @@ function EmployerDashboardContent() {
                     >
                       <option value="">Any Classification</option>
                       <option value="Staff">Staff</option>
-                      <option value="Contract">Contract</option>
                       <option value="Freelance">Freelance</option>
                     </select>
                   </div>
