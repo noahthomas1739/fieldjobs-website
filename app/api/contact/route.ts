@@ -4,7 +4,13 @@ import { sendEmail, emailTemplates } from '@/lib/email'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, subject, message } = body
+    const { name, email, subject, message, honeypot } = body
+
+    // Basic bot protection - honeypot field
+    if (honeypot) {
+      console.log('🤖 Bot detected, ignoring submission')
+      return NextResponse.json({ success: true, message: 'Message sent' })
+    }
 
     // Validate required fields
     if (!name || !email || !subject || !message) {

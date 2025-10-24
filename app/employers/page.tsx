@@ -379,10 +379,7 @@ export default function EmployersPage() {
           </div>
 
           {/* Growth Plan */}
-          <div className="border-2 border-orange-500 rounded-lg p-6 bg-orange-50 text-center relative">
-            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">MOST POPULAR</span>
-            </div>
+          <div className="border border-gray-200 rounded-lg p-6 bg-white text-center">
             <h3 className="text-lg font-semibold mb-4 mt-2">Growth</h3>
             <div className="text-3xl font-bold text-orange-500 mb-2">$299</div>
             <div className="text-gray-600 mb-4">per month</div>
@@ -403,7 +400,10 @@ export default function EmployersPage() {
           </div>
 
           {/* Professional Plan */}
-          <div className="border-2 border-gray-200 rounded-lg p-6 text-center flex flex-col">
+          <div className="border-2 border-orange-500 rounded-lg p-6 bg-orange-50 text-center flex flex-col relative">
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">MOST POPULAR</span>
+            </div>
             <h3 className="text-lg font-semibold mb-4">Professional</h3>
             <div className="text-3xl font-bold text-orange-500 mb-2">$599</div>
             <div className="text-gray-600 mb-4">per month</div>

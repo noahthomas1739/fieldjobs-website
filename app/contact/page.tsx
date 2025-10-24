@@ -7,7 +7,8 @@ export default function Contact() {
     name: '',
     email: '',
     subject: 'General Inquiry',
-    message: ''
+    message: '',
+    honeypot: '' // Hidden field for bot protection
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -31,7 +32,7 @@ export default function Contact() {
 
       if (response.ok) {
         setSubmitStatus('success')
-        setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' })
+        setFormData({ name: '', email: '', subject: 'General Inquiry', message: '', honeypot: '' })
       } else {
         setSubmitStatus('error')
         setErrorMessage(result.error || 'Failed to send message')
@@ -137,6 +138,16 @@ export default function Contact() {
                 placeholder="Please describe your inquiry..."
               />
             </div>
+            {/* Honeypot field for bot protection */}
+            <input
+              type="text"
+              name="honeypot"
+              value={formData.honeypot}
+              onChange={handleChange}
+              style={{ display: 'none' }}
+              tabIndex={-1}
+              autoComplete="off"
+            />
             <button 
               type="submit"
               disabled={isSubmitting}
