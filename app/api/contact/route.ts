@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
       
       const result = await sendEmail({
         to: recipientEmail,
-        from: 'noreply@field-jobs.co',
-        replyTo: email, // Set reply-to to the actual sender
+        from: 'noreply@field-jobs.co', // Use verified domain
+        replyTo: email, // Set reply-to to client's email for 2-way communication
         subject: emailTemplate.subject,
         html: emailTemplate.html
       })
