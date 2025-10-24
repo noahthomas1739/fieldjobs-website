@@ -40,7 +40,11 @@ export async function POST(request: NextRequest) {
         html: emailTemplate.html
       })
       
-      console.log('📧 Contact form email sent successfully:', result)
+      if (result.success) {
+        console.log('📧 Contact form email sent successfully:', result)
+      } else {
+        console.error('📧 Contact form email failed:', result)
+      }
     } catch (emailError) {
       console.error('📧 Failed to send contact form email:', emailError)
       // Don't fail the request if email fails
