@@ -1167,6 +1167,9 @@ function EmployerDashboardContent() {
               <p className="text-xs text-blue-600 mt-1">
                 Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobs}
               </p>
+              <p className="text-xs text-gray-500 mt-1">
+                📧 Contact: {profile.email || 'No email on file'}
+              </p>
             </div>
             <div className="flex gap-3">
               {freeJobEligible && !checkingEligibility ? (

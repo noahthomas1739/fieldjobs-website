@@ -221,6 +221,17 @@ export async function POST(request) {
       )
     }
 
+    // Get user's resume from profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('resume_url')
+      .eq('id', userId)
+      .single()
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError)
+    }
+
     // Create the application with correct schema
     const applicationData = {
       job_id: jobId,
@@ -231,6 +242,7 @@ export async function POST(request) {
       phone: phone,
       classification: classification || '',
       status: 'pending',
+      resume_url: profile?.resume_url || null, // Auto-attach resume if available
       applied_at: new Date().toISOString(),
       created_at: new Date().toISOString()
     }
@@ -251,6 +263,28 @@ export async function POST(request) {
     }
 
     console.log('✅ Application created successfully')
+
+    // Send application emails
+    try {
+      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/api/send-application-emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: application.id,
+          jobId: jobId,
+          applicantId: userId,
+          employerId: job.employer_id
+        })
+      })
+      
+      if (emailResponse.ok) {
+        console.log('📧 Application emails sent successfully')
+      } else {
+        console.error('📧 Failed to send application emails')
+      }
+    } catch (emailError) {
+      console.error('📧 Email sending error:', emailError)
+    }
 
     // Trigger first application prompt for free jobs
     if (job.is_free_job && job.employer_id) {

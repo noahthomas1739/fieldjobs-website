@@ -21,7 +21,7 @@ export async function GET(request) {
     const { data: jobs, error: jobsError } = await supabase
       .from('jobs')
       .select('id, title, created_at')
-      .eq('employer_id', userId)
+      .eq('user_id', userId)
       .eq('is_active', true)
     
     console.log('🔍 Analytics: Found jobs:', jobs) 

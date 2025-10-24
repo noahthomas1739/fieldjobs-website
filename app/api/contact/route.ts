@@ -23,23 +23,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log the contact form submission (since SendGrid isn't configured yet)
-    console.log('📧 Contact Form Submission:', {
-      name,
-      email,
-      subject,
-      message,
-      timestamp: new Date().toISOString()
-    })
-
-    // For now, just log the email instead of sending it
-    // TODO: Configure SendGrid to actually send emails
-    const emailTemplate = emailTemplates.contactForm(name, email, subject, message)
-    console.log('📧 Email would be sent to support@field-jobs.co:', {
-      subject: emailTemplate.subject,
-      from: email,
-      message: message
-    })
+    // Send email using SendGrid
+    try {
+      const emailTemplate = emailTemplates.contactForm(name, email, subject, message)
+      
+      const result = await sendEmail({
+        to: 'support@field-jobs.co',
+        from: 'noreply@field-jobs.co',
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text
+      })
+      
+      console.log('📧 Contact form email sent successfully:', result)
+    } catch (emailError) {
+      console.error('📧 Failed to send contact form email:', emailError)
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       success: true,
