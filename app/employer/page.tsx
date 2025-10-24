@@ -1168,7 +1168,7 @@ function EmployerDashboardContent() {
                 Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobs}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                📧 Contact: employer@field-jobs.co
+                📧 Contact: Employers@field-jobs.co
               </p>
             </div>
             <div className="flex gap-3">
