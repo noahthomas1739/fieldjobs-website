@@ -29,13 +29,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Send email using SendGrid
+    // Determine recipient based on subject
+    let recipientEmail = 'support@field-jobs.co' // Default
+    if (subject === 'Job Posting Issue' || subject === 'Partnership Opportunity') {
+      recipientEmail = 'Employers@field-jobs.co'
+    }
+
+    // Send email using Resend
     try {
       const emailTemplate = emailTemplates.contactForm(name, email, subject, message)
       
       const result = await sendEmail({
-        to: 'support@field-jobs.co',
+        to: recipientEmail,
         from: 'noreply@field-jobs.co',
+        replyTo: email, // Set reply-to to the actual sender
         subject: emailTemplate.subject,
         html: emailTemplate.html
       })
