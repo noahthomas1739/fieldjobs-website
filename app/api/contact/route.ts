@@ -35,17 +35,21 @@ export async function POST(request: NextRequest) {
       recipientEmail = 'Employers@field-jobs.co'
     }
 
-    // Send email using Resend
+    // Send email using the new contact email service
     try {
-      const emailTemplate = emailTemplates.contactForm(name, email, subject, message)
-      
-      const result = await sendEmail({
-        to: recipientEmail,
-        from: 'noreply@field-jobs.co', // Use verified domain
-        replyTo: email, // Set reply-to to client's email for 2-way communication
-        subject: emailTemplate.subject,
-        html: emailTemplate.html
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/api/send-contact-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          subject,
+          message,
+          recipientEmail
+        })
       })
+
+      const result = await response.json()
       
       if (result.success) {
         console.log('📧 Contact form email sent successfully:', result)
