@@ -31,8 +31,7 @@ export async function POST(request: NextRequest) {
         to: 'support@field-jobs.co',
         from: 'noreply@field-jobs.co',
         subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text
+        html: emailTemplate.html
       })
       
       console.log('📧 Contact form email sent successfully:', result)
