@@ -22,13 +22,20 @@ export async function GET(request) {
       .from('jobs')
       .select('id, title, created_at')
       .eq('user_id', userId)
-      .eq('is_active', true)
+      .eq('active', true)
     
     console.log('🔍 Analytics: Found jobs:', jobs) 
     
     if (jobsError) {
-      console.error('Error fetching jobs:', jobsError)
-      return Response.json({ error: 'Failed to fetch jobs' }, { status: 500 })
+      console.error('❌ Error fetching jobs:', jobsError)
+      console.error('❌ User ID:', userId)
+      console.error('❌ Error details:', {
+        code: jobsError.code,
+        message: jobsError.message,
+        details: jobsError.details,
+        hint: jobsError.hint
+      })
+      return Response.json({ error: 'Failed to fetch jobs', details: jobsError.message }, { status: 500 })
     }
 
     const analytics = {
