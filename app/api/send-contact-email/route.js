@@ -54,7 +54,7 @@ ${message}
       console.log('Falling back to noreply@field-jobs.co due to domain verification')
       
       // Fallback: send from noreply but with clear instructions
-      const { data, error } = await resend.emails.send({
+      const { data: fallbackData, error: fallbackError } = await resend.emails.send({
         from: 'noreply@field-jobs.co',
         to: recipientEmail,
         replyTo: email,
@@ -62,12 +62,12 @@ ${message}
         html: emailContent
       })
 
-      if (error) {
-        console.error('Email send failed:', error)
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      if (fallbackError) {
+        console.error('Email send failed:', fallbackError)
+        return NextResponse.json({ success: false, error: fallbackError.message }, { status: 500 })
       }
 
-      console.log('Email sent from noreply with reply-to:', data?.id)
+      console.log('Email sent from noreply with reply-to:', fallbackData?.id)
       return NextResponse.json({ success: true, message: 'Email sent with reply-to header' })
     }
 
