@@ -3,7 +3,7 @@ import { sendEmail } from '@/lib/email'
 
 export async function GET() {
   try {
-    console.log('🧪 Testing SendGrid API...')
+    console.log('🧪 Testing Resend API...')
     
     const result = await sendEmail({
       to: 'test@example.com',
