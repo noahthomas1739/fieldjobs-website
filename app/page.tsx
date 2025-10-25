@@ -1756,6 +1756,7 @@ export default function HomePage() {
                 <div><strong>Company:</strong> {selectedJob.company}</div>
                 <div><strong>Location:</strong> {selectedJob.location || selectedJob.region}</div>
                 <div><strong>Hourly Rate:</strong> {selectedJob.hourly_rate || selectedJob.hourlyRate || selectedJob.salary_range}</div>
+                <div><strong>Duration:</strong> {selectedJob.duration || 'Not specified'}</div>
                 <div><strong>Job Type:</strong> {selectedJob.jobType || selectedJob.job_type}</div>
                 <div><strong>Experience:</strong> {selectedJob.classification}</div>
                 <div><strong>Posted:</strong> {getPostedText(selectedJob)}</div>

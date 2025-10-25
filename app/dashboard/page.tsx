@@ -647,9 +647,8 @@ export default function JobSeekerDashboard() {
       return
     }
     
-    // Open the application modal directly
-    setSelectedJob(job)
-    setShowApplicationModal(true)
+    // Redirect to homepage with job ID to open application modal
+    window.location.href = `/?jobId=${job.id}`
   }
 
   if (isLoading) {
