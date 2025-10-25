@@ -247,6 +247,8 @@ export async function POST(request) {
       created_at: new Date().toISOString()
     }
 
+    console.log('📝 Attempting to create application with data:', applicationData)
+
     const { data: application, error: applicationError } = await supabase
       .from('applications')
       .insert(applicationData)
@@ -254,10 +256,25 @@ export async function POST(request) {
       .single()
 
     if (applicationError) {
-      console.error('Error creating application:', applicationError)
+      console.error('❌ Error creating application:', applicationError)
+      console.error('❌ Application data that failed:', applicationData)
+      console.error('❌ Error details:', {
+        code: applicationError.code,
+        message: applicationError.message,
+        details: applicationError.details,
+        hint: applicationError.hint
+      })
       return NextResponse.json(
         { error: 'Failed to submit application',
           details: applicationError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!application) {
+      console.error('❌ Application creation returned no data and no error')
+      return NextResponse.json(
+        { error: 'Application creation failed - no data returned' },
         { status: 500 }
       )
     }
