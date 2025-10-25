@@ -19,6 +19,29 @@ export async function POST(request: Request) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
+    // First, let's verify the application exists with a simple count query
+    const { count, error: countError } = await supabase
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+      .eq('id', applicationId)
+
+    if (countError) {
+      console.error('❌ Error checking application count:', countError)
+    } else {
+      console.log('📧 Application count for ID:', applicationId, 'is:', count)
+    }
+
+    // Let's also check if there are any applications at all
+    const { count: totalCount, error: totalCountError } = await supabase
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+
+    if (totalCountError) {
+      console.error('❌ Error checking total applications:', totalCountError)
+    } else {
+      console.log('📧 Total applications in database:', totalCount)
+    }
+
     // First, try to get just the application without joins
     console.log('📧 Email API: Fetching application without joins first...')
     const { data: simpleApplication, error: simpleError } = await supabase

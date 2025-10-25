@@ -263,11 +263,20 @@ export async function POST(request) {
     }
 
     console.log('✅ Application created successfully')
+    console.log('📧 Application ID for email:', application.id)
+    console.log('📧 Application data:', {
+      id: application.id,
+      job_id: application.job_id,
+      applicant_id: application.applicant_id,
+      created_at: application.created_at
+    })
 
     // Send application emails
     try {
       // Add small delay to ensure application is fully committed
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      console.log('📧 Calling email API with application ID:', application.id)
       
       const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/api/send-application-emails`, {
         method: 'POST',
