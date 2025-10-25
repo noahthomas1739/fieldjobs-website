@@ -38,7 +38,7 @@ export async function GET(request) {
       const { data: existingUnlock } = await supabase
         .from('resume_unlocks')
         .select('*')
-        .eq('employer_id', employerId)
+        .eq('user_id', employerId)
         .eq('applicant_id', applicantUserId)
         .single()
       
@@ -66,7 +66,7 @@ export async function GET(request) {
         await supabase
           .from('resume_unlocks')
           .insert({
-            employer_id: employerId,
+            user_id: employerId,
             applicant_id: applicantUserId,
             created_at: new Date().toISOString()
           })

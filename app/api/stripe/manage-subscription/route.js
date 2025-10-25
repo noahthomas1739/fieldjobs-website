@@ -201,7 +201,7 @@ async function syncSubscriptionStatus(supabase, dbSubscription, stripeSubscripti
     }
     
     // FIXED: Handle canceled_at timestamp properly
-      if (stripeStatus === 'canceled') {
+    if (stripeStatus === 'canceled') {
       if (stripeSubscription.canceled_at) {
         // Only set if Stripe has a valid canceled_at timestamp
         updateData.cancelled_at = toIsoFromUnixSeconds(stripeSubscription.canceled_at) || new Date().toISOString()
@@ -366,7 +366,7 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
     const { data: activeJobs, error: jobsError } = await supabase
       .from('jobs')
       .select('id, title')
-      .eq('employer_id', validSubscription.user_id)
+      .eq('user_id', validSubscription.user_id)
       .eq('active', true)
       .neq('status', 'deleted')
     

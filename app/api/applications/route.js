@@ -10,7 +10,7 @@ const triggerFirstApplicationPrompt = async (jobId, employerId) => {
     // Check if job is a free job
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('is_free_job, title, employer_id')
+      .select('is_free_job, title, user_id')
       .eq('id', jobId)
       .single()
 
@@ -106,7 +106,7 @@ export async function GET(request) {
         .from('applications')
         .select(`
           *,
-          jobs!inner(id, title, company, employer_id, status)
+          jobs!inner(id, title, company, user_id, status)
         `)
         .eq('applicant_id', userId)
         .order('applied_at', { ascending: false })
@@ -125,14 +125,14 @@ export async function GET(request) {
     } else if (employerId) {
       console.log('🏢 Fetching applications for employer:', employerId)
       
-      // Get applications for employer's jobs using employer_id
+      // Get applications for employer's jobs using user_id
       const { data: employerApps, error: appsError } = await supabase
         .from('applications')
         .select(`
           *,
-          jobs!inner(id, title, company, employer_id, status)
+          jobs!inner(id, title, company, user_id, status)
         `)
-        .eq('jobs.employer_id', employerId)
+        .eq('jobs.user_id', employerId)
         .order('applied_at', { ascending: false })
 
       if (appsError) {
@@ -206,10 +206,10 @@ export async function POST(request) {
       )
     }
 
-    // Get job details including employer_id
+    // Get job details including user_id
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('id, title, company, employer_id, is_free_job')
+      .select('id, title, company, user_id, is_free_job')
       .eq('id', jobId)
       .single()
 
@@ -273,7 +273,7 @@ export async function POST(request) {
           applicationId: application.id,
           jobId: jobId,
           applicantId: userId,
-          employerId: job.employer_id
+          employerId: job.user_id
         })
       })
       
@@ -287,8 +287,8 @@ export async function POST(request) {
     }
 
     // Trigger first application prompt for free jobs
-    if (job.is_free_job && job.employer_id) {
-      await triggerFirstApplicationPrompt(jobId, job.employer_id)
+    if (job.is_free_job && job.user_id) {
+      await triggerFirstApplicationPrompt(jobId, job.user_id)
     }
 
     return NextResponse.json({
@@ -364,7 +364,7 @@ export async function PUT(request) {
     // Then get the job to verify employer
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('employer_id')
+      .select('user_id')
       .eq('id', application.job_id)
       .single()
 
@@ -378,14 +378,14 @@ export async function PUT(request) {
       )
     }
 
-    console.log('✅ Found job with employer:', job.employer_id, 'requesting user:', userId)
-    console.log('🔍 Employer ID type:', typeof job.employer_id, 'User ID type:', typeof userId)
-    console.log('🔍 Employer ID === User ID:', job.employer_id === userId)
-    console.log('🔍 Employer ID == User ID:', job.employer_id == userId)
+    console.log('✅ Found job with employer:', job.user_id, 'requesting user:', userId)
+    console.log('🔍 User ID type:', typeof job.user_id, 'Requesting User ID type:', typeof userId)
+    console.log('🔍 User ID === Requesting User ID:', job.user_id === userId)
+    console.log('🔍 User ID == Requesting User ID:', job.user_id == userId)
 
     // Check if user is the employer of the job (handle string/UUID comparison)
-    if (job.employer_id !== userId && job.employer_id !== String(userId)) {
-      console.error('❌ Unauthorized: User', userId, 'is not employer', job.employer_id)
+    if (job.user_id !== userId && job.user_id !== String(userId)) {
+      console.error('❌ Unauthorized: User', userId, 'is not employer', job.user_id)
       return NextResponse.json(
         { error: 'Unauthorized: You can only update applications for your jobs' },
         { status: 403 }
