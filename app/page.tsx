@@ -823,7 +823,7 @@ export default function HomePage() {
                 container.scrollBy({ left: -200, behavior: 'smooth' })
               }
             }}
-            style={{
+            style={{ 
               position: 'absolute',
               left: '-10px',
               top: '50%',
@@ -854,18 +854,18 @@ export default function HomePage() {
                 container.scrollBy({ left: 200, behavior: 'smooth' })
               }
             }}
-            style={{
+            style={{ 
               position: 'absolute',
               right: '-10px',
               top: '50%',
               transform: 'translateY(-50%)',
-              background: '#ff6b35',
-              color: 'white',
+              background: '#ff6b35', 
+              color: 'white', 
               border: 'none',
               borderRadius: '50%',
               width: '40px',
               height: '40px',
-              cursor: 'pointer',
+              cursor: 'pointer', 
               zIndex: 10,
               display: 'flex',
               alignItems: 'center',
@@ -918,7 +918,7 @@ export default function HomePage() {
                   borderRadius: '12px',
                   cursor: 'pointer',
                   fontSize: '0.9rem',
-                  fontWeight: '600',
+              fontWeight: '600',
                   transition: 'all 0.3s ease',
                   whiteSpace: 'nowrap',
                   display: 'flex',
@@ -940,7 +940,7 @@ export default function HomePage() {
               >
                 <span style={{ fontSize: '1.2rem' }}>{industry.icon}</span>
                 <span>{industry.label}</span>
-              </button>
+          </button>
             ))}
           </div>
         </div>        
@@ -1006,21 +1006,21 @@ export default function HomePage() {
               </select>
             </div>
             
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Experience Level</label>
-                  <select
-                    value={classificationFilter}
-                    onChange={(e) => setClassificationFilter(e.target.value)}
-                    style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
-                  >
+              <select
+                value={classificationFilter}
+                onChange={(e) => setClassificationFilter(e.target.value)}
+                style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
+              >
                 <option value="">All Experience Levels</option>
                 <option value="0-5">0-5 years</option>
                 <option value="5-10">5-10 years</option>
                 <option value="10-15">10-15 years</option>
                 <option value="15-20">15-20 years</option>
                 <option value="20+">20+ years</option>
-                  </select>
-                </div>
+              </select>
+            </div>
             
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>Posted Date</label>
@@ -1051,7 +1051,7 @@ export default function HomePage() {
         {/* Enhanced Results Header */}
         <div data-results-section style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid #e0e0e0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-            <div>
+          <div>
               <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#1a1a1a', fontWeight: '700' }}>
                 {isLoading ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1063,30 +1063,30 @@ export default function HomePage() {
                     {filteredJobs.length === 0 ? 'No Jobs Found' : `${filteredJobs.length} Job${filteredJobs.length === 1 ? '' : 's'} Available`}
                   </span>
                 )}
-              </h2>
+            </h2>
               {filteredJobs.length > 0 && (
                 <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '1rem' }}>
-                  Showing {indexOfFirstJob + 1}-{Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length} results
-                </p>
+              Showing {indexOfFirstJob + 1}-{Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length} results
+            </p>
               )}
-            </div>
-            {filteredJobs.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ fontWeight: '500', color: '#333', fontSize: '0.9rem' }}>Sort by:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  style={{ padding: '0.5rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.9rem', backgroundColor: 'white' }}
-                >
-                  <option value="recent">Most Recent</option>
-                  <option value="salary-high">Compensation: High to Low</option>
-                  <option value="salary-low">Compensation: Low to High</option>
-                  <option value="company">Company A-Z</option>
-                  <option value="title">Job Title A-Z</option>
-                </select>
-              </div>
-            )}
           </div>
+            {filteredJobs.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ fontWeight: '500', color: '#333', fontSize: '0.9rem' }}>Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+                  style={{ padding: '0.5rem 0.75rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.9rem', backgroundColor: 'white' }}
+            >
+              <option value="recent">Most Recent</option>
+              <option value="salary-high">Compensation: High to Low</option>
+              <option value="salary-low">Compensation: Low to High</option>
+              <option value="company">Company A-Z</option>
+              <option value="title">Job Title A-Z</option>
+            </select>
+          </div>
+            )}
+        </div>
 
           {/* Active Filters Display */}
           {(searchInput || activeFilters.length > 0 || locationFilter || compensationFilter) && (
@@ -1300,22 +1300,22 @@ export default function HomePage() {
                   {/* Header Section */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ 
+                  <div style={{ 
                         fontSize: isFeatured ? '1.3rem' : '1.2rem', 
                         fontWeight: '700', 
                         color: '#1f2937',
                         marginBottom: '0.25rem',
                         lineHeight: '1.3'
-                      }}>
-                        {job.title}
-                      </div>
-                      <div style={{ 
-                        fontSize: '1rem', 
+                  }}>
+                    {job.title}
+                  </div>
+                  <div style={{ 
+                    fontSize: '1rem', 
                         color: '#6b7280',
                         fontWeight: '500'
-                      }}>
-                        {job.company}
-                      </div>
+                  }}>
+                    {job.company}
+                  </div>
                     </div>
                     <div style={{ 
                       fontSize: '0.875rem', 
@@ -1325,7 +1325,7 @@ export default function HomePage() {
                       {getPostedText(job)}
                     </div>
                   </div>
-
+                  
                   {/* Job Details Row */}
                   <div style={{ 
                     display: 'flex', 
@@ -1339,7 +1339,7 @@ export default function HomePage() {
                       <span style={{ fontSize: '1rem' }}>💰</span>
                       <span style={{ fontWeight: '600' }}>
                         {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
-                      </span>
+                        </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ fontSize: '1rem' }}>📍</span>
@@ -1358,7 +1358,7 @@ export default function HomePage() {
                     fontSize: '0.9rem',
                     marginBottom: '1rem'
                   }}>
-                    {job.description.substring(0, 200)}...
+                        {job.description.substring(0, 200)}...
                   </div>
                   
                   {/* Footer */}
@@ -1370,55 +1370,55 @@ export default function HomePage() {
                     borderTop: '1px solid #e5e7eb'
                   }}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <button 
+                    <button 
                         onClick={(e) => {
                           e.stopPropagation()
                           applyToJob(job)
                         }}
-                        disabled={appliedJobs.includes(job.id)}
-                        style={{ 
-                          background: appliedJobs.includes(job.id) 
+                      disabled={appliedJobs.includes(job.id)}
+                      style={{ 
+                        background: appliedJobs.includes(job.id) 
                             ? '#6b7280' 
-                            : isFeatured 
-                              ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
-                              : '#ff6b35', 
-                          color: appliedJobs.includes(job.id) 
-                            ? 'white' 
-                            : isFeatured 
-                              ? '#b8860b' 
-                              : 'white',
+                          : isFeatured 
+                            ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
+                            : '#ff6b35', 
+                        color: appliedJobs.includes(job.id) 
+                          ? 'white' 
+                          : isFeatured 
+                            ? '#b8860b' 
+                            : 'white',
                           padding: '0.75rem 1.5rem', 
-                          border: 'none', 
+                        border: 'none', 
                           borderRadius: '6px', 
-                          cursor: appliedJobs.includes(job.id) ? 'not-allowed' : 'pointer', 
-                          fontWeight: '600',
+                        cursor: appliedJobs.includes(job.id) ? 'not-allowed' : 'pointer', 
+                        fontWeight: '600',
                           fontSize: '0.875rem',
-                          opacity: appliedJobs.includes(job.id) ? 0.6 : 1,
+                        opacity: appliedJobs.includes(job.id) ? 0.6 : 1,
                           boxShadow: isFeatured ? '0 2px 8px rgba(255, 215, 0, 0.3)' : '0 2px 4px rgba(255, 107, 53, 0.2)',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {appliedJobs.includes(job.id) ? 'Applied' : 'Apply Now'}
-                      </button>
-                      <button
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {appliedJobs.includes(job.id) ? 'Applied' : 'Apply Now'}
+                    </button>
+                    <button
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleSaveJob(job.id)
                         }}
-                        style={{
-                          background: savedJobs.includes(job.id) ? '#ff6b35' : 'transparent',
-                          color: savedJobs.includes(job.id) ? 'white' : '#ff6b35',
-                          border: '2px solid #ff6b35',
-                          padding: '0.5rem 1rem',
+                      style={{
+                        background: savedJobs.includes(job.id) ? '#ff6b35' : 'transparent',
+                        color: savedJobs.includes(job.id) ? 'white' : '#ff6b35',
+                        border: '2px solid #ff6b35',
+                        padding: '0.5rem 1rem',
                           borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontWeight: '500',
+                        cursor: 'pointer',
+                        fontWeight: '500',
                           fontSize: '0.875rem',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
-                      </button>
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
+                    </button>
                     </div>
                     <div style={{ 
                       color: '#6b7280',

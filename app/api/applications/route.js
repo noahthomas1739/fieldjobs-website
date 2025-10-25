@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
 // Function to trigger first application prompt for free jobs
-const triggerFirstApplicationPrompt = async (jobId, employerId) => {
+const triggerFirstApplicationPrompt = async (supabase, jobId, employerId) => {
   try {
     console.log(`🔔 Checking if first application prompt needed for job ${jobId}`)
     
@@ -266,6 +266,9 @@ export async function POST(request) {
 
     // Send application emails
     try {
+      // Add small delay to ensure application is fully committed
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/api/send-application-emails`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -288,7 +291,7 @@ export async function POST(request) {
 
     // Trigger first application prompt for free jobs
     if (job.is_free_job && job.user_id) {
-      await triggerFirstApplicationPrompt(jobId, job.user_id)
+      await triggerFirstApplicationPrompt(supabase, jobId, job.user_id)
     }
 
     return NextResponse.json({

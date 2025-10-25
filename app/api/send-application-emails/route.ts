@@ -14,6 +14,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Application ID required' }, { status: 400 })
     }
 
+    console.log('📧 Email API: Looking for application ID:', applicationId)
+
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
@@ -39,6 +41,12 @@ export async function POST(request: Request) {
 
     if (error || !application) {
       console.error('Error fetching application:', error)
+      console.error('Application ID:', applicationId)
+      console.error('Error details:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details
+      })
       return NextResponse.json({ error: 'Application not found' }, { status: 404 })
     }
 
