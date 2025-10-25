@@ -139,8 +139,18 @@ export async function POST(request: Request) {
       : 'Employer'
     const employerEmail = employerProfile?.email
 
+    console.log('📧 Email Debug Info:')
+    console.log('  - Resend API Key configured:', !!process.env.Resend_API_KEY)
+    console.log('  - Applicant Email:', applicantEmail)
+    console.log('  - Employer Email:', employerEmail)
+    console.log('  - Applicant Name:', applicantName)
+    console.log('  - Employer Name:', employerName)
+    console.log('  - Job Title:', jobTitle)
+    console.log('  - Company:', company)
+
     // Send confirmation email to applicant
-    if (process.env.SENDGRID_API_KEY && applicantEmail) {
+    if (process.env.Resend_API_KEY && applicantEmail) {
+      console.log('📧 Attempting to send confirmation email to:', applicantEmail)
       try {
         const confirmationHtml = render(
           ApplicationConfirmationEmail({
@@ -163,10 +173,13 @@ export async function POST(request: Request) {
       } catch (emailError) {
         console.error('❌ Failed to send confirmation email:', emailError)
       }
+    } else {
+      console.log('❌ Not sending confirmation email - missing Resend API key or applicant email')
     }
 
     // Send alert email to employer
-    if (process.env.SENDGRID_API_KEY && employerEmail) {
+    if (process.env.Resend_API_KEY && employerEmail) {
+      console.log('📧 Attempting to send alert email to employer:', employerEmail)
       try {
         const alertHtml = render(
           NewApplicationAlertEmail({
@@ -189,6 +202,8 @@ export async function POST(request: Request) {
       } catch (emailError) {
         console.error('❌ Failed to send alert email:', emailError)
       }
+    } else {
+      console.log('❌ Not sending alert email - missing Resend API key or employer email')
     }
 
     return NextResponse.json({ 
