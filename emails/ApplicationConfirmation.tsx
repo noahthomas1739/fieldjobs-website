@@ -4,6 +4,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -32,7 +33,13 @@ export const ApplicationConfirmationEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Heading style={h1}>⚙️ FieldJobs</Heading>
+          <Img
+            src="https://field-jobs.co/logo.png"
+            alt="FieldJobs"
+            width="120"
+            height="40"
+            style={logo}
+          />
         </Section>
         
         <Section style={content}>
@@ -152,6 +159,11 @@ const footerText = {
   fontSize: '12px',
   lineHeight: '20px',
   margin: '4px 0',
+}
+
+const logo = {
+  display: 'block',
+  margin: '0 auto',
 }
 
 const link = {

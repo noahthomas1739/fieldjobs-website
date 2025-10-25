@@ -647,8 +647,9 @@ export default function JobSeekerDashboard() {
       return
     }
     
-    // For now, just redirect to homepage to apply
-    window.open(`/?search=${encodeURIComponent(job.title)}`, '_blank')
+    // Open the application modal directly
+    setSelectedJob(job)
+    setShowApplicationModal(true)
   }
 
   if (isLoading) {

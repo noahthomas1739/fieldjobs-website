@@ -26,7 +26,7 @@ export async function POST(request: Request) {
           id,
           title,
           company,
-          employer_id
+          user_id
         ),
         profiles!applications_applicant_id_fkey (
           first_name,
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const { data: employerProfile } = await supabase
       .from('profiles')
       .select('first_name, last_name, email')
-      .eq('id', application.jobs.employer_id)
+      .eq('id', application.jobs.user_id)
       .single()
 
     const employerName = employerProfile 

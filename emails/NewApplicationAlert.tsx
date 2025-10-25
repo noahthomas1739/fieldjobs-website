@@ -4,6 +4,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -32,7 +33,13 @@ export const NewApplicationAlertEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Heading style={h1}>⚙️ FieldJobs</Heading>
+          <Img
+            src="https://field-jobs.co/logo.png"
+            alt="FieldJobs"
+            width="120"
+            height="40"
+            style={logo}
+          />
         </Section>
         
         <Section style={content}>
@@ -168,6 +175,11 @@ const footer = {
   padding: '20px 40px',
   textAlign: 'center' as const,
   borderTop: '1px solid #eeeeee',
+}
+
+const logo = {
+  display: 'block',
+  margin: '0 auto',
 }
 
 const footerText = {
