@@ -4,12 +4,7 @@ import { cookies } from 'next/headers'
 import { render } from '@react-email/render'
 import ApplicationConfirmationEmail from '@/emails/ApplicationConfirmation'
 import NewApplicationAlertEmail from '@/emails/NewApplicationAlert'
-
-const sgMail = require('@sendgrid/mail')
-
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-}
+import { sendEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -82,9 +77,9 @@ export async function POST(request: Request) {
           })
         )
 
-        await sgMail.send({
+        await sendEmail({
           to: applicantEmail,
-          from: process.env.SENDGRID_FROM_EMAIL || 'noreply@field-jobs.co',
+          from: 'noreply@field-jobs.co',
           subject: `Application Submitted: ${jobTitle} at ${company}`,
           html: confirmationHtml,
         })
@@ -108,9 +103,9 @@ export async function POST(request: Request) {
           })
         )
 
-        await sgMail.send({
+        await sendEmail({
           to: employerEmail,
-          from: process.env.SENDGRID_FROM_EMAIL || 'noreply@field-jobs.co',
+          from: 'noreply@field-jobs.co',
           subject: `New Application: ${jobTitle}`,
           html: alertHtml,
         })

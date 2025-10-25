@@ -1013,11 +1013,12 @@ export default function HomePage() {
                     onChange={(e) => setClassificationFilter(e.target.value)}
                     style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px', fontSize: '0.9rem' }}
                   >
-                    <option value="">All Experience Levels</option>
-                    <option value="0-2">0-2 years</option>
-                    <option value="3-5">3-5 years</option>
-                    <option value="6-10">6-10 years</option>
-                    <option value="10+">10+ years</option>
+                <option value="">All Experience Levels</option>
+                <option value="0-5">0-5 years</option>
+                <option value="5-10">5-10 years</option>
+                <option value="10-15">10-15 years</option>
+                <option value="15-20">15-20 years</option>
+                <option value="20+">20+ years</option>
                   </select>
                 </div>
             
@@ -1708,10 +1709,11 @@ export default function HomePage() {
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #ddd', borderRadius: '5px' }}
                 >
                   <option value="">Select Experience Level</option>
-                  <option value="0-2">0-2 years</option>
-                  <option value="3-5">3-5 years</option>
-                  <option value="6-10">6-10 years</option>
-                  <option value="10+">10+ years</option>
+                  <option value="0-5">0-5 years</option>
+                  <option value="5-10">5-10 years</option>
+                  <option value="10-15">10-15 years</option>
+                  <option value="15-20">15-20 years</option>
+                  <option value="20+">20+ years</option>
                 </select>
               </div>
                             

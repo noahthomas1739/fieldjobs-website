@@ -2216,11 +2216,12 @@ function EmployerDashboardContent() {
                       className="w-full p-2 border border-gray-300 rounded"
                       required
                     >
-                      <option value="">Select Experience Level</option>
-                      <option value="0-2">0-2 years</option>
-                      <option value="3-5">3-5 years</option>
-                      <option value="6-10">6-10 years</option>
-                      <option value="10+">10+ years</option>
+                <option value="">Select Experience Level</option>
+                <option value="0-5">0-5 years</option>
+                <option value="5-10">5-10 years</option>
+                <option value="10-15">10-15 years</option>
+                <option value="15-20">15-20 years</option>
+                <option value="20+">20+ years</option>
                     </select>
                   </div>
                 </div>

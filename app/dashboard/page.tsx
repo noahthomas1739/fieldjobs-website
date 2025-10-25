@@ -1038,10 +1038,11 @@ export default function JobSeekerDashboard() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       >
                         <option value="">Select Experience Level</option>
-                        <option value="0-2 years">0-2 years</option>
-                        <option value="3-5 years">3-5 years</option>
-                        <option value="6-10 years">6-10 years</option>
-                        <option value="10+ years">10+ years</option>
+                        <option value="0-5 years">0-5 years</option>
+                        <option value="5-10 years">5-10 years</option>
+                        <option value="10-15 years">10-15 years</option>
+                        <option value="15-20 years">15-20 years</option>
+                        <option value="20+ years">20+ years</option>
                       </select>
                     </div>
                     <div>
