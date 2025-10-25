@@ -18,9 +18,16 @@ export async function POST(request: Request) {
 
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    
+    // Use service role to bypass RLS for email API
+    const { createClient } = require('@supabase/supabase-js')
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    // First, let's verify the application exists with a simple count query
-    const { count, error: countError } = await supabase
+    // First, let's verify the application exists with a simple count query using admin client
+    const { count, error: countError } = await supabaseAdmin
       .from('applications')
       .select('*', { count: 'exact', head: true })
       .eq('id', applicationId)
@@ -31,8 +38,8 @@ export async function POST(request: Request) {
       console.log('📧 Application count for ID:', applicationId, 'is:', count)
     }
 
-    // Let's also check if there are any applications at all
-    const { count: totalCount, error: totalCountError } = await supabase
+    // Let's also check if there are any applications at all using admin client
+    const { count: totalCount, error: totalCountError } = await supabaseAdmin
       .from('applications')
       .select('*', { count: 'exact', head: true })
 
@@ -42,9 +49,9 @@ export async function POST(request: Request) {
       console.log('📧 Total applications in database:', totalCount)
     }
 
-    // First, try to get just the application without joins
+    // First, try to get just the application without joins using admin client
     console.log('📧 Email API: Fetching application without joins first...')
-    const { data: simpleApplication, error: simpleError } = await supabase
+    const { data: simpleApplication, error: simpleError } = await supabaseAdmin
       .from('applications')
       .select('*')
       .eq('id', applicationId)
@@ -57,8 +64,8 @@ export async function POST(request: Request) {
 
     console.log('✅ Found application:', simpleApplication.id)
 
-    // Now try to get the full application with joins
-    const { data: application, error } = await supabase
+    // Now try to get the full application with joins using admin client
+    const { data: application, error } = await supabaseAdmin
       .from('applications')
       .select(`
         *,
@@ -82,14 +89,14 @@ export async function POST(request: Request) {
     if (error || !application) {
       console.error('❌ Error with joins, trying fallback approach:', error)
       
-      // Fallback: fetch data separately
-      const { data: jobData } = await supabase
+      // Fallback: fetch data separately using admin client
+      const { data: jobData } = await supabaseAdmin
         .from('jobs')
         .select('id, title, company, user_id')
         .eq('id', simpleApplication.job_id)
         .single()
       
-      const { data: profileData } = await supabase
+      const { data: profileData } = await supabaseAdmin
         .from('profiles')
         .select('first_name, last_name, email')
         .eq('id', simpleApplication.applicant_id)
@@ -120,8 +127,8 @@ export async function POST(request: Request) {
       day: 'numeric'
     })
 
-    // Get employer details
-    const { data: employerProfile } = await supabase
+    // Get employer details using admin client
+    const { data: employerProfile } = await supabaseAdmin
       .from('profiles')
       .select('first_name, last_name, email')
       .eq('id', finalApplication.jobs.user_id)
