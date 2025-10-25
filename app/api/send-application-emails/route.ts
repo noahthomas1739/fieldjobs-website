@@ -19,7 +19,22 @@ export async function POST(request: Request) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-    // Get application details with job and user info
+    // First, try to get just the application without joins
+    console.log('📧 Email API: Fetching application without joins first...')
+    const { data: simpleApplication, error: simpleError } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('id', applicationId)
+      .single()
+
+    if (simpleError || !simpleApplication) {
+      console.error('❌ Could not fetch application at all:', simpleError)
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+    }
+
+    console.log('✅ Found application:', simpleApplication.id)
+
+    // Now try to get the full application with joins
     const { data: application, error } = await supabase
       .from('applications')
       .select(`
@@ -39,22 +54,44 @@ export async function POST(request: Request) {
       .eq('id', applicationId)
       .single()
 
+    let finalApplication = application
+
     if (error || !application) {
-      console.error('Error fetching application:', error)
-      console.error('Application ID:', applicationId)
-      console.error('Error details:', {
-        code: error?.code,
-        message: error?.message,
-        details: error?.details
-      })
-      return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+      console.error('❌ Error with joins, trying fallback approach:', error)
+      
+      // Fallback: fetch data separately
+      const { data: jobData } = await supabase
+        .from('jobs')
+        .select('id, title, company, user_id')
+        .eq('id', simpleApplication.job_id)
+        .single()
+      
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('id', simpleApplication.applicant_id)
+        .single()
+      
+      if (!jobData || !profileData) {
+        console.error('❌ Could not fetch job or profile data')
+        return NextResponse.json({ error: 'Could not fetch related data' }, { status: 404 })
+      }
+      
+      // Create application object manually
+      finalApplication = {
+        ...simpleApplication,
+        jobs: jobData,
+        profiles: profileData
+      }
+      
+      console.log('✅ Using fallback data approach')
     }
 
-    const applicantName = `${application.profiles.first_name} ${application.profiles.last_name}`
-    const applicantEmail = application.profiles.email
-    const jobTitle = application.jobs.title
-    const company = application.jobs.company
-    const appliedDate = new Date(application.created_at).toLocaleDateString('en-US', {
+    const applicantName = `${finalApplication.profiles.first_name} ${finalApplication.profiles.last_name}`
+    const applicantEmail = finalApplication.profiles.email
+    const jobTitle = finalApplication.jobs.title
+    const company = finalApplication.jobs.company
+    const appliedDate = new Date(finalApplication.created_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -64,7 +101,7 @@ export async function POST(request: Request) {
     const { data: employerProfile } = await supabase
       .from('profiles')
       .select('first_name, last_name, email')
-      .eq('id', application.jobs.user_id)
+      .eq('id', finalApplication.jobs.user_id)
       .single()
 
     const employerName = employerProfile 
@@ -81,7 +118,7 @@ export async function POST(request: Request) {
             jobTitle,
             company,
             appliedDate,
-            jobUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/jobs/${application.jobs.id}`
+            jobUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/jobs/${finalApplication.jobs.id}`
           })
         )
 
