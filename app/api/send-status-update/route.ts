@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { render } from '@react-email/render'
 import ApplicationStatusUpdateEmail from '@/emails/ApplicationStatusUpdate'
-import ApplicationRejectedEmail from '@/emails/ApplicationRejected'
+import { ApplicationRejectedEmail } from '@/emails/ApplicationRejected'
 import { sendEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
@@ -36,8 +36,16 @@ export async function POST(request: Request) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-    // Get application details
-    const { data: application, error } = await supabase
+    // Get application details using service role to bypass RLS
+    const { createClient } = require('@supabase/supabase-js')
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    console.log('📧 Status Update API: Looking for application ID:', applicationId)
+
+    const { data: application, error } = await supabaseAdmin
       .from('applications')
       .select(`
         *,
@@ -55,14 +63,38 @@ export async function POST(request: Request) {
       .single()
 
     if (error || !application) {
-      console.error('Error fetching application:', error)
+      console.error('❌ Error fetching application:', error)
       return NextResponse.json({ error: 'Application not found' }, { status: 404 })
+    }
+
+    console.log('✅ Found application:', application.id)
+    console.log('📧 Application data:', {
+      hasProfiles: !!application.profiles,
+      profilesData: application.profiles,
+      hasJobs: !!application.jobs,
+      jobsData: application.jobs
+    })
+
+    // Check if required data exists
+    if (!application.profiles || !application.jobs) {
+      console.error('❌ Missing required application data:', {
+        hasProfiles: !!application.profiles,
+        hasJobs: !!application.jobs
+      })
+      return NextResponse.json({ error: 'Application data incomplete' }, { status: 400 })
     }
 
     const applicantName = `${application.profiles.first_name} ${application.profiles.last_name}`
     const applicantEmail = application.profiles.email
     const jobTitle = application.jobs.title
     const company = application.jobs.company
+
+    console.log('📧 Email details:', {
+      applicantName,
+      applicantEmail,
+      jobTitle,
+      company
+    })
     const appliedDate = new Date(application.created_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
