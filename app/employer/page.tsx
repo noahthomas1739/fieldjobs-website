@@ -2423,7 +2423,10 @@ function EmployerDashboardContent() {
                   <strong>Resume:</strong>{' '}
                   {selectedApplication.resume_url ? (
                     <button
-                      onClick={() => setShowResumeViewer(true)}
+                      onClick={() => {
+                        // Open resume in new browser window
+                        window.open(selectedApplication.resume_url, '_blank', 'noopener,noreferrer')
+                      }}
                       className="text-blue-600 hover:text-blue-800 underline font-medium"
                     >
                       📄 {selectedApplication.resume_filename || 'View Resume'}
