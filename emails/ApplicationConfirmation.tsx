@@ -34,7 +34,7 @@ export const ApplicationConfirmationEmail = ({
       <Container style={container}>
         <Section style={header}>
           <Img
-            src="https://field-jobs.co/logo.png"
+            src="https://field-jobs.co/fieldjobs-logo.svg"
             alt="FieldJobs"
             width="120"
             height="40"

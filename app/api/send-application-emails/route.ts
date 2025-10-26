@@ -148,37 +148,9 @@ export async function POST(request: Request) {
     console.log('  - Job Title:', jobTitle)
     console.log('  - Company:', company)
 
-    // Send confirmation email to applicant
-    if (process.env.Resend_API_KEY && applicantEmail) {
-      console.log('📧 Attempting to send confirmation email to:', applicantEmail)
-      try {
-        const confirmationHtml = await render(
-          ApplicationConfirmationEmail({
-            applicantName,
-            jobTitle,
-            company,
-            appliedDate,
-            jobUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/jobs/${finalApplication.jobs.id}`
-          })
-        )
-        
-        console.log('📧 Confirmation HTML type:', typeof confirmationHtml)
-        console.log('📧 Confirmation HTML length:', confirmationHtml?.length)
-
-        await sendEmail({
-          to: applicantEmail,
-          from: 'noreply@field-jobs.co',
-          subject: `Application Submitted: ${jobTitle} at ${company}`,
-          html: confirmationHtml,
-        })
-
-        console.log('✅ Confirmation email sent to applicant:', applicantEmail)
-      } catch (emailError) {
-        console.error('❌ Failed to send confirmation email:', emailError)
-      }
-    } else {
-      console.log('❌ Not sending confirmation email - missing Resend API key or applicant email')
-    }
+    // Note: Confirmation emails to applicants are disabled per user request
+    // Applicants will only receive emails when their application status changes
+    console.log('📧 Skipping confirmation email to applicant (disabled per user request)')
 
     // Send alert email to employer
     if (process.env.Resend_API_KEY && employerEmail) {

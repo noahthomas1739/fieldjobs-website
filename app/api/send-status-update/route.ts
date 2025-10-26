@@ -3,12 +3,8 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 import { render } from '@react-email/render'
 import ApplicationStatusUpdateEmail from '@/emails/ApplicationStatusUpdate'
-
-const sgMail = require('@sendgrid/mail')
-
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-}
+import ApplicationRejectedEmail from '@/emails/ApplicationRejected'
+import { sendEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -21,11 +17,19 @@ export async function POST(request: Request) {
       )
     }
 
-    // Don't send emails for 'submitted' status (that's handled by send-application-emails)
+    // Only send emails for specific status changes
     if (newStatus === 'submitted') {
       return NextResponse.json({ 
         success: true, 
         message: 'No email sent for submitted status' 
+      })
+    }
+
+    // Only send rejection emails to applicants (per user request)
+    if (newStatus !== 'rejected') {
+      return NextResponse.json({ 
+        success: true, 
+        message: 'No email sent for this status change' 
       })
     }
 
@@ -59,38 +63,38 @@ export async function POST(request: Request) {
     const applicantEmail = application.profiles.email
     const jobTitle = application.jobs.title
     const company = application.jobs.company
+    const appliedDate = new Date(application.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
 
-    // Send status update email
-    if (process.env.SENDGRID_API_KEY && applicantEmail) {
+    // Send rejection email to applicant
+    if (process.env.Resend_API_KEY && applicantEmail) {
       try {
-        const statusHtml = render(
-          ApplicationStatusUpdateEmail({
+        const rejectionHtml = await render(
+          ApplicationRejectedEmail({
             applicantName,
             jobTitle,
             company,
-            status: newStatus,
-            dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/dashboard`
+            appliedDate,
+            rejectionReason: undefined // Could be added later if needed
           })
         )
 
-        const statusTitles: Record<string, string> = {
-          shortlisted: 'You\'ve Been Shortlisted',
-          interviewed: 'Interview Scheduled',
-          rejected: 'Application Update',
-          hired: 'Congratulations!',
-        }
-
-        await sgMail.send({
+        await sendEmail({
           to: applicantEmail,
-          from: process.env.SENDGRID_FROM_EMAIL || 'noreply@field-jobs.co',
-          subject: `${statusTitles[newStatus] || 'Application Update'}: ${jobTitle}`,
-          html: statusHtml,
+          from: 'noreply@field-jobs.co',
+          subject: `Application Update: ${jobTitle} at ${company}`,
+          html: rejectionHtml,
         })
 
-        console.log('✅ Status update email sent to:', applicantEmail)
+        console.log('✅ Rejection email sent to applicant:', applicantEmail)
       } catch (emailError) {
-        console.error('❌ Failed to send status update email:', emailError)
+        console.error('❌ Failed to send rejection email:', emailError)
       }
+    } else {
+      console.log('❌ Not sending rejection email - missing Resend API key or applicant email')
     }
 
     return NextResponse.json({ 
