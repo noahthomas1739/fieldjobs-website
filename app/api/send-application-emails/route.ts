@@ -152,7 +152,7 @@ export async function POST(request: Request) {
     if (process.env.Resend_API_KEY && applicantEmail) {
       console.log('📧 Attempting to send confirmation email to:', applicantEmail)
       try {
-        const confirmationHtml = render(
+        const confirmationHtml = await render(
           ApplicationConfirmationEmail({
             applicantName,
             jobTitle,
@@ -161,6 +161,9 @@ export async function POST(request: Request) {
             jobUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/jobs/${finalApplication.jobs.id}`
           })
         )
+        
+        console.log('📧 Confirmation HTML type:', typeof confirmationHtml)
+        console.log('📧 Confirmation HTML length:', confirmationHtml?.length)
 
         await sendEmail({
           to: applicantEmail,
@@ -181,7 +184,7 @@ export async function POST(request: Request) {
     if (process.env.Resend_API_KEY && employerEmail) {
       console.log('📧 Attempting to send alert email to employer:', employerEmail)
       try {
-        const alertHtml = render(
+        const alertHtml = await render(
           NewApplicationAlertEmail({
             employerName,
             applicantName,
@@ -190,6 +193,9 @@ export async function POST(request: Request) {
             dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/employer`
           })
         )
+        
+        console.log('📧 Alert HTML type:', typeof alertHtml)
+        console.log('📧 Alert HTML length:', alertHtml?.length)
 
         await sendEmail({
           to: employerEmail,
