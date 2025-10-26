@@ -4,7 +4,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import SecureResumeViewer from '@/components/SecureResumeViewer'
 import SubscriptionManagement from '@/components/SubscriptionManagement'
 
 function EmployerDashboardContent() {
@@ -49,7 +48,6 @@ function EmployerDashboardContent() {
   const [showJobForm, setShowJobForm] = useState(false)
   const [showApplicationModal, setShowApplicationModal] = useState(false)
   const [showFeatureModal, setShowFeatureModal] = useState(false)
-  const [showResumeViewer, setShowResumeViewer] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState<any>(null)
   const [selectedJobForFeature, setSelectedJobForFeature] = useState<any>(null)
   const [featureType, setFeatureType] = useState('') // 'featured' or 'urgent'
@@ -516,8 +514,8 @@ function EmployerDashboardContent() {
     
     if (!user?.id) {
       console.log('❌ CLIENT: No user ID, aborting')
-      return
-    }
+        return
+      }
     
     try {
       setIsLoading(true)
@@ -1435,24 +1433,24 @@ function EmployerDashboardContent() {
                               ⭐ Featured Active
                             </span>
                           ) : (
-                            <button
-                              onClick={() => openFeaturePurchase(job, 'featured')}
-                              className="text-yellow-600 hover:text-yellow-700 text-sm flex items-center gap-1"
-                            >
-                              ⭐ Feature Job
-                            </button>
+                          <button
+                            onClick={() => openFeaturePurchase(job, 'featured')}
+                            className="text-yellow-600 hover:text-yellow-700 text-sm flex items-center gap-1"
+                          >
+                            ⭐ Feature Job
+                          </button>
                           )}
                           {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) ? (
                             <span className="text-red-600 text-sm flex items-center gap-1 opacity-60">
                               🚨 Urgent Active
                             </span>
                           ) : (
-                            <button
-                              onClick={() => openFeaturePurchase(job, 'urgent')}
-                              className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1"
-                            >
-                              🚨 Mark Urgent
-                            </button>
+                          <button
+                            onClick={() => openFeaturePurchase(job, 'urgent')}
+                            className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1"
+                          >
+                            🚨 Mark Urgent
+                          </button>
                           )}
                         </div>
                         <div className="text-sm text-gray-500">
@@ -1574,8 +1572,8 @@ function EmployerDashboardContent() {
                           {app.resume_url && (
                           <button
                             onClick={() => {
-                              setSelectedApplication(app)
-                              setShowResumeViewer(true)
+                              // Open resume in new browser window
+                              window.open(app.resume_url, '_blank', 'noopener,noreferrer')
                             }}
                             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
                           >
@@ -1607,8 +1605,8 @@ function EmployerDashboardContent() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Resume Search</h2>
                 <div className="flex items-center gap-3">
-                  <div className="text-sm text-gray-600">
-                    Credits: {userCredits} • Each contact unlock uses 1 credit
+                <div className="text-sm text-gray-600">
+                  Credits: {userCredits} • Each contact unlock uses 1 credit
                   </div>
                   <button
                     onClick={() => setActiveTab('billing')}
@@ -1886,64 +1884,64 @@ function EmployerDashboardContent() {
               />
 
               {/* Subscription Plans Section */}
-              <div>
+                  <div>
                 <h2 className="text-xl font-bold mb-6">Subscription Plans</h2>
-                
-                <div className="grid md:grid-cols-4 gap-6 mb-8">
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold">Starter</h3>
-                      <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
-                      <div className="text-gray-600 text-sm">per month</div>
-                    </div>
-                    <ul className="space-y-2 mb-6 text-sm">
-                      <li>✅ 3 active job postings</li>
-                      <li>✅ Basic applicant management</li>
-                      <li>✅ Email support</li>
-                    </ul>
-                    {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
-                  </div>
 
-                  <div className="border border-orange-300 rounded-lg p-6 relative bg-orange-50">
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                        MOST POPULAR
-                      </span>
-                    </div>
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold">Growth</h3>
-                      <div className="text-3xl font-bold text-orange-500 my-2">$299</div>
-                      <div className="text-gray-600 text-sm">per month</div>
-                    </div>
-                    <ul className="space-y-2 mb-6 text-sm">
-                      <li>✅ 6 active job postings</li>
-                      <li>✅ Resume credits included</li>
-                      <li>✅ Priority support</li>
-                    </ul>
-                    {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
+              <div className="grid md:grid-cols-4 gap-6 mb-8">
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-semibold">Starter</h3>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
+                    <div className="text-gray-600 text-sm">per month</div>
                   </div>
+                  <ul className="space-y-2 mb-6 text-sm">
+                    <li>✅ 3 active job postings</li>
+                    <li>✅ Basic applicant management</li>
+                    <li>✅ Email support</li>
+                  </ul>
+                  {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
+                </div>
+
+                <div className="border border-orange-300 rounded-lg p-6 relative bg-orange-50">
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      MOST POPULAR
+                    </span>
+                  </div>
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-semibold">Growth</h3>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$299</div>
+                    <div className="text-gray-600 text-sm">per month</div>
+                  </div>
+                  <ul className="space-y-2 mb-6 text-sm">
+                    <li>✅ 6 active job postings</li>
+                    <li>✅ Resume credits included</li>
+                    <li>✅ Priority support</li>
+                  </ul>
+                  {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-semibold">Professional</h3>
+                    <div className="text-3xl font-bold text-orange-500 my-2">$599</div>
+                    <div className="text-gray-600 text-sm">per month</div>
+                  </div>
+                  <ul className="space-y-2 mb-6 text-sm">
+                    <li>✅ 15 active job postings</li>
+                    <li>✅ 25 resume credits included</li>
+                    <li>✅ Advanced analytics</li>
+                    <li>✅ Featured listings</li>
+                  </ul>
+                  {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
+              </div>
 
                   <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold">Professional</h3>
-                      <div className="text-3xl font-bold text-orange-500 my-2">$599</div>
-                      <div className="text-gray-600 text-sm">per month</div>
-                    </div>
-                    <ul className="space-y-2 mb-6 text-sm">
-                      <li>✅ 15 active job postings</li>
-                      <li>✅ 25 resume credits included</li>
-                      <li>✅ Advanced analytics</li>
-                      <li>✅ Featured listings</li>
-                    </ul>
-                    {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="text-center mb-4">
+                <div className="text-center mb-4">
                       <h3 className="text-xl font-semibold">Enterprise</h3>
                       <div className="text-3xl font-bold text-purple-600 my-2">$1,999</div>
                       <div className="text-gray-600 text-sm">per month</div>
-                    </div>
+                </div>
                     <ul className="space-y-2 mb-6 text-sm">
                       <li>✅ Unlimited job postings</li>
                       <li>✅ Unlimited resume access</li>
@@ -1951,8 +1949,8 @@ function EmployerDashboardContent() {
                     </ul>
                     {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
                   </div>
-                </div>
-              </div>
+                  </div>
+                  </div>
 
               {/* Single Job & Add-On Products Section */}
               <div>
@@ -1965,7 +1963,7 @@ function EmployerDashboardContent() {
                       <h3 className="text-xl font-semibold">Single Job</h3>
                       <div className="text-3xl font-bold text-orange-500 my-2">$99</div>
                       <div className="text-gray-600 text-sm">one-time</div>
-                    </div>
+                </div>
                     <ul className="space-y-2 mb-6 text-sm">
                       <li>✅ 1 job posting (30 days)</li>
                       <li>✅ Basic applicant management</li>
@@ -1979,77 +1977,77 @@ function EmployerDashboardContent() {
                       {isLoading ? 'Processing...' : 'Post Job - $99'}
                     </button>
                   </div>
-                </div>
+              </div>
 
                 {/* Premium Add-Ons */}
-                <div className="border-t border-gray-200 pt-8">
-                  <h3 className="text-lg font-semibold mb-4">Premium Add-Ons</h3>
-                  <div className="grid md:grid-cols-3 gap-4 mb-6">
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">Resume Credits - 10 Pack</h4>
-                      <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
-                      <p className="text-gray-600 text-sm mb-4">10 credits for candidate contact</p>
-                      <button
-                        onClick={() => handleAddonPurchase('resume_credits_10')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? 'Processing...' : 'Buy 10 Credits'}
-                      </button>
-                    </div>
-                    
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">Resume Credits - 25 Pack</h4>
-                      <div className="text-2xl font-bold text-orange-500 mb-2">$79</div>
-                      <p className="text-gray-600 text-sm mb-4">25 credits - Best Value</p>
-                      <button
-                        onClick={() => handleAddonPurchase('resume_credits_25')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? 'Processing...' : 'Buy 25 Credits'}
-                      </button>
-                    </div>
-                    
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">Resume Credits - 50 Pack</h4>
-                      <div className="text-2xl font-bold text-orange-500 mb-2">$129</div>
-                      <p className="text-gray-600 text-sm mb-4">50 credits for high volume</p>
-                      <button
-                        onClick={() => handleAddonPurchase('resume_credits_50')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
-                        disabled={isLoading}
-                      >
-                        {isLoading ? 'Processing...' : 'Buy 50 Credits'}
-                      </button>
-                    </div>
+              <div className="border-t border-gray-200 pt-8">
+                <h3 className="text-lg font-semibold mb-4">Premium Add-Ons</h3>
+                <div className="grid md:grid-cols-3 gap-4 mb-6">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Resume Credits - 10 Pack</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
+                    <p className="text-gray-600 text-sm mb-4">10 credits for candidate contact</p>
+                    <button
+                      onClick={() => handleAddonPurchase('resume_credits_10')}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Processing...' : 'Buy 10 Credits'}
+                    </button>
                   </div>
+                  
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Resume Credits - 25 Pack</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$79</div>
+                    <p className="text-gray-600 text-sm mb-4">25 credits - Best Value</p>
+                    <button
+                      onClick={() => handleAddonPurchase('resume_credits_25')}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Processing...' : 'Buy 25 Credits'}
+                    </button>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Resume Credits - 50 Pack</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$129</div>
+                    <p className="text-gray-600 text-sm mb-4">50 credits for high volume</p>
+                    <button
+                      onClick={() => handleAddonPurchase('resume_credits_50')}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Processing...' : 'Buy 50 Credits'}
+                    </button>
+                  </div>
+                </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">Featured Listing</h4>
-                      <div className="text-2xl font-bold text-orange-500 mb-2">$29</div>
-                      <p className="text-gray-600 text-sm mb-4">Top of search results with bright highlight badge</p>
-                      <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
-                      <button 
-                        onClick={() => setActiveTab('jobs')}
-                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
-                      >
-                        ⭐ Manage Featured Jobs
-                      </button>
-                    </div>
-                    
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-semibold mb-2">Urgent Badge</h4>
-                      <div className="text-2xl font-bold text-orange-500 mb-2">$19</div>
-                      <p className="text-gray-600 text-sm mb-4">Bright "URGENT" badge for immediate attention</p>
-                      <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
-                      <button 
-                        onClick={() => setActiveTab('jobs')}
-                        className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
-                      >
-                        🚨 Manage Urgent Jobs
-                      </button>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Featured Listing</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$29</div>
+                    <p className="text-gray-600 text-sm mb-4">Top of search results with bright highlight badge</p>
+                    <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
+                    <button 
+                      onClick={() => setActiveTab('jobs')}
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+                    >
+                      ⭐ Manage Featured Jobs
+                    </button>
+                  </div>
+                  
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">Urgent Badge</h4>
+                    <div className="text-2xl font-bold text-orange-500 mb-2">$19</div>
+                    <p className="text-gray-600 text-sm mb-4">Bright "URGENT" badge for immediate attention</p>
+                    <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
+                    <button 
+                      onClick={() => setActiveTab('jobs')}
+                      className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                    >
+                      🚨 Manage Urgent Jobs
+                    </button>
                     </div>
                   </div>
                 </div>
@@ -2435,7 +2433,7 @@ function EmployerDashboardContent() {
                   )}
                 </div>
                 <div>
-                  <strong>Status:</strong>
+                  <strong>Status:</strong> 
                   <select
                     value={selectedApplication.status || 'submitted'}
                     onChange={(e) => {
@@ -2464,15 +2462,6 @@ function EmployerDashboardContent() {
           </div>
         )}
 
-        {/* Secure Resume Viewer */}
-        {showResumeViewer && selectedApplication?.resume_url && (
-          <SecureResumeViewer
-            resumeUrl={selectedApplication.resume_url}
-            resumeFilename={selectedApplication.resume_filename}
-            applicantName={`${selectedApplication.first_name} ${selectedApplication.last_name}`}
-            onClose={() => setShowResumeViewer(false)}
-          />
-        )}
 
         {/* Feature Purchase Modal */}
         {showFeatureModal && selectedJobForFeature && (
