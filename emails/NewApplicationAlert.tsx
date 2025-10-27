@@ -34,9 +34,9 @@ export const NewApplicationAlertEmail = ({
       <Container style={container}>
         <Section style={header}>
           <Img
-            src="https://field-jobs.co/fieldjobs-logo.svg"
+            src="https://field-jobs.co/favicon.svg"
             alt="FieldJobs"
-            width="120"
+            width="40"
             height="40"
             style={logo}
           />

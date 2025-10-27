@@ -34,9 +34,9 @@ export const ApplicationRejectedEmail = ({
       <Container style={container}>
         <Section style={header}>
           <Img
-            src="https://field-jobs.co/fieldjobs-logo.svg"
+            src="https://field-jobs.co/favicon.svg"
             alt="FieldJobs"
-            width="120"
+            width="40"
             height="40"
             style={logo}
           />
@@ -51,7 +51,7 @@ export const ApplicationRejectedEmail = ({
           
           <Text style={text}>
             Thank you for your interest in the <strong>{jobTitle}</strong> position at <strong>{company}</strong>. 
-            After careful consideration, we have decided to move forward with other candidates for this role.
+            After careful consideration, they have decided to move forward with other candidates for this role.
           </Text>
           
           {rejectionReason && (
@@ -63,7 +63,7 @@ export const ApplicationRejectedEmail = ({
           )}
           
           <Text style={text}>
-            We encourage you to continue exploring other opportunities on our platform. 
+            We encourage you to continue exploring other opportunities on FieldJobs. 
             Your skills and experience may be a great fit for other positions.
           </Text>
           
@@ -74,12 +74,12 @@ export const ApplicationRejectedEmail = ({
           </Section>
           
           <Text style={text}>
-            Thank you for your interest in {company}.
+            Thank you for using FieldJobs.
           </Text>
           
           <Text style={text}>
             Best regards,<br />
-            The {company} Team
+            The FieldJobs Team
           </Text>
         </Section>
         

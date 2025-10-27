@@ -16,7 +16,17 @@ export async function POST(request) {
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [{ price: process.env.STRIPE_SINGLE_JOB_PRICE_ID, quantity: 1 }],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Single Job Posting',
+            description: 'Post one job for 30 days'
+          },
+          unit_amount: 9900, // $99.00
+        },
+        quantity: 1
+      }],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/employer?payment_success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/employer?payment_canceled=true`,

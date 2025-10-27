@@ -267,6 +267,7 @@ async function handleSubscriptionCreated(subscription) {
   try {
     const supabase = supabaseAdmin
     
+    // First, try to find existing subscription
     const { data: existingSub } = await supabase
       .from('subscriptions')
       .select('user_id')
@@ -274,12 +275,27 @@ async function handleSubscriptionCreated(subscription) {
       .limit(1)
       .single()
     
-    if (!existingSub) {
-      console.log('⚠️ No existing subscription found for customer, skipping')
-      return
+    let userId = existingSub?.user_id
+    
+    // If no existing subscription, find user by customer ID in profiles
+    if (!userId) {
+      console.log('🔍 No existing subscription found, looking up user by customer ID...')
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('stripe_customer_id', subscription.customer)
+        .single()
+      
+      if (profile) {
+        userId = profile.id
+        console.log('✅ Found user by customer ID:', userId)
+      } else {
+        console.log('❌ No user found for customer ID:', subscription.customer)
+        return
+      }
     }
     
-    await syncSubscriptionToDatabase(subscription, existingSub.user_id)
+    await syncSubscriptionToDatabase(subscription, userId)
     console.log('✅ Subscription created and synced')
     
   } catch (error) {
