@@ -1205,7 +1205,16 @@ function EmployerDashboardContent() {
                 </>
               ) : (
                 <button
-                  onClick={() => setShowJobForm(true)}
+                  onClick={() => {
+                    // Check if user has credits or active subscription
+                    if (subscription.tier === 'free' && subscription.credits === 0) {
+                      // Redirect to billing page
+                      setActiveTab('billing')
+                      alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
+                      return
+                    }
+                    setShowJobForm(true)
+                  }}
                   className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium"
                 >
                   Post New Job
@@ -1357,7 +1366,16 @@ function EmployerDashboardContent() {
                     </button>
                   )}
                   <button
-                    onClick={() => setShowJobForm(true)}
+                    onClick={() => {
+                      // Check if user has credits or active subscription
+                      if (subscription.tier === 'free' && subscription.credits === 0) {
+                        // Redirect to billing page
+                        setActiveTab('billing')
+                        alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
+                        return
+                      }
+                      setShowJobForm(true)
+                    }}
                     className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
                   >
                     Post New Job
@@ -1385,7 +1403,16 @@ function EmployerDashboardContent() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold">Job Postings ({jobs.length})</h2>
                 <button
-                  onClick={() => setShowJobForm(true)}
+                  onClick={() => {
+                    // Check if user has credits or active subscription
+                    if (subscription.tier === 'free' && subscription.credits === 0) {
+                      // Redirect to billing page
+                      setActiveTab('billing')
+                      alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
+                      return
+                    }
+                    setShowJobForm(true)
+                  }}
                   className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
                 >
                   Post New Job

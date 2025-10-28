@@ -38,6 +38,11 @@ export async function POST(request) {
       return await getBillingPortal(supabase, userId)
     }
 
+    // Handle billing history action separately (doesn't need subscription validation)
+    if (action === 'get_billing_history') {
+      return await getBillingHistory(userId)
+    }
+
     // ROBUST: Get and validate user's subscription
     const validSubscription = await getValidUserSubscription(supabase, userId)
     
@@ -646,11 +651,11 @@ async function getBillingPortal(supabase, userId) {
 }
 
 /**
- * Get billing history from Stripe
+ * Get comprehensive billing history from both Stripe and database
  */
 async function getBillingHistory(userId) {
   try {
-    console.log('📜 Fetching billing history for user:', userId)
+    console.log('📜 Fetching comprehensive billing history for user:', userId)
     
     // Get user's Stripe customer ID
     const cookieStore = cookies()
@@ -666,29 +671,91 @@ async function getBillingHistory(userId) {
       .limit(1)
       .single()
     
-    if (error || !subscription?.stripe_customer_id) {
-      console.error('❌ No Stripe customer found:', error)
-      return NextResponse.json({ 
-        success: true,
-        billingHistory: []
-      })
+    let billingHistory = []
+    
+    // 1. Get Stripe invoices (subscription payments)
+    if (!error && subscription?.stripe_customer_id) {
+      try {
+        const invoices = await stripe.invoices.list({
+          customer: subscription.stripe_customer_id,
+          limit: 100,
+        })
+        
+        const stripeHistory = invoices.data.map(invoice => ({
+          id: invoice.id,
+          date: new Date(invoice.created * 1000).toISOString(),
+          amount: invoice.amount_paid / 100,
+          status: invoice.status,
+          type: 'subscription',
+          invoice_pdf: invoice.invoice_pdf,
+          hosted_invoice_url: invoice.hosted_invoice_url,
+          description: invoice.lines.data[0]?.description || 'Subscription payment'
+        }))
+        
+        billingHistory = [...billingHistory, ...stripeHistory]
+        console.log(`✅ Found ${stripeHistory.length} Stripe invoices`)
+      } catch (stripeError) {
+        console.error('⚠️ Error fetching Stripe invoices:', stripeError)
+      }
     }
     
-    // Fetch invoices from Stripe
-    const invoices = await stripe.invoices.list({
-      customer: subscription.stripe_customer_id,
-      limit: 100,
-    })
+    // 2. Get one-time payments from database
+    try {
+      const { data: oneTimePayments, error: paymentsError } = await supabase
+        .from('one_time_payments')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+      
+      if (!paymentsError && oneTimePayments) {
+        const dbHistory = oneTimePayments.map(payment => ({
+          id: payment.stripe_session_id || payment.id,
+          date: payment.created_at,
+          amount: payment.amount_paid,
+          status: 'paid',
+          type: payment.payment_type,
+          description: getPaymentDescription(payment),
+          stripe_session_id: payment.stripe_session_id
+        }))
+        
+        billingHistory = [...billingHistory, ...dbHistory]
+        console.log(`✅ Found ${dbHistory.length} one-time payments`)
+      }
+    } catch (dbError) {
+      console.error('⚠️ Error fetching one-time payments:', dbError)
+    }
     
-    const billingHistory = invoices.data.map(invoice => ({
-      id: invoice.id,
-      date: new Date(invoice.created * 1000).toISOString(),
-      amount: invoice.amount_paid / 100,
-      status: invoice.status,
-      invoice_pdf: invoice.invoice_pdf,
-      hosted_invoice_url: invoice.hosted_invoice_url,
-      description: invoice.lines.data[0]?.description || 'Subscription payment'
-    }))
+    // 3. Get job feature purchases from database
+    try {
+      const { data: featurePurchases, error: featuresError } = await supabase
+        .from('job_feature_purchases')
+        .select('*')
+        .eq('user_id', userId)
+        .order('purchased_at', { ascending: false })
+      
+      if (!featuresError && featurePurchases) {
+        const featureHistory = featurePurchases.map(purchase => ({
+          id: purchase.stripe_session_id || purchase.id,
+          date: purchase.purchased_at,
+          amount: purchase.amount_paid,
+          status: 'paid',
+          type: 'feature',
+          description: getFeatureDescription(purchase),
+          stripe_session_id: purchase.stripe_session_id
+        }))
+        
+        billingHistory = [...billingHistory, ...featureHistory]
+        console.log(`✅ Found ${featureHistory.length} feature purchases`)
+      }
+    } catch (featureError) {
+      console.error('⚠️ Error fetching feature purchases:', featureError)
+    }
+    
+    // 4. Sort all billing history by date (newest first)
+    billingHistory.sort((a, b) => new Date(b.date) - new Date(a.date))
+    
+    console.log(`📊 Total billing history items: ${billingHistory.length}`)
     
     return NextResponse.json({
       success: true,
@@ -702,6 +769,40 @@ async function getBillingHistory(userId) {
       error: 'Failed to fetch billing history',
       details: error.message
     }, { status: 500 })
+  }
+}
+
+/**
+ * Get human-readable description for one-time payments
+ */
+function getPaymentDescription(payment) {
+  switch (payment.payment_type) {
+    case 'single_job':
+      return `Single Job Posting - ${payment.job_title || 'Job Posting'}`
+    case 'resume_credits_10':
+      return 'Resume Credits - 10 Pack'
+    case 'resume_credits_25':
+      return 'Resume Credits - 25 Pack'
+    case 'resume_credits_50':
+      return 'Resume Credits - 50 Pack'
+    default:
+      return payment.payment_type || 'One-time Payment'
+  }
+}
+
+/**
+ * Get human-readable description for feature purchases
+ */
+function getFeatureDescription(purchase) {
+  switch (purchase.feature_type) {
+    case 'featured_listing':
+    case 'featured':
+      return 'Featured Job Listing'
+    case 'urgent_badge':
+    case 'urgent':
+      return 'Urgent Job Badge'
+    default:
+      return purchase.feature_type || 'Job Feature'
   }
 }
 
