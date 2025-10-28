@@ -595,7 +595,7 @@ function EmployerDashboardContent() {
           tier: data.subscription.plan_type || 'free',
           credits: data.subscription.credits || 0,
           activeJobs: jobs.length || 0, // Use actual job count, not limit
-          activeJobsLimit: data.subscription.active_jobs_limit || 0, // Store limit separately
+          activeJobsLimit: data.subscription?.active_jobs_limit || data.active_jobs_limit || 0, // Store limit separately
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
@@ -760,7 +760,7 @@ function EmployerDashboardContent() {
             tier: data.subscription.plan_type || 'free',
             credits: data.subscription.credits || 0,
             activeJobs: jobs.length || 0, // Use actual job count, not limit
-            activeJobsLimit: data.subscription.active_jobs_limit || 0, // Store limit separately
+            activeJobsLimit: data.subscription?.active_jobs_limit || data.active_jobs_limit || 0, // Store limit separately
             status: data.subscription.status,
             currentPeriodEnd: data.subscription.current_period_end,
             stripeSubscriptionId: data.subscription.stripe_subscription_id || null
@@ -798,7 +798,7 @@ function EmployerDashboardContent() {
           tier: data.subscription.plan_type || 'free',
           credits: data.credits || 0,
           activeJobs: jobs.length || 0, // Use actual job count, not limit
-          activeJobsLimit: data.subscription.active_jobs_limit || 0, // Store limit separately
+          activeJobsLimit: data.subscription?.active_jobs_limit || data.active_jobs_limit || 0, // Store limit separately
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
@@ -1172,7 +1172,7 @@ function EmployerDashboardContent() {
               <p className="text-gray-600">Welcome back! Manage your job postings and applications.</p>
               {/* Debug info */}
               <p className="text-xs text-blue-600 mt-1">
-                Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobs}
+                Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobsLimit}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 📧 Contact: <a href="mailto:Employers@field-jobs.co" className="text-blue-600 hover:text-blue-800 underline">Employers@field-jobs.co</a>
@@ -1242,7 +1242,7 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">
                 {subscription.plan_type === 'enterprise' ? 'Job Postings' : 'Jobs Left'}
               </div>
-              {subscription.plan_type !== 'enterprise' && subscription.active_jobs_limit === 0 && (
+              {subscription.plan_type !== 'enterprise' && subscription.activeJobsLimit === 0 && (
                 <div className="text-xs text-gray-500 mt-1">Upgrade for more</div>
               )}
             </div>
