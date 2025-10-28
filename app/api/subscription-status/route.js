@@ -55,6 +55,42 @@ export async function GET(request) {
         .limit(1)
         .single()
 
+      // Also check for one-time payments (single job purchases)
+      const { data: oneTimePayments } = await supabase
+        .from('one_time_payments')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+
+      if (oneTimePayments && oneTimePayments.length > 0) {
+        console.log(`🔍 Found ${oneTimePayments.length} one-time payments for user`)
+        
+        // Check if any single job purchases are still valid (not expired)
+        const validSingleJobs = oneTimePayments.filter(payment => {
+          if (payment.payment_type === 'single_job') {
+            const purchaseDate = new Date(payment.created_at)
+            const expirationDate = new Date(purchaseDate.getTime() + (30 * 24 * 60 * 60 * 1000)) // 30 days
+            return new Date() < expirationDate
+          }
+          return false
+        })
+
+        if (validSingleJobs.length > 0) {
+          console.log(`✅ Found ${validSingleJobs.length} valid single job purchases`)
+          return NextResponse.json({
+            success: true,
+            subscription: null,
+            credits: 0,
+            plan_type: 'single_job',
+            status: 'active',
+            jobs_posted: 0,
+            active_jobs_limit: validSingleJobs.length,
+            single_job_purchases: validSingleJobs.length
+          })
+        }
+      }
+
       if (anySubscription?.stripe_customer_id) {
         try {
           // Check Stripe for active subscriptions

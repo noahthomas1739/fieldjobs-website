@@ -966,6 +966,15 @@ function EmployerDashboardContent() {
     
     if (!user?.id) return
     
+    // Check if user has credits or active subscription
+    if (subscription.tier === 'free' && subscription.credits === 0) {
+      // Redirect to billing page
+      setActiveTab('billing')
+      setShowJobForm(false)
+      alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
+      return
+    }
+    
     try {
       const method = editingJob ? 'PUT' : 'POST'
       const url = editingJob ? '/api/jobs/edit' : '/api/jobs'
@@ -1179,7 +1188,16 @@ function EmployerDashboardContent() {
                     🎁 First Job Free
                   </button>
                   <button
-                    onClick={() => setShowJobForm(true)}
+                    onClick={() => {
+                      // Check if user has credits or active subscription
+                      if (subscription.tier === 'free' && subscription.credits === 0) {
+                        // Redirect to billing page
+                        setActiveTab('billing')
+                        alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
+                        return
+                      }
+                      setShowJobForm(true)
+                    }}
                     className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium"
                   >
                     Post Job
@@ -2165,14 +2183,18 @@ function EmployerDashboardContent() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Duration *</label>
-                    <input
-                      type="text"
+                    <select
                       value={jobForm.duration}
                       onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="6 months"
                       required
                       className="w-full p-2 border border-gray-300 rounded"
-                    />
+                    >
+                      <option value="">Select Duration</option>
+                      <option value="0-6 months">0-6 months</option>
+                      <option value="6-12 months">6-12 months</option>
+                      <option value="12-18 months">12-18 months</option>
+                      <option value="18+ months">18+ months</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Start Date</label>
@@ -2195,15 +2217,19 @@ function EmployerDashboardContent() {
                       className="w-full p-2 border border-gray-300 rounded"
                     >
                       <option value="">Select Industry</option>
-                      <option value="Energy">Energy</option>
-                      <option value="Construction">Construction</option>
-                      <option value="Nuclear">Nuclear</option>
-                      <option value="Industrial">Industrial</option>
-                      <option value="Manufacturing">Manufacturing</option>
-                      <option value="Oil & Gas">Oil & Gas</option>
-                      <option value="Renewable Energy">Renewable Energy</option>
-                      <option value="Utilities">Utilities</option>
-                      <option value="Other">Other</option>
+                      <option value="nuclear">Nuclear Power</option>
+                      <option value="power-generation">Power Gen (Fossil)</option>
+                      <option value="ogc">OG&C</option>
+                      <option value="offshore">Offshore</option>
+                      <option value="renewable">Renewable</option>
+                      <option value="construction">Construction</option>
+                      <option value="aerospace">Aerospace</option>
+                      <option value="defense">Defense</option>
+                      <option value="electric-td">Electric T&D</option>
+                      <option value="pulp-paper">Pulp & Paper</option>
+                      <option value="manufacturing">Manufacturing</option>
+                      <option value="mining">Mining</option>
+                      <option value="other">Other</option>
                     </select>
                   </div>
                   <div>
@@ -2235,29 +2261,6 @@ function EmployerDashboardContent() {
                   />
                 </div>
                 
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Contact Email *</label>
-                    <input
-                      type="email"
-                      value={jobForm.contactEmail}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, contactEmail: e.target.value }))}
-                      required
-                      placeholder="hiring@company.com"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Contact Phone</label>
-                    <input
-                      type="tel"
-                      value={jobForm.contactPhone}
-                      onChange={(e) => setJobForm(prev => ({ ...prev, contactPhone: e.target.value }))}
-                      placeholder="(555) 123-4567"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
                 
                 <div className="flex justify-end gap-3">
                   <button

@@ -201,6 +201,31 @@ async function handleOneTimePayment(session) {
       console.log(`✅ Added ${creditsToAdd} credits`)
     }
     
+    // Handle single job purchases
+    else if (session.metadata?.payment_type === 'single_job') {
+      console.log('💼 Processing single job purchase...')
+      
+      // Record the one-time payment
+      const { error: paymentError } = await supabase
+        .from('one_time_payments')
+        .insert({
+          user_id: userId,
+          payment_type: 'single_job',
+          amount_paid: session.amount_total / 100,
+          status: 'completed',
+          stripe_session_id: session.id,
+          job_title: session.metadata?.job_title || 'Single Job Posting',
+          created_at: new Date().toISOString()
+        })
+      
+      if (paymentError) {
+        console.error('❌ Error recording single job payment:', paymentError)
+        throw paymentError
+      }
+      
+      console.log('✅ Single job purchase recorded successfully')
+    }
+    
     // Handle job feature purchases
     else if (addonType === 'featured_listing' || addonType === 'urgent_badge' || addonType === 'featured' || addonType === 'urgent') {
       console.log(`🎯 Processing ${addonType} purchase for job ${jobId}...`)
