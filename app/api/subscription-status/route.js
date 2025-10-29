@@ -57,10 +57,11 @@ export async function GET(request) {
 
       // Also check for one-time payments (single job purchases)
       const { data: oneTimePayments } = await supabase
-        .from('one_time_payments')
+        .from('payments')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'completed')
+        .eq('payment_type', 'single_job')
         .order('created_at', { ascending: false })
 
       if (oneTimePayments && oneTimePayments.length > 0) {

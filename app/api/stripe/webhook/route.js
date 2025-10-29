@@ -207,7 +207,7 @@ async function handleOneTimePayment(session) {
       
       // Record the one-time payment
       const { error: paymentError } = await supabase
-        .from('one_time_payments')
+        .from('payments')
         .insert({
           user_id: userId,
           payment_type: 'single_job',
@@ -316,7 +316,7 @@ async function handleSubscriptionCreated(subscription) {
         console.log('✅ Found user by customer ID:', userId)
       } else {
         console.log('❌ No user found for customer ID:', subscription.customer)
-        return
+      return
       }
     }
     
@@ -407,7 +407,7 @@ async function handlePaymentFailed(invoice) {
         })
         .eq('stripe_subscription_id', invoice.subscription)
       
-      console.log('✅ Subscription marked as past_due')
+        console.log('✅ Subscription marked as past_due')
     }
     
   } catch (error) {
@@ -522,5 +522,5 @@ async function cleanupOldSubscriptions(userId, newSubscriptionId) {
     .neq('stripe_subscription_id', newSubscriptionId)
     .in('status', ['active', 'trialing'])
   
-  console.log('✅ Old subscriptions cleaned up')
+    console.log('✅ Old subscriptions cleaned up')
 }

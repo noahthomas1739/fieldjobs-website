@@ -702,10 +702,11 @@ async function getBillingHistory(userId) {
     // 2. Get one-time payments from database
     try {
       const { data: oneTimePayments, error: paymentsError } = await supabase
-        .from('one_time_payments')
+        .from('payments')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'completed')
+        .eq('payment_type', 'single_job')
         .order('created_at', { ascending: false })
       
       if (!paymentsError && oneTimePayments) {
