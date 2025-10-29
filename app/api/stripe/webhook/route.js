@@ -207,14 +207,14 @@ async function handleOneTimePayment(session) {
       
       // Record the one-time payment
       const { error: paymentError } = await supabase
-        .from('stripe_payments')
+        .from('payments')
         .insert({
           user_id: userId,
           payment_type: 'single_job',
-          amount_paid: session.amount_total / 100,
+          amount: session.amount_total, // Store in cents as integer
           status: 'completed',
-          stripe_session_id: session.id,
-          job_title: session.metadata?.job_title || 'Single Job Posting',
+          stripe_payment_intent_id: session.payment_intent,
+          description: session.metadata?.job_title || 'Single Job Posting',
           created_at: new Date().toISOString()
         })
       

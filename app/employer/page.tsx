@@ -589,9 +589,9 @@ function EmployerDashboardContent() {
       
       console.log('📊 Subscription API response:', data)
       
-      if (data.success && data.subscription) {
-        console.log('✅ Setting subscription state:', data.subscription.plan_type)
-        const subscriptionData = {
+      if (data.success) {
+        // Handle both subscription and single job purchase responses
+        const subscriptionData = data.subscription ? {
           tier: data.subscription.plan_type || 'free',
           credits: data.subscription.credits || 0,
           activeJobs: jobs.length || 0, // Use actual job count, not limit
@@ -599,12 +599,24 @@ function EmployerDashboardContent() {
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
+        } : {
+          // Handle single job purchases (data at top level)
+          // For single job purchases, tier should still be 'free' but with job credits
+          tier: 'free', // Always 'free' for a-la-carte purchases
+          credits: data.credits || 0,
+          activeJobs: jobs.length || 0, // Use actual job count, not limit
+          activeJobsLimit: data.active_jobs_limit || 0, // Store limit separately
+          status: data.status || 'active',
+          currentPeriodEnd: null,
+          stripeSubscriptionId: null
         }
+        
+        console.log('✅ Setting subscription state:', subscriptionData.tier)
         setSubscription(subscriptionData)
         console.log('✅ Subscription state set:', subscriptionData)
       } else {
         console.log('ℹ️ No active subscription found, setting free tier')
-        setSubscription({ tier: 'free', credits: 0, activeJobs: 0, stripeSubscriptionId: null })
+        setSubscription({ tier: 'free', credits: 0, activeJobs: 0, activeJobsLimit: 0, stripeSubscriptionId: null })
       }
     } catch (error) {
       console.error('❌ Error loading subscription:', error)
@@ -966,8 +978,8 @@ function EmployerDashboardContent() {
     
     if (!user?.id) return
     
-    // Check if user has credits or active subscription
-    if (subscription.tier === 'free' && subscription.credits === 0) {
+    // Check if user has credits, active subscription, or single job purchases
+    if (subscription.tier === 'free' && subscription.credits === 0 && subscription.activeJobsLimit === 0) {
       // Redirect to billing page
       setActiveTab('billing')
       setShowJobForm(false)
@@ -1189,8 +1201,8 @@ function EmployerDashboardContent() {
                   </button>
                   <button
                     onClick={() => {
-                      // Check if user has credits or active subscription
-                      if (subscription.tier === 'free' && subscription.credits === 0) {
+                      // Check if user has credits, active subscription, or single job purchases
+                      if (subscription.tier === 'free' && subscription.credits === 0 && subscription.activeJobsLimit === 0) {
                         // Redirect to billing page
                         setActiveTab('billing')
                         alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
@@ -1367,8 +1379,8 @@ function EmployerDashboardContent() {
                   )}
                   <button
                     onClick={() => {
-                      // Check if user has credits or active subscription
-                      if (subscription.tier === 'free' && subscription.credits === 0) {
+                      // Check if user has credits, active subscription, or single job purchases
+                      if (subscription.tier === 'free' && subscription.credits === 0 && subscription.activeJobsLimit === 0) {
                         // Redirect to billing page
                         setActiveTab('billing')
                         alert('You need to purchase a subscription or single job posting to post jobs. Redirecting to billing...')
