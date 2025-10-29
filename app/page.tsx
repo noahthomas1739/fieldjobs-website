@@ -251,6 +251,11 @@ export default function HomePage() {
   }
 
   const filterAndSortJobs = () => {
+    // Debug: Log all unique industry values in jobs
+    const uniqueIndustries = [...new Set(jobs.map((job: any) => job.industry).filter(Boolean))]
+    console.log('🔍 Unique industries in jobs:', uniqueIndustries)
+    console.log('🔍 Active filters:', activeFilters)
+    
     let filtered = jobs.filter((job: any) => {
       // Search input filter
       const matchesSearch = !searchInput || 
@@ -273,8 +278,8 @@ export default function HomePage() {
       // Classification filter
       const matchesClassification = !classificationFilter || job.classification === classificationFilter
       
-      // Industry filters - handle both type and category
-      const jobIndustry = job.type || job.category || ''
+      // Industry filters - handle industry field
+      const jobIndustry = job.industry || ''
       const matchesIndustry = activeFilters.length === 0 || activeFilters.includes(jobIndustry)
       
       // Date filter
