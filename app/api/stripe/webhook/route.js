@@ -205,16 +205,16 @@ async function handleOneTimePayment(session) {
     else if (session.metadata?.payment_type === 'single_job') {
       console.log('💼 Processing single job purchase...')
       
-      // Record the one-time payment
+      // Record the one-time payment in stripe_payments table
       const { error: paymentError } = await supabase
-        .from('payments')
+        .from('stripe_payments')
         .insert({
           user_id: userId,
           payment_type: 'single_job',
-          amount: session.amount_total, // Store in cents as integer
+          amount_paid: session.amount_total / 100, // Convert cents to dollars
           status: 'completed',
-          stripe_payment_intent_id: session.payment_intent,
-          description: session.metadata?.job_title || 'Single Job Posting',
+          stripe_session_id: session.id,
+          job_title: session.metadata?.job_title || 'Single Job Posting',
           created_at: new Date().toISOString()
         })
       
