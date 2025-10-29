@@ -1349,6 +1349,10 @@ export default function HomePage() {
                       <span style={{ fontSize: '1rem' }}>💼</span>
                       <span>{job.jobType || job.job_type || 'Full Time'}</span>
                     </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '1rem' }}>🏭</span>
+                      <span>{job.industry || 'Other'}</span>
+                    </div>
                   </div>
                   
                   {/* Description */}
@@ -1755,10 +1759,11 @@ export default function HomePage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                 <div><strong>Company:</strong> {selectedJob.company}</div>
                 <div><strong>Location:</strong> {selectedJob.location || selectedJob.region}</div>
+                <div><strong>Industry:</strong> {selectedJob.industry || 'Other'}</div>
                 <div><strong>Hourly Rate:</strong> {selectedJob.hourly_rate || selectedJob.hourlyRate || selectedJob.salary_range}</div>
                 <div><strong>Duration:</strong> {selectedJob.duration || 'Not specified'}</div>
                 <div><strong>Job Type:</strong> {selectedJob.jobType || selectedJob.job_type}</div>
-                <div><strong>Experience:</strong> {selectedJob.classification}</div>
+                <div><strong>Experience Level:</strong> {selectedJob.classification || selectedJob.experience_level}</div>
                 <div><strong>Posted:</strong> {getPostedText(selectedJob)}</div>
               </div>
             </div>
