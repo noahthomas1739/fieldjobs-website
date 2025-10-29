@@ -57,7 +57,7 @@ export async function GET(request) {
 
       // Also check for one-time payments (single job purchases)
       const { data: oneTimePayments } = await supabase
-        .from('payments')
+        .from('stripe_payments')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'completed')
