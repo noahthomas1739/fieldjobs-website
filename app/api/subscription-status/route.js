@@ -268,7 +268,35 @@ async function processSubscriptionResponse(userId, subscription, supabase) {
     })
   }
 
-  console.log(`✅ Active subscription found: ${subscription.plan_type}, ${totalCredits} total credits`)
+  // Check for additional single job purchases
+  let additionalSingleJobs = 0
+  try {
+    const { data: singleJobPayments } = await supabase
+      .from('stripe_payments')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .eq('payment_type', 'single_job')
+      .order('created_at', { ascending: false })
+
+    if (singleJobPayments && singleJobPayments.length > 0) {
+      // Check if any single job purchases are still valid (not expired)
+      const validSingleJobs = singleJobPayments.filter(payment => {
+        const purchaseDate = new Date(payment.created_at)
+        const expirationDate = new Date(purchaseDate.getTime() + (30 * 24 * 60 * 60 * 1000)) // 30 days
+        return new Date() < expirationDate
+      })
+      
+      additionalSingleJobs = validSingleJobs.length
+      console.log(`✅ Found ${additionalSingleJobs} additional single job purchases for subscribed user`)
+    }
+  } catch (singleJobError) {
+    console.error('⚠️ Error fetching single job purchases for subscribed user:', singleJobError)
+  }
+
+  const totalJobLimit = (subscription.active_jobs_limit || 0) + additionalSingleJobs
+
+  console.log(`✅ Active subscription found: ${subscription.plan_type}, ${totalCredits} total credits, ${totalJobLimit} total job limit`)
 
   return NextResponse.json({
     success: true,
@@ -277,7 +305,7 @@ async function processSubscriptionResponse(userId, subscription, supabase) {
     plan_type: subscription.plan_type || 'free',
     status: subscription.status || 'inactive',
     jobs_posted: subscription.jobs_posted || 0,
-    active_jobs_limit: subscription.active_jobs_limit || 0,
+    active_jobs_limit: totalJobLimit,
     current_period_start: subscription.current_period_start,
     current_period_end: subscription.current_period_end
   })
