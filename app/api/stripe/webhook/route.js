@@ -207,7 +207,7 @@ async function handleOneTimePayment(session) {
       
       // Record the one-time payment
       const { error: paymentError } = await supabase
-        .from('payments')
+        .from('stripe_payments')
         .insert({
           user_id: userId,
           payment_type: 'single_job',
