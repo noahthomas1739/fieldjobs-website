@@ -79,11 +79,13 @@ export async function POST(request) {
       const activeSub = existingSubscriptions[0]
       console.log('🚫 Active subscription found:', activeSub.plan_type)
       
+      // If they have a subscription, redirect to billing portal for upgrade/downgrade
       return NextResponse.json({ 
-        error: 'You already have an active subscription',
+        error: 'Active subscription found in Stripe',
         currentPlan: activeSub.plan_type,
-        message: `You currently have an active ${activeSub.plan_type} plan. Please use the upgrade/downgrade options instead of purchasing a new subscription.`,
-        shouldUpgrade: true
+        message: 'You have an active subscription. Please use upgrade/downgrade options.',
+        shouldUpgrade: true,
+        redirectToBilling: true
       }, { status: 400 })
     }
 
@@ -137,7 +139,8 @@ export async function POST(request) {
           return NextResponse.json({ 
             error: 'Active subscription found in Stripe',
             message: 'You have an active subscription. Please use upgrade/downgrade options.',
-            shouldUpgrade: true
+            shouldUpgrade: true,
+            redirectToBilling: true
           }, { status: 400 })
         }
       } catch (error) {

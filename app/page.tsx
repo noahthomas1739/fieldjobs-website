@@ -278,9 +278,34 @@ export default function HomePage() {
       // Classification filter
       const matchesClassification = !classificationFilter || job.classification === classificationFilter
       
-      // Industry filters - handle industry field
+      // Industry filters - handle industry field with legacy value mapping
       const jobIndustry = job.industry || ''
-      const matchesIndustry = activeFilters.length === 0 || activeFilters.includes(jobIndustry)
+      
+      // Map legacy industry values to new standardized keys
+      const industryMap: { [key: string]: string } = {
+        'industrial': 'manufacturing',
+        'technical': 'manufacturing',
+        'computer': 'manufacturing',
+        'power generation': 'power-generation',
+        'power-gen': 'power-generation',
+        'oil & gas': 'ogc',
+        'oil and gas': 'ogc',
+        'petrochem': 'ogc',
+        'alternative': 'renewable',
+        'alt energy': 'renewable',
+        'alt-energy': 'renewable'
+      }
+      
+      // Normalize job industry (lowercase and map if needed)
+      const normalizedJobIndustry = jobIndustry.toLowerCase()
+      const mappedIndustry = industryMap[normalizedJobIndustry] || normalizedJobIndustry
+      
+      const matchesIndustry = activeFilters.length === 0 || 
+        activeFilters.some(filter => 
+          filter === mappedIndustry || 
+          filter === normalizedJobIndustry ||
+          normalizedJobIndustry.includes(filter)
+        )
       
       // Date filter
       const postedDays = job.postedDays || calculateDaysAgo(job.created_at)

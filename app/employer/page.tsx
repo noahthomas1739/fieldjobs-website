@@ -394,8 +394,32 @@ function EmployerDashboardContent() {
       console.log('Subscription response:', data) // Debug log
       
       if (!response.ok) {
-        if (data.shouldUpgrade) {
-          alert(data.message)
+        if (data.shouldUpgrade || data.redirectToBilling) {
+          // User has an active subscription, redirect to billing portal
+          alert(data.message + ' Redirecting to billing portal...')
+          
+          // Open billing portal
+          try {
+            const portalResponse = await fetch('/api/stripe/manage-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                action: 'get_billing_portal',
+                userId: user.id
+              })
+            })
+            
+            const portalData = await portalResponse.json()
+            if (portalData.url) {
+              window.location.href = portalData.url
+            } else {
+              // Fallback: just switch to billing tab
+              setActiveTab('billing')
+            }
+          } catch (error) {
+            console.error('Error opening billing portal:', error)
+            setActiveTab('billing')
+          }
           return
         }
         throw new Error(data.error || `HTTP ${response.status}`)
