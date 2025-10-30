@@ -227,6 +227,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
   const getPlanDisplayName = (planType) => {
     const names = {
       'free': 'Free Account',
+      'single_job': 'Single Job Purchase',
       'starter': 'Starter Plan',
       'professional': 'Professional Plan',
       'enterprise': 'Enterprise Plan'
@@ -285,6 +286,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 <div className={`${isSubscriptionCancelled ? 'text-red-700' : 'text-white'}`}>
                   {subscription?.plan_type === 'free' 
                     ? 'Upgrade to unlock premium features'
+                    : subscription?.plan_type === 'single_job'
+                    ? `${subscription?.active_jobs_limit || 0} job posting${subscription?.active_jobs_limit !== 1 ? 's' : ''} available`
                     : isSubscriptionCancelled
                     ? `Active until ${getNextBillingDate()}`
                     : `${formatPrice(subscription?.price || 0)}/month • Next billing: ${getNextBillingDate()}`
@@ -292,7 +295,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 </div>
               </div>
               
-              {subscription?.plan_type !== 'free' && (
+              {subscription?.plan_type !== 'free' && subscription?.plan_type !== 'single_job' && (
                 <div className="flex gap-2">
                   {isSubscriptionCancelled ? (
                     <button
@@ -356,8 +359,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setActiveTab('billing')}
-                disabled={subscription?.plan_type === 'free'}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
               >
                 View Billing History
               </button>
@@ -365,7 +367,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 onClick={() => setActiveTab('plans')}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
               >
-                {subscription?.plan_type === 'free' ? 'Upgrade Plan' : 'Change Plan'}
+                {subscription?.plan_type === 'free' || subscription?.plan_type === 'single_job' ? 'Upgrade Plan' : 'Change Plan'}
               </button>
             </div>
           </div>

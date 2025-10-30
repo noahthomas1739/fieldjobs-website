@@ -625,8 +625,8 @@ function EmployerDashboardContent() {
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
         } : {
           // Handle single job purchases (data at top level)
-          // For single job purchases, tier should still be 'free' but with job credits
-          tier: 'free', // Always 'free' for a-la-carte purchases
+          // Use plan_type from API response (will be 'single_job' for a-la-carte purchases)
+          tier: data.plan_type || 'free',
           credits: data.credits || 0,
           activeJobs: jobs.length || 0, // Use actual job count, not limit
           activeJobsLimit: data.active_jobs_limit || 0, // Store limit separately
