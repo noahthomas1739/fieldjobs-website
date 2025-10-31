@@ -143,27 +143,41 @@ export async function POST(request) {
           try {
             const planDetails = getPlanDetailsFromAmount(activeSubscription.items.data[0]?.price?.unit_amount || 0)
             
-            await supabase
+            // Check if subscription already exists
+            const { data: existingSub } = await supabase
               .from('subscriptions')
-              .upsert({
-                user_id: userId,
-                stripe_customer_id: customerId,
-                stripe_subscription_id: activeSubscription.id,
-                plan_type: planDetails.planType,
-                status: 'active',
-                price: planDetails.price,
-                active_jobs_limit: planDetails.jobLimit,
-                credits: planDetails.credits,
-                current_period_start: new Date(activeSubscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(activeSubscription.current_period_end * 1000).toISOString(),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'user_id',
-                ignoreDuplicates: false
-              })
+              .select('id')
+              .eq('user_id', userId)
+              .eq('stripe_subscription_id', activeSubscription.id)
+              .single()
             
-            console.log('✅ Subscription synced to database')
+            if (!existingSub) {
+              // Insert new subscription
+              const { error: insertError } = await supabase
+                .from('subscriptions')
+                .insert({
+                  user_id: userId,
+                  stripe_customer_id: customerId,
+                  stripe_subscription_id: activeSubscription.id,
+                  plan_type: planDetails.planType,
+                  status: 'active',
+                  price: planDetails.price,
+                  active_jobs_limit: planDetails.jobLimit,
+                  credits: planDetails.credits,
+                  current_period_start: new Date(activeSubscription.current_period_start * 1000).toISOString(),
+                  current_period_end: new Date(activeSubscription.current_period_end * 1000).toISOString(),
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+              
+              if (insertError) {
+                console.error('⚠️ Failed to insert subscription:', insertError)
+              } else {
+                console.log('✅ Subscription synced to database')
+              }
+            } else {
+              console.log('✅ Subscription already exists in database')
+            }
           } catch (syncError) {
             console.error('⚠️ Failed to sync subscription to database:', syncError)
           }

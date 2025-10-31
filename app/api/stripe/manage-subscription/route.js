@@ -602,8 +602,10 @@ async function getBillingPortal(supabase, userId) {
   try {
     console.log('🔗 Creating billing portal session for user:', userId)
     
-    // Get user's Stripe customer ID
-    const { data: subscription, error } = await supabase
+    // Get user's Stripe customer ID from subscriptions table first
+    let stripeCustomerId = null
+    
+    const { data: subscription } = await supabase
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('user_id', userId)
@@ -611,15 +613,25 @@ async function getBillingPortal(supabase, userId) {
       .limit(1)
       .single()
     
-    if (error) {
-      console.error('❌ Database error fetching subscription:', error)
-      return NextResponse.json({ 
-        error: 'Database error',
-        message: 'Unable to fetch subscription information. Please try again.'
-      }, { status: 500 })
+    if (subscription?.stripe_customer_id) {
+      stripeCustomerId = subscription.stripe_customer_id
+      console.log('✅ Found customer ID from subscription:', stripeCustomerId)
+    } else {
+      // If no subscription found, check profile
+      console.log('⚠️ No subscription found, checking profile...')
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', userId)
+        .single()
+      
+      if (profile?.stripe_customer_id) {
+        stripeCustomerId = profile.stripe_customer_id
+        console.log('✅ Found customer ID from profile:', stripeCustomerId)
+      }
     }
     
-    if (!subscription?.stripe_customer_id) {
+    if (!stripeCustomerId) {
       console.error('❌ No Stripe customer ID found for user:', userId)
       return NextResponse.json({ 
         error: 'No billing information found',
@@ -629,9 +641,9 @@ async function getBillingPortal(supabase, userId) {
     }
     
     // Create billing portal session
-    console.log('✅ Creating Stripe billing portal for customer:', subscription.stripe_customer_id)
+    console.log('✅ Creating Stripe billing portal for customer:', stripeCustomerId)
     const session = await stripe.billingPortal.sessions.create({
-      customer: subscription.stripe_customer_id,
+      customer: stripeCustomerId,
       return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?tab=subscription`,
     })
     
