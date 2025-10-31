@@ -433,11 +433,16 @@ async function handlePaymentFailed(invoice) {
 // Sync subscription to database
 async function syncSubscriptionToDatabase(subscription, userId) {
   console.log('🔵 Syncing subscription to database...')
+  console.log('🔵 Subscription ID:', subscription.id)
+  console.log('🔵 User ID:', userId)
   
   const supabase = supabaseAdmin
   
   const priceId = subscription.items.data[0]?.price?.id
   const planType = getPlanTypeFromPriceId(priceId)
+  
+  console.log('🔵 Plan type:', planType)
+  console.log('🔵 Price ID:', priceId)
   
   const planLimits = {
     starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
@@ -449,6 +454,7 @@ async function syncSubscriptionToDatabase(subscription, userId) {
   const limits = planLimits[planType] || planLimits.starter
   
   const subscriptionData = {
+    user_id: userId,
     plan_type: planType,
     status: subscription.status === 'canceled' ? 'cancelled' : subscription.status,
     stripe_subscription_id: subscription.id,
@@ -458,6 +464,7 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     price: limits.price,
     current_period_start: toIsoFromUnixSeconds(subscription.current_period_start),
     current_period_end: toIsoFromUnixSeconds(subscription.current_period_end),
+    created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }
   
@@ -465,17 +472,37 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     subscriptionData.cancelled_at = toIsoFromUnixSeconds(subscription.canceled_at) || new Date().toISOString()
   }
   
-  const { error } = await supabase
-    .from('subscriptions')
-    .upsert({
-      user_id: userId,
-      ...subscriptionData
-    }, {
-      onConflict: 'user_id',
-      ignoreDuplicates: false
-    })
+  console.log('🔵 Checking if subscription already exists...')
   
-  if (error) throw error
+  // Check if subscription already exists
+  const { data: existing } = await supabase
+    .from('subscriptions')
+    .select('id')
+    .eq('stripe_subscription_id', subscription.id)
+    .single()
+  
+  if (existing) {
+    console.log('✅ Subscription already exists, updating...')
+    const { error } = await supabase
+      .from('subscriptions')
+      .update(subscriptionData)
+      .eq('stripe_subscription_id', subscription.id)
+    
+    if (error) {
+      console.error('❌ Error updating subscription:', error)
+      throw error
+    }
+  } else {
+    console.log('✅ Creating new subscription...')
+    const { error } = await supabase
+      .from('subscriptions')
+      .insert(subscriptionData)
+    
+    if (error) {
+      console.error('❌ Error inserting subscription:', error)
+      throw error
+    }
+  }
   
   console.log('✅ Subscription synced successfully')
 }
