@@ -1269,15 +1269,13 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-indigo-500">
-                {subscription.plan_type === 'enterprise' 
-                  ? 'Unlimited'
+                {subscription.tier === 'enterprise' 
+                  ? '∞'
                   : `${Math.max(0, (subscription.activeJobsLimit || 0) - jobs.length)}`
                 }
               </div>
-              <div className="text-sm text-gray-600">
-                {subscription.plan_type === 'enterprise' ? 'Job Postings' : 'Jobs Left'}
-              </div>
-              {subscription.plan_type !== 'enterprise' && subscription.activeJobsLimit === 0 && (
+              <div className="text-sm text-gray-600">Jobs Left</div>
+              {subscription.tier !== 'enterprise' && subscription.activeJobsLimit === 0 && (
                 <div className="text-xs text-gray-500 mt-1">Upgrade for more</div>
               )}
             </div>
@@ -1286,7 +1284,9 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">Total Applications</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-purple-500">{userCredits}</div>
+              <div className="text-2xl font-bold text-purple-500">
+                {subscription.tier === 'enterprise' ? '∞' : userCredits}
+              </div>
               <div className="text-sm text-gray-600">Resume Credits</div>
             </div>
           </div>

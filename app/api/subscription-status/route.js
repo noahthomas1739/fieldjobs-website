@@ -360,7 +360,7 @@ function getPlanDetailsFromStripeSubscription(stripeSubscription) {
     19900: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
     29900: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
     59900: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
-    199900: { planType: 'enterprise', price: 199900, jobLimit: 999999, credits: 100 }
+    199900: { planType: 'enterprise', price: 199900, jobLimit: 999999, credits: 999999 }
   }
   
   return planMapping[amount] || { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 }

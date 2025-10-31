@@ -58,33 +58,33 @@ export async function POST(request) {
 
     // Handle different webhook events
     try {
-      switch (event.type) {
-        case 'checkout.session.completed':
-          await handleCheckoutCompleted(event.data.object)
-          break
-          
-        case 'customer.subscription.created':
-          await handleSubscriptionCreated(event.data.object)
-          break
-          
-        case 'customer.subscription.updated':
-          await handleSubscriptionUpdated(event.data.object)
-          break
-          
-        case 'customer.subscription.deleted':
-          await handleSubscriptionDeleted(event.data.object)
-          break
-          
-        case 'invoice.payment_failed':
-          await handlePaymentFailed(event.data.object)
-          break
-          
-        default:
-          console.log(`🔵 Unhandled event type: ${event.type}`)
-      }
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutCompleted(event.data.object)
+        break
+        
+      case 'customer.subscription.created':
+        await handleSubscriptionCreated(event.data.object)
+        break
+        
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(event.data.object)
+        break
+        
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(event.data.object)
+        break
+        
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(event.data.object)
+        break
+        
+      default:
+        console.log(`🔵 Unhandled event type: ${event.type}`)
+    }
 
-      console.log('✅ Webhook completed successfully')
-      return NextResponse.json({ received: true })
+    console.log('✅ Webhook completed successfully')
+    return NextResponse.json({ received: true })
     } catch (handlerError) {
       console.error('❌ Event handler error:', handlerError.message)
       console.error('❌ Event handler stack:', handlerError.stack)
@@ -448,7 +448,7 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
     growth: { active_jobs_limit: 6, credits: 5, price: 29900 },
     professional: { active_jobs_limit: 15, credits: 25, price: 59900 },
-    enterprise: { active_jobs_limit: 999999, credits: 100, price: 199900 }
+    enterprise: { active_jobs_limit: 999999, credits: 999999, price: 199900 }
   }
   
   const limits = planLimits[planType] || planLimits.starter
@@ -497,10 +497,10 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     const { error } = await supabase
       .from('subscriptions')
       .insert(subscriptionData)
-    
-    if (error) {
+  
+  if (error) {
       console.error('❌ Error inserting subscription:', error)
-      throw error
+    throw error
     }
   }
   
