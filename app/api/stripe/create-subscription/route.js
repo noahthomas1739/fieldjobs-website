@@ -135,7 +135,39 @@ export async function POST(request) {
         })
 
         if (stripeSubscriptions.data.length > 0) {
-          console.log('🚫 Found active subscription in Stripe:', stripeSubscriptions.data[0].id)
+          const activeSubscription = stripeSubscriptions.data[0]
+          console.log('🚫 Found active subscription in Stripe:', activeSubscription.id)
+          
+          // Sync this subscription to the database so it shows up on next load
+          console.log('🔄 Syncing missing subscription from Stripe to database...')
+          try {
+            const planDetails = getPlanDetailsFromAmount(activeSubscription.items.data[0]?.price?.unit_amount || 0)
+            
+            await supabase
+              .from('subscriptions')
+              .upsert({
+                user_id: userId,
+                stripe_customer_id: customerId,
+                stripe_subscription_id: activeSubscription.id,
+                plan_type: planDetails.planType,
+                status: 'active',
+                price: planDetails.price,
+                active_jobs_limit: planDetails.jobLimit,
+                credits: planDetails.credits,
+                current_period_start: new Date(activeSubscription.current_period_start * 1000).toISOString(),
+                current_period_end: new Date(activeSubscription.current_period_end * 1000).toISOString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'user_id',
+                ignoreDuplicates: false
+              })
+            
+            console.log('✅ Subscription synced to database')
+          } catch (syncError) {
+            console.error('⚠️ Failed to sync subscription to database:', syncError)
+          }
+          
           return NextResponse.json({ 
             error: 'Active subscription found in Stripe',
             message: 'You have an active subscription. Please use upgrade/downgrade options.',
@@ -273,4 +305,16 @@ export async function POST(request) {
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     }, { status: 500 })
   }
+}
+
+// Helper function to map Stripe price amounts to plan details
+function getPlanDetailsFromAmount(amount) {
+  const planMapping = {
+    19900: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
+    29900: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
+    59900: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
+    199900: { planType: 'enterprise', price: 199900, jobLimit: 999999, credits: 100 }
+  }
+  
+  return planMapping[amount] || { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 }
 }
