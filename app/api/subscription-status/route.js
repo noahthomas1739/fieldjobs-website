@@ -47,13 +47,31 @@ export async function GET(request) {
     if (!subscription) {
       console.log('🔍 No active subscription in database, checking Stripe...')
       
-      // Get user's customer ID from any subscription record
+      // Get user's customer ID from any subscription record OR from profile
+      let stripeCustomerId = null
+      
       const { data: anySubscription } = await supabase
         .from('subscriptions')
         .select('stripe_customer_id')
         .eq('user_id', userId)
         .limit(1)
         .single()
+      
+      if (anySubscription?.stripe_customer_id) {
+        stripeCustomerId = anySubscription.stripe_customer_id
+      } else {
+        // If no subscription found, check profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('stripe_customer_id')
+          .eq('id', userId)
+          .single()
+        
+        if (profile?.stripe_customer_id) {
+          stripeCustomerId = profile.stripe_customer_id
+          console.log('✅ Found customer ID from profile:', stripeCustomerId)
+        }
+      }
 
       // Also check for one-time payments (single job purchases)
       const { data: oneTimePayments } = await supabase
@@ -83,7 +101,7 @@ export async function GET(request) {
             success: true,
             subscription: null,
             credits: 0,
-            plan_type: 'single_job',
+            plan_type: 'free',
             status: 'active',
             jobs_posted: 0,
             active_jobs_limit: validSingleJobs.length,
@@ -92,11 +110,11 @@ export async function GET(request) {
         }
       }
 
-      if (anySubscription?.stripe_customer_id) {
+      if (stripeCustomerId) {
         try {
           // Check Stripe for active subscriptions
           const activeSubscriptions = await stripe.subscriptions.list({
-            customer: anySubscription.stripe_customer_id,
+            customer: stripeCustomerId,
             status: 'active',
             limit: 10
           })
@@ -117,15 +135,15 @@ export async function GET(request) {
               .from('subscriptions')
               .insert({
                 user_id: userId,
-                stripe_customer_id: anySubscription.stripe_customer_id,
+                stripe_customer_id: stripeCustomerId,
                 stripe_subscription_id: stripeSubscription.id,
                 plan_type: planDetails.planType,
                 status: 'active',
                 price: planDetails.price,
                 active_jobs_limit: planDetails.jobLimit,
                 credits: planDetails.credits,
-                current_period_start: new Date(stripeSubscription.items.data[0].current_period_start * 1000).toISOString(),
-                current_period_end: new Date(stripeSubscription.items.data[0].current_period_end * 1000).toISOString(),
+                current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+                current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })

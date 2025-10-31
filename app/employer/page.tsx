@@ -619,17 +619,16 @@ function EmployerDashboardContent() {
           tier: data.subscription.plan_type || 'free',
           credits: data.subscription.credits || 0,
           activeJobs: jobs.length || 0, // Use actual job count, not limit
-          activeJobsLimit: data.subscription?.active_jobs_limit || data.active_jobs_limit || 0, // Store limit separately
+          activeJobsLimit: data.active_jobs_limit || data.subscription?.active_jobs_limit || 0, // Use top-level (includes single jobs)
           status: data.subscription.status,
           currentPeriodEnd: data.subscription.current_period_end,
           stripeSubscriptionId: data.subscription.stripe_subscription_id || null
         } : {
-          // Handle single job purchases (data at top level)
-          // Use plan_type from API response (will be 'single_job' for a-la-carte purchases)
-          tier: data.plan_type || 'free',
+          // Handle free tier with optional single job purchases
+          tier: 'free', // Always show 'free' for non-subscription users
           credits: data.credits || 0,
           activeJobs: jobs.length || 0, // Use actual job count, not limit
-          activeJobsLimit: data.active_jobs_limit || 0, // Store limit separately
+          activeJobsLimit: data.active_jobs_limit || 0, // Store limit separately (includes single job purchases)
           status: data.status || 'active',
           currentPeriodEnd: null,
           stripeSubscriptionId: null
