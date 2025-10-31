@@ -57,33 +57,47 @@ export async function POST(request) {
     console.log('🔵 Received Stripe webhook:', event.type)
 
     // Handle different webhook events
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutCompleted(event.data.object)
-        break
-        
-      case 'customer.subscription.created':
-        await handleSubscriptionCreated(event.data.object)
-        break
-        
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object)
-        break
-        
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object)
-        break
-        
-      case 'invoice.payment_failed':
-        await handlePaymentFailed(event.data.object)
-        break
-        
-      default:
-        console.log(`🔵 Unhandled event type: ${event.type}`)
-    }
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutCompleted(event.data.object)
+          break
+          
+        case 'customer.subscription.created':
+          await handleSubscriptionCreated(event.data.object)
+          break
+          
+        case 'customer.subscription.updated':
+          await handleSubscriptionUpdated(event.data.object)
+          break
+          
+        case 'customer.subscription.deleted':
+          await handleSubscriptionDeleted(event.data.object)
+          break
+          
+        case 'invoice.payment_failed':
+          await handlePaymentFailed(event.data.object)
+          break
+          
+        default:
+          console.log(`🔵 Unhandled event type: ${event.type}`)
+      }
 
-    console.log('✅ Webhook completed successfully')
-    return NextResponse.json({ received: true })
+      console.log('✅ Webhook completed successfully')
+      return NextResponse.json({ received: true })
+    } catch (handlerError) {
+      console.error('❌ Event handler error:', handlerError.message)
+      console.error('❌ Event handler stack:', handlerError.stack)
+      console.error('❌ Event type:', event.type)
+      console.error('❌ Event data:', JSON.stringify(event.data.object, null, 2))
+      
+      // Return 200 to prevent Stripe from retrying, but log the error
+      return NextResponse.json({ 
+        received: true, 
+        error: handlerError.message,
+        note: 'Error logged but returning 200 to prevent retry loop' 
+      })
+    }
     
   } catch (error) {
     console.error('❌ WEBHOOK ERROR:', error.message)
@@ -481,26 +495,44 @@ function getPlanTypeFromPriceId(priceId) {
 // Handle subscription success
 async function handleSubscriptionSuccess(session) {
   console.log('🔵 === SUBSCRIPTION HANDLER STARTED ===')
+  console.log('🔵 Session ID:', session.id)
+  console.log('🔵 Session metadata:', JSON.stringify(session.metadata, null, 2))
   
   try {
     const supabase = supabaseAdmin
     
-    const userId = session.metadata.userId || session.metadata.user_id
-    const planType = session.metadata.planType || session.metadata.plan_type
+    const userId = session.metadata?.userId || session.metadata?.user_id
+    const planType = session.metadata?.planType || session.metadata?.plan_type
+    
+    console.log('🔵 Extracted userId:', userId)
+    console.log('🔵 Extracted planType:', planType)
     
     if (!userId || !planType) {
-      throw new Error('Missing userId or planType in metadata')
+      console.error('❌ Missing metadata - userId:', userId, 'planType:', planType)
+      throw new Error(`Missing userId or planType in metadata. userId: ${userId}, planType: ${planType}`)
     }
 
+    if (!session.subscription) {
+      console.error('❌ No subscription ID in session')
+      throw new Error('No subscription ID in checkout session')
+    }
+
+    console.log('🔵 Retrieving subscription from Stripe:', session.subscription)
     const subscription = await stripe.subscriptions.retrieve(session.subscription)
+    console.log('✅ Subscription retrieved:', subscription.id)
     
+    console.log('🔵 Cleaning up old subscriptions...')
     await cleanupOldSubscriptions(userId, subscription.id)
+    
+    console.log('🔵 Syncing subscription to database...')
     await syncSubscriptionToDatabase(subscription, userId)
     
     console.log('✅ === SUBSCRIPTION HANDLER COMPLETED ===')
     
   } catch (error) {
     console.error('❌ === SUBSCRIPTION HANDLER FAILED ===')
+    console.error('❌ Error:', error.message)
+    console.error('❌ Stack:', error.stack)
     throw error
   }
 }
