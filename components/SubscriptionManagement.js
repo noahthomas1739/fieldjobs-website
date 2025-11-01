@@ -388,8 +388,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ 3 active job postings</li>
-                  <li>✓ Jobs stay active indefinitely</li>
-                  <li>✓ Basic applicant management</li>
+                  <li>✓ 0 resume credits</li>
                   <li>✓ Email support</li>
                 </ul>
                 
@@ -430,9 +429,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ 6 active job postings</li>
-                  <li>✓ Jobs stay active indefinitely</li>
-                  <li>✓ Resume credits included</li>
-                  <li>✓ Priority support</li>
+                  <li>✓ 5 resume credits</li>
+                  <li>✓ Email support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'growth' ? (
@@ -466,10 +464,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ 15 active job postings</li>
-                  <li>✓ Jobs stay active indefinitely</li>
                   <li>✓ 25 resume credits</li>
-                  <li>✓ Advanced analytics</li>
-                  <li>✓ Featured listings</li>
+                  <li>✓ Priority support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'professional' ? (
@@ -499,8 +495,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ Unlimited job postings</li>
-                  <li>✓ Jobs stay active indefinitely</li>
-                  <li>✓ Unlimited resume access</li>
+                  <li>✓ Unlimited resume credits</li>
+                  <li>✓ Priority support</li>
                   <li>✓ Dedicated account manager</li>
                 </ul>
                 
