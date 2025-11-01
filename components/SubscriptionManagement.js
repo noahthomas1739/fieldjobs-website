@@ -497,7 +497,6 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   <li>✓ Unlimited job postings</li>
                   <li>✓ Unlimited resume credits</li>
                   <li>✓ Priority support</li>
-                  <li>✓ Dedicated account manager</li>
                 </ul>
                 
                 {subscription?.plan_type === 'enterprise' ? (
