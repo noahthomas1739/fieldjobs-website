@@ -696,7 +696,7 @@ async function getBillingHistory(userId) {
         const stripeHistory = invoices.data.map(invoice => ({
           id: invoice.id,
           date: new Date(invoice.created * 1000).toISOString(),
-          amount: invoice.amount_paid / 100,
+          amount: invoice.amount_paid, // Keep in cents for consistent formatting
           status: invoice.status,
           type: 'subscription',
           invoice_pdf: invoice.invoice_pdf,
@@ -725,7 +725,7 @@ async function getBillingHistory(userId) {
         const dbHistory = oneTimePayments.map(payment => ({
           id: payment.stripe_session_id || payment.id,
           date: payment.created_at,
-          amount: payment.amount_paid,
+          amount: payment.amount_paid * 100, // Convert dollars to cents for consistent formatting
           status: 'paid',
           type: payment.payment_type,
           description: getPaymentDescription(payment),
@@ -751,7 +751,7 @@ async function getBillingHistory(userId) {
         const featureHistory = featurePurchases.map(purchase => ({
           id: purchase.stripe_session_id || purchase.id,
           date: purchase.purchased_at,
-          amount: purchase.amount_paid,
+          amount: purchase.amount_paid * 100, // Convert dollars to cents for consistent formatting
           status: 'paid',
           type: 'feature',
           description: getFeatureDescription(purchase),
