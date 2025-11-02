@@ -722,15 +722,38 @@ async function getBillingHistory(userId) {
         .order('created_at', { ascending: false })
       
       if (!paymentsError && oneTimePayments) {
-        const dbHistory = oneTimePayments.map(payment => ({
-          id: payment.stripe_session_id || payment.id,
-          date: payment.created_at,
-          amount: payment.amount_paid * 100, // Convert dollars to cents for consistent formatting
-          status: 'paid',
-          type: payment.payment_type,
-          description: getPaymentDescription(payment),
-          stripe_session_id: payment.stripe_session_id
-        }))
+        // Fetch invoice URLs from Stripe checkout sessions
+        const dbHistoryPromises = oneTimePayments.map(async (payment) => {
+          let hosted_invoice_url = null
+          
+          // Try to get invoice URL from Stripe checkout session
+          if (payment.stripe_session_id) {
+            try {
+              const session = await stripe.checkout.sessions.retrieve(payment.stripe_session_id)
+              
+              // If session has an invoice, get the invoice URL
+              if (session.invoice) {
+                const invoice = await stripe.invoices.retrieve(session.invoice)
+                hosted_invoice_url = invoice.hosted_invoice_url
+              }
+            } catch (sessionError) {
+              console.error(`⚠️ Error fetching invoice for session ${payment.stripe_session_id}:`, sessionError.message)
+            }
+          }
+          
+          return {
+            id: payment.stripe_session_id || payment.id,
+            date: payment.created_at,
+            amount: payment.amount_paid * 100, // Convert dollars to cents for consistent formatting
+            status: 'paid',
+            type: payment.payment_type,
+            description: getPaymentDescription(payment),
+            stripe_session_id: payment.stripe_session_id,
+            hosted_invoice_url
+          }
+        })
+        
+        const dbHistory = await Promise.all(dbHistoryPromises)
         
         billingHistory = [...billingHistory, ...dbHistory]
         console.log(`✅ Found ${dbHistory.length} one-time payments`)
@@ -748,15 +771,38 @@ async function getBillingHistory(userId) {
         .order('purchased_at', { ascending: false })
       
       if (!featuresError && featurePurchases) {
-        const featureHistory = featurePurchases.map(purchase => ({
-          id: purchase.stripe_session_id || purchase.id,
-          date: purchase.purchased_at,
-          amount: purchase.amount_paid * 100, // Convert dollars to cents for consistent formatting
-          status: 'paid',
-          type: 'feature',
-          description: getFeatureDescription(purchase),
-          stripe_session_id: purchase.stripe_session_id
-        }))
+        // Fetch invoice URLs from Stripe checkout sessions
+        const featureHistoryPromises = featurePurchases.map(async (purchase) => {
+          let hosted_invoice_url = null
+          
+          // Try to get invoice URL from Stripe checkout session
+          if (purchase.stripe_session_id) {
+            try {
+              const session = await stripe.checkout.sessions.retrieve(purchase.stripe_session_id)
+              
+              // If session has an invoice, get the invoice URL
+              if (session.invoice) {
+                const invoice = await stripe.invoices.retrieve(session.invoice)
+                hosted_invoice_url = invoice.hosted_invoice_url
+              }
+            } catch (sessionError) {
+              console.error(`⚠️ Error fetching invoice for session ${purchase.stripe_session_id}:`, sessionError.message)
+            }
+          }
+          
+          return {
+            id: purchase.stripe_session_id || purchase.id,
+            date: purchase.purchased_at,
+            amount: purchase.amount_paid * 100, // Convert dollars to cents for consistent formatting
+            status: 'paid',
+            type: 'feature',
+            description: getFeatureDescription(purchase),
+            stripe_session_id: purchase.stripe_session_id,
+            hosted_invoice_url
+          }
+        })
+        
+        const featureHistory = await Promise.all(featureHistoryPromises)
         
         billingHistory = [...billingHistory, ...featureHistory]
         console.log(`✅ Found ${featureHistory.length} feature purchases`)

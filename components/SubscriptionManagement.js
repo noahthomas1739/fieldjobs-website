@@ -12,7 +12,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
   const [scheduledChanges, setScheduledChanges] = useState([])
 
   useEffect(() => {
-    if (activeTab === 'billing' && subscription?.stripe_customer_id) {
+    // Auto-load billing history when tab is active (removed stripe_customer_id requirement)
+    if (activeTab === 'billing' && user?.id) {
       loadBillingHistory()
     }
     // Load scheduled changes when component mounts or user changes
