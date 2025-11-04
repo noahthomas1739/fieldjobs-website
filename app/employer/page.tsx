@@ -1304,7 +1304,8 @@ function EmployerDashboardContent() {
               { id: 'applications', label: 'Applications', icon: '📧', badge: applications.length },
               { id: 'resume-search', label: 'Resume Search', icon: '🔍' },
               { id: 'analytics', label: 'Analytics', icon: '📈' },
-              { id: 'billing', label: 'Products & Billing', icon: '🛒' }
+              { id: 'billing', label: 'Products & Billing', icon: '🛒' },
+              { id: 'profile', label: 'Profile', icon: '👤' }
             ].map(tab => (
               <button
                 key={tab.id}
