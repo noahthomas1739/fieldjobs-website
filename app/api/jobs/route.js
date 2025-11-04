@@ -227,10 +227,18 @@ export async function POST(request) {
     const finalEmployerId = employerId || userId
     const finalIndustry = primaryIndustry || industry
 
-    // Validate required fields
-    if (!finalEmployerId || !title || !company || !description || !contactEmail || !region || !hourlyRate) {
+    // Validate required fields (removed contactEmail/contactPhone as employers reach out to seekers)
+    if (!finalEmployerId || !title || !company || !description || !region || !hourlyRate) {
+      console.log('❌ Missing required fields:', {
+        finalEmployerId: !!finalEmployerId,
+        title: !!title,
+        company: !!company,
+        description: !!description,
+        region: !!region,
+        hourlyRate: !!hourlyRate
+      })
       return Response.json({ 
-        error: 'Missing required fields' 
+        error: 'Missing required fields: title, company, description, region, and hourly rate are required' 
       }, { status: 400 })
     }
 
@@ -242,8 +250,8 @@ export async function POST(request) {
         company: company.trim(),
         description: description.trim(),
         requirements: requirements || '',
-        contact_email: contactEmail.trim(),
-        contact_phone: contactPhone || '',
+        contact_email: contactEmail ? contactEmail.trim() : '', // Optional - employers reach out to seekers
+        contact_phone: contactPhone || '', // Optional - employers reach out to seekers
         region: region,
         hourly_rate: hourlyRate,
         duration: duration || '',
