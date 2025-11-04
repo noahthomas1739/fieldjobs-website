@@ -1967,7 +1967,7 @@ function EmployerDashboardContent() {
                   <div>
                 <h2 className="text-xl font-bold mb-6">Subscription Plans</h2>
 
-              <div className="grid md:grid-cols-4 gap-6 mb-8">
+              <div className="grid md:grid-cols-5 gap-4 mb-8">
                 <div className="border border-gray-200 rounded-lg p-6">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Starter</h3>
@@ -1976,7 +1976,7 @@ function EmployerDashboardContent() {
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ 3 active job postings</li>
-                    <li>✅ Basic applicant management</li>
+                    <li>✅ 0 resume credits</li>
                     <li>✅ Email support</li>
                   </ul>
                   {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
@@ -1995,8 +1995,8 @@ function EmployerDashboardContent() {
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ 6 active job postings</li>
-                    <li>✅ Resume credits included</li>
-                    <li>✅ Priority support</li>
+                    <li>✅ 5 resume credits</li>
+                    <li>✅ Email support</li>
                   </ul>
                   {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
                 </div>
@@ -2009,24 +2009,39 @@ function EmployerDashboardContent() {
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ 15 active job postings</li>
-                    <li>✅ 25 resume credits included</li>
+                    <li>✅ 25 resume credits</li>
                     <li>✅ Priority support</li>
                   </ul>
                   {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
               </div>
 
-                  <div className="border border-gray-200 rounded-lg p-6">
+                  <div className="border border-purple-200 rounded-lg p-6 bg-purple-50">
                 <div className="text-center mb-4">
                       <h3 className="text-xl font-semibold">Enterprise</h3>
-                      <div className="text-3xl font-bold text-purple-600 my-2">$1,999</div>
-                      <div className="text-gray-600 text-sm">per month</div>
+                      <div className="text-3xl font-bold text-purple-600 my-2">$167</div>
+                      <div className="text-gray-600 text-xs">per month<br/>billed annually at $1,999</div>
                 </div>
                     <ul className="space-y-2 mb-6 text-sm">
                       <li>✅ Unlimited job postings</li>
-                      <li>✅ Unlimited resume access</li>
-                      <li>✅ Dedicated account manager</li>
+                      <li>✅ Unlimited resume credits</li>
+                      <li>✅ Priority support</li>
                     </ul>
                     {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
+                  </div>
+
+                  <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
+                <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold">Unlimited</h3>
+                      <div className="text-3xl font-bold text-indigo-600 my-2">$292</div>
+                      <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,499</div>
+                </div>
+                    <ul className="space-y-2 mb-6 text-sm">
+                      <li>✅ Unlimited job postings</li>
+                      <li>✅ Unlimited resume credits</li>
+                      <li>✅ Priority support</li>
+                      <li>✅ Dedicated account manager</li>
+                    </ul>
+                    {renderSubscriptionButton('unlimited', process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
                   </div>
                   </div>
                   </div>
