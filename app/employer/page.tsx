@@ -89,6 +89,19 @@ function EmployerDashboardContent() {
     contactPhone: ''
   })
 
+  // Profile editing states
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [profileForm, setProfileForm] = useState({
+    company: '',
+    phone: '',
+    email: '',
+    website: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: ''
+  })
+
   // Application filtering states
   const [selectedJobFilter, setSelectedJobFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('') // Empty = show all statuses
@@ -1174,8 +1187,6 @@ function EmployerDashboardContent() {
   // FIXED: Only show loading if auth is loading AND no user yet, OR if dashboard is loading but we have a user
   const shouldShowLoading = (loading && !user) || (user && isLoading)
   
-  console.log('🔄 Loading check - auth loading:', loading, 'user exists:', !!user, 'dashboard loading:', isLoading, 'should show loading:', shouldShowLoading)
-  
   if (shouldShowLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -1191,11 +1202,6 @@ function EmployerDashboardContent() {
         </div>
       </div>
     )
-  }
-
-  // Debug log
-  if (typeof window !== 'undefined') {
-    console.log('✅ Rendering dashboard - subscription tier:', subscription.tier)
   }
 
   return (
@@ -2106,7 +2112,245 @@ function EmployerDashboardContent() {
             </div>
           )}
 
+          {/* Profile Tab */}
+          {activeTab === 'profile' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Profile Settings</h2>
+                {!isEditingProfile ? (
+                  <button
+                    onClick={() => {
+                      setIsEditingProfile(true)
+                      setProfileForm({
+                        company: profile.company || '',
+                        phone: profile.phone || '',
+                        email: user?.email || '',
+                        website: profile.website || '',
+                        address: profile.address || '',
+                        city: profile.city || '',
+                        state: profile.state || '',
+                        zipCode: profile.zip_code || ''
+                      })
+                    }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    ✏️ Edit Profile
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setIsEditingProfile(false)}
+                      className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          setIsLoading(true)
+                          const { error } = await supabase
+                            .from('profiles')
+                            .update({
+                              company: profileForm.company,
+                              phone: profileForm.phone,
+                              website: profileForm.website,
+                              address: profileForm.address,
+                              city: profileForm.city,
+                              state: profileForm.state,
+                              zip_code: profileForm.zipCode,
+                              updated_at: new Date().toISOString()
+                            })
+                            .eq('id', user?.id)
 
+                          if (error) throw error
+
+                          alert('✅ Profile updated successfully!')
+                          setIsEditingProfile(false)
+                          // Reload profile data
+                          const { data } = await supabase
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', user?.id)
+                            .single()
+                          if (data) setProfile(data)
+                        } catch (error) {
+                          console.error('Error updating profile:', error)
+                          alert('❌ Failed to update profile')
+                        } finally {
+                          setIsLoading(false)
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                    >
+                      {isLoading ? 'Saving...' : '💾 Save Changes'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile Information */}
+              <div className="bg-white rounded-lg p-6 shadow">
+                <h3 className="text-lg font-semibold mb-4">Company Information</h3>
+                
+                {isEditingProfile ? (
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Company Name *</label>
+                        <input
+                          type="text"
+                          value={profileForm.company}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, company: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Phone</label>
+                        <input
+                          type="tel"
+                          value={profileForm.phone}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Email</label>
+                        <input
+                          type="email"
+                          value={profileForm.email}
+                          disabled
+                          className="w-full p-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Website</label>
+                        <input
+                          type="url"
+                          value={profileForm.website}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, website: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
+                          placeholder="https://www.example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Address</label>
+                      <input
+                        type="text"
+                        value={profileForm.address}
+                        onChange={(e) => setProfileForm(prev => ({ ...prev, address: e.target.value }))}
+                        className="w-full p-2 border border-gray-300 rounded"
+                        placeholder="123 Main St"
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">City</label>
+                        <input
+                          type="text"
+                          value={profileForm.city}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, city: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">State</label>
+                        <input
+                          type="text"
+                          value={profileForm.state}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, state: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
+                          placeholder="TX"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Zip Code</label>
+                        <input
+                          type="text"
+                          value={profileForm.zipCode}
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, zipCode: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
+                          placeholder="12345"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Company Name</p>
+                        <p className="font-medium">{profile.company || 'Not set'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Phone</p>
+                        <p className="font-medium">{profile.phone || 'Not set'}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Email</p>
+                        <p className="font-medium">{user?.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Website</p>
+                        <p className="font-medium">{profile.website || 'Not set'}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-500">Address</p>
+                      <p className="font-medium">
+                        {profile.address || profile.city || profile.state || profile.zip_code
+                          ? `${profile.address || ''} ${profile.city || ''}, ${profile.state || ''} ${profile.zip_code || ''}`.trim()
+                          : 'Not set'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Account Information */}
+              <div className="bg-white rounded-lg p-6 shadow">
+                <h3 className="text-lg font-semibold mb-4">Account Information</h3>
+                <div className="space-y-3">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Account Type</p>
+                      <p className="font-medium capitalize">{profile.account_type || 'Employer'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Member Since</p>
+                      <p className="font-medium">
+                        {profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Current Plan</p>
+                      <p className="font-medium capitalize">{subscription.tier || 'Free'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Resume Credits</p>
+                      <p className="font-medium">{userCredits}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
 
