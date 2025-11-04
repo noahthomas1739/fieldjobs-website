@@ -1286,7 +1286,7 @@ function EmployerDashboardContent() {
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-500">
                 {subscription.tier === 'enterprise' ? '∞' : userCredits}
-              </div>
+            </div>
               <div className="text-sm text-gray-600">Resume Credits</div>
             </div>
           </div>
@@ -1965,117 +1965,70 @@ function EmployerDashboardContent() {
 
               {/* Subscription Plans Section */}
                   <div>
-                <h2 className="text-xl font-bold mb-6">Subscription Plans</h2>
+                <h2 className="text-xl font-bold mb-6">Plans & Pricing</h2>
 
-              <div className="grid md:grid-cols-5 gap-4 mb-8">
-                <div className="border border-gray-200 rounded-lg p-6">
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="border border-orange-200 rounded-lg p-6 bg-orange-50">
                   <div className="text-center mb-4">
-                    <h3 className="text-xl font-semibold">Starter</h3>
+                    <h3 className="text-xl font-semibold">Single Job Post</h3>
                     <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
-                    <div className="text-gray-600 text-sm">per month</div>
+                    <div className="text-gray-600 text-sm">one-time payment</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ 3 active job postings</li>
-                    <li>✅ 0 resume credits</li>
+                    <li>✅ 1 job posting</li>
+                    <li>✅ 60-day duration</li>
+                    <li>✅ Full applicant access</li>
                     <li>✅ Email support</li>
                   </ul>
-                  {renderSubscriptionButton('starter', process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '')}
+                  <button 
+                    onClick={handleSingleJobPurchase}
+                    disabled={isLoading}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+                  >
+                    {isLoading ? 'Processing...' : 'Purchase Now'}
+                  </button>
                 </div>
 
-                <div className="border border-orange-300 rounded-lg p-6 relative bg-orange-50">
+                <div className="border border-purple-300 rounded-lg p-6 bg-purple-50 relative">
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                      MOST POPULAR
+                    <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      BEST VALUE
                     </span>
                   </div>
                   <div className="text-center mb-4">
-                    <h3 className="text-xl font-semibold">Growth</h3>
-                    <div className="text-3xl font-bold text-orange-500 my-2">$299</div>
-                    <div className="text-gray-600 text-sm">per month</div>
+                    <h3 className="text-xl font-semibold">Enterprise</h3>
+                    <div className="text-3xl font-bold text-purple-600 my-2">$167</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $1,999</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ 6 active job postings</li>
-                    <li>✅ 5 resume credits</li>
-                    <li>✅ Email support</li>
-                  </ul>
-                  {renderSubscriptionButton('growth', process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '')}
-                </div>
-
-                <div className="border border-gray-200 rounded-lg p-6">
-                  <div className="text-center mb-4">
-                    <h3 className="text-xl font-semibold">Professional</h3>
-                    <div className="text-3xl font-bold text-orange-500 my-2">$599</div>
-                    <div className="text-gray-600 text-sm">per month</div>
-                  </div>
-                  <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ 15 active job postings</li>
-                    <li>✅ 25 resume credits</li>
+                    <li>✅ Unlimited job postings</li>
+                    <li>✅ Unlimited resume credits</li>
                     <li>✅ Priority support</li>
+                    <li>✅ Advanced analytics</li>
                   </ul>
-                  {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
+                  {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
+                </div>
+
+                <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-semibold">Unlimited</h3>
+                    <div className="text-3xl font-bold text-indigo-600 my-2">$292</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,499</div>
+                  </div>
+                  <ul className="space-y-2 mb-6 text-sm">
+                    <li>✅ Everything in Enterprise</li>
+                    <li>✅ Dedicated account manager</li>
+                    <li>✅ Custom integrations</li>
+                    <li>✅ Priority feature requests</li>
+                  </ul>
+                  {renderSubscriptionButton('unlimited', process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
+                </div>
+              </div>
               </div>
 
-                  <div className="border border-purple-200 rounded-lg p-6 bg-purple-50">
-                <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold">Enterprise</h3>
-                      <div className="text-3xl font-bold text-purple-600 my-2">$167</div>
-                      <div className="text-gray-600 text-xs">per month<br/>billed annually at $1,999</div>
-                </div>
-                    <ul className="space-y-2 mb-6 text-sm">
-                      <li>✅ Unlimited job postings</li>
-                      <li>✅ Unlimited resume credits</li>
-                      <li>✅ Priority support</li>
-                    </ul>
-                    {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
-                  </div>
-
-                  <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
-                <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold">Unlimited</h3>
-                      <div className="text-3xl font-bold text-indigo-600 my-2">$292</div>
-                      <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,499</div>
-                </div>
-                    <ul className="space-y-2 mb-6 text-sm">
-                      <li>✅ Unlimited job postings</li>
-                      <li>✅ Unlimited resume credits</li>
-                      <li>✅ Priority support</li>
-                      <li>✅ Dedicated account manager</li>
-                    </ul>
-                    {renderSubscriptionButton('unlimited', process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
-                  </div>
-                  </div>
-                  </div>
-
-              {/* Single Job & Add-On Products Section */}
+              {/* Premium Add-Ons Section */}
               <div>
-                <h2 className="text-xl font-bold mb-6">Single Job Postings & Add-Ons</h2>
-                
-                {/* Single Job Posting */}
-                <div className="grid md:grid-cols-1 gap-6 mb-8">
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-semibold">Single Job</h3>
-                      <div className="text-3xl font-bold text-orange-500 my-2">$99</div>
-                      <div className="text-gray-600 text-sm">one-time</div>
-                </div>
-                    <ul className="space-y-2 mb-6 text-sm">
-                      <li>✅ 1 job posting (30 days)</li>
-                      <li>✅ Basic applicant management</li>
-                      <li>✅ Email support</li>
-                    </ul>
-                    <button 
-                      onClick={() => handleSingleJobPurchase()}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Processing...' : 'Post Job - $99'}
-                    </button>
-                  </div>
-              </div>
-
-                {/* Premium Add-Ons */}
-              <div className="border-t border-gray-200 pt-8">
-                <h3 className="text-lg font-semibold mb-4">Premium Add-Ons</h3>
+                <h2 className="text-xl font-bold mb-6">Premium Add-Ons</h2>
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold mb-2">Resume Credits - 10 Pack</h4>
@@ -2421,27 +2374,129 @@ function EmployerDashboardContent() {
                   />
                 </div>
                 
+                <div>
+                  <label className="block text-sm font-medium mb-1">Requirements</label>
+                  <textarea
+                    value={jobForm.requirements}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, requirements: e.target.value }))}
+                    rows={3}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Region *</label>
-                    <input
-                      type="text"
+                    <select
                       value={jobForm.region}
                       onChange={(e) => setJobForm(prev => ({ ...prev, region: e.target.value }))}
                       required
                       className="w-full p-2 border border-gray-300 rounded"
-                    />
+                    >
+                      <option value="">Select Region</option>
+                      <option value="northeast">Northeast US</option>
+                      <option value="southeast">Southeast US</option>
+                      <option value="midwest">Midwest US</option>
+                      <option value="southwest">Southwest US</option>
+                      <option value="west">West US</option>
+                      <option value="canada">Canada</option>
+                      <option value="mexico">Mexico</option>
+                      <option value="nationwide">US Nationwide</option>
+                      <option value="international">International</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Hourly Rate</label>
+                    <label className="block text-sm font-medium mb-1">Hourly Rate *</label>
                     <input
                       type="text"
                       value={jobForm.hourlyRate}
                       onChange={(e) => setJobForm(prev => ({ ...prev, hourlyRate: e.target.value }))}
                       placeholder="$50-75/hr"
+                      required
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </div>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Duration *</label>
+                    <select
+                      value={jobForm.duration}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, duration: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select Duration</option>
+                      <option value="0-6 months">0-6 months</option>
+                      <option value="6-12 months">6-12 months</option>
+                      <option value="12-18 months">12-18 months</option>
+                      <option value="18+ months">18+ months</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={jobForm.startDate}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, startDate: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Industry *</label>
+                    <select
+                      value={jobForm.industry}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, industry: e.target.value }))}
+                      required
+                      className="w-full p-2 border border-gray-300 rounded"
+                    >
+                      <option value="">Select Industry</option>
+                      <option value="nuclear">Nuclear Power</option>
+                      <option value="power-generation">Power Gen (Fossil)</option>
+                      <option value="ogc">OG&C</option>
+                      <option value="offshore">Offshore</option>
+                      <option value="renewable">Renewable</option>
+                      <option value="construction">Construction</option>
+                      <option value="aerospace">Aerospace</option>
+                      <option value="defense">Defense</option>
+                      <option value="electric-td">Electric T&D</option>
+                      <option value="pulp-paper">Pulp & Paper</option>
+                      <option value="manufacturing">Manufacturing</option>
+                      <option value="mining">Mining</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Experience Level *</label>
+                    <select
+                      value={jobForm.classification}
+                      onChange={(e) => setJobForm(prev => ({ ...prev, classification: e.target.value }))}
+                      className="w-full p-2 border border-gray-300 rounded"
+                      required
+                    >
+                      <option value="">Select Experience Level</option>
+                      <option value="0-5">0-5 years</option>
+                      <option value="5-10">5-10 years</option>
+                      <option value="10-15">10-15 years</option>
+                      <option value="15-20">15-20 years</option>
+                      <option value="20+">20+ years</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Benefits</label>
+                  <textarea
+                    value={jobForm.benefits}
+                    onChange={(e) => setJobForm(prev => ({ ...prev, benefits: e.target.value }))}
+                    rows={2}
+                    placeholder="Health insurance, 401k, paid time off, etc."
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
                 </div>
                 
                 <div className="flex justify-end gap-3">
