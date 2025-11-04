@@ -267,7 +267,7 @@ export async function POST(request) {
         urgent: urgent, // Keep old urgent for backward compatibility
         high_priority: highPriority,
         popular: false,
-        expiry_date: expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
+        expiry_date: expiresAt || new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days default
         payment_type: 'single', // FIXED: use 'single' instead of 'hourly'
         cost_description: hourlyRate,
         status: 'active',

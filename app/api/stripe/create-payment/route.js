@@ -21,9 +21,9 @@ export async function POST(request) {
           currency: 'usd',
           product_data: {
             name: 'Single Job Posting',
-            description: 'Post one job for 30 days'
+            description: 'Post one job for 60 days'
           },
-          unit_amount: 9900, // $99.00
+          unit_amount: 19900, // $199.00
         },
         quantity: 1
       }],

@@ -2010,8 +2010,7 @@ function EmployerDashboardContent() {
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ 15 active job postings</li>
                     <li>✅ 25 resume credits included</li>
-                    <li>✅ Advanced analytics</li>
-                    <li>✅ Featured listings</li>
+                    <li>✅ Priority support</li>
                   </ul>
                   {renderSubscriptionButton('professional', process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '')}
               </div>
@@ -2142,7 +2141,7 @@ function EmployerDashboardContent() {
         {/* Job Form Modal */}
         {showJobForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div className="bg-white text-gray-900 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">
                   {editingJob ? 'Edit Job' : 'Post New Job'}
@@ -2355,7 +2354,7 @@ function EmployerDashboardContent() {
         {/* Free Job Form Modal */}
         {showFreeJobForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div className="bg-white text-gray-900 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-green-600">Post Your First Job Free! 🎁</h2>
                 <button
