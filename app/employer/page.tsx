@@ -1193,7 +1193,10 @@ function EmployerDashboardContent() {
     )
   }
 
-  console.log('✅ Rendering dashboard - subscription tier:', subscription.tier)
+  // Debug log
+  if (typeof window !== 'undefined') {
+    console.log('✅ Rendering dashboard - subscription tier:', subscription.tier)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
