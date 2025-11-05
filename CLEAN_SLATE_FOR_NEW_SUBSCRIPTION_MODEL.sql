@@ -48,11 +48,10 @@ SELECT 'Deleted all job feature purchases' as status;
 -- STEP 3: Reset User Profile Subscription Fields
 -- =====================================================
 
--- Reset all employer profiles to free tier
+-- Reset all employer profiles to free tier (remove Stripe customer ID)
 UPDATE profiles 
 SET 
-  stripe_customer_id = NULL,
-  active_jobs_limit = 0
+  stripe_customer_id = NULL
 WHERE account_type = 'employer';
 SELECT 'Reset all employer profiles' as status;
 
@@ -107,8 +106,6 @@ SELECT 'Total Employers', COUNT(*) FROM profiles WHERE account_type = 'employer'
 UNION ALL
 SELECT 'Employers with Stripe ID', COUNT(*) FROM profiles WHERE account_type = 'employer' AND stripe_customer_id IS NOT NULL
 UNION ALL
-SELECT 'Employers with Job Limits', COUNT(*) FROM profiles WHERE account_type = 'employer' AND active_jobs_limit > 0
-UNION ALL
 SELECT '---', 0
 UNION ALL
 SELECT 'Total Jobs', COUNT(*) FROM jobs
@@ -139,7 +136,6 @@ SELECT
   email,
   company,
   stripe_customer_id,
-  active_jobs_limit,
   created_at
 FROM profiles 
 WHERE account_type = 'employer'
