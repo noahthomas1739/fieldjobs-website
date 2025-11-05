@@ -2007,13 +2007,14 @@ function EmployerDashboardContent() {
                   </div>
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Enterprise</h3>
-                    <div className="text-3xl font-bold text-purple-600 my-2">$167</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $1,999</div>
+                    <div className="text-3xl font-bold text-purple-600 my-2">$150</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $1,799</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save 10% with annual billing!</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ Unlimited job postings</li>
-                    <li>✅ Unlimited resume credits</li>
-                    <li>✅ Priority support</li>
+                    <li>✅ 20 job postings</li>
+                    <li>✅ 25 resume credits</li>
+                    <li>✅ Email support</li>
                     <li>✅ Advanced analytics</li>
                   </ul>
                   {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
@@ -2022,12 +2023,15 @@ function EmployerDashboardContent() {
                 <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Unlimited</h3>
-                    <div className="text-3xl font-bold text-indigo-600 my-2">$292</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,499</div>
+                    <div className="text-3xl font-bold text-indigo-600 my-2">$262</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,149</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save 10% with annual billing!</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
-                    <li>✅ Everything in Enterprise</li>
-                    <li>✅ Dedicated account manager</li>
+                    <li>✅ Unlimited job postings</li>
+                    <li>✅ 100 resume credits</li>
+                    <li>✅ Priority support</li>
+                    <li>✅ Advanced analytics</li>
                     <li>✅ Custom integrations</li>
                     <li>✅ Priority feature requests</li>
                   </ul>
@@ -2218,10 +2222,9 @@ function EmployerDashboardContent() {
                         <input
                           type="email"
                           value={profileForm.email}
-                          disabled
-                          className="w-full p-2 border border-gray-300 rounded bg-gray-100 cursor-not-allowed"
+                          onChange={(e) => setProfileForm(prev => ({ ...prev, email: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded"
                         />
-                        <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Website</label>

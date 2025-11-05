@@ -20,15 +20,15 @@ BEGIN;
 -- STEP 1: Delete All Subscription Data
 -- =====================================================
 
+-- Delete all subscription schedule changes first (has foreign key to subscriptions)
+DELETE FROM subscription_schedule_changes;
+ALTER SEQUENCE IF EXISTS subscription_schedule_changes_id_seq RESTART WITH 1;
+SELECT 'Deleted all subscription schedule changes' as status;
+
 -- Delete all subscriptions (old tiers: starter, growth, professional, enterprise)
 DELETE FROM subscriptions;
 ALTER SEQUENCE IF EXISTS subscriptions_id_seq RESTART WITH 1;
 SELECT 'Deleted all subscriptions' as status;
-
--- Delete all subscription schedule changes
-DELETE FROM subscription_schedule_changes;
-ALTER SEQUENCE IF EXISTS subscription_schedule_changes_id_seq RESTART WITH 1;
-SELECT 'Deleted all subscription schedule changes' as status;
 
 -- =====================================================
 -- STEP 2: Delete All Payment Data

@@ -873,7 +873,8 @@ function getPlanDetails(planType) {
     starter: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
     growth: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
     professional: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
-    enterprise: { planType: 'enterprise', price: 199900, jobLimit: 999999, credits: 100 }
+    enterprise: { planType: 'enterprise', price: 199900, jobLimit: 20, credits: 25 },
+    unlimited: { planType: 'unlimited', price: 349900, jobLimit: 999999, credits: 100 }
   }
   
   return plans[planType] || plans['starter']

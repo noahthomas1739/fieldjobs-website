@@ -66,21 +66,25 @@ Post one job for 60 days with full applicant access and email notifications
 ### Product Details:
 ```
 Name: Enterprise Plan (Annual)
-Description: Unlimited job postings, unlimited resume credits, priority support, and advanced analytics
+Description: 20 job postings, 25 resume credits, email support, and advanced analytics
 Statement descriptor: FIELDJOBS ENTERPRISE
 ```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
-- **Price**: `$1,999.00`
+- **Price**: `$1,799.00` (10% discount from monthly equivalent)
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
 
 ### Copy-Paste Description:
 ```
-Unlimited job postings, unlimited resume credits, priority support, and advanced analytics
+20 job postings, 25 resume credits, email support, and advanced analytics
 ```
+
+### Pricing Calculation:
+- Monthly equivalent: $150/month × 12 = $1,800
+- Annual price with 10% discount: $1,799 ($150/month when billed annually)
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -107,21 +111,25 @@ Description: Same as annual, billed monthly
 ### Product Details:
 ```
 Name: Unlimited Plan (Annual)
-Description: Everything in Enterprise plus custom integrations and priority feature requests
+Description: Unlimited job postings, 100 resume credits, priority support, advanced analytics, custom integrations, and priority feature requests
 Statement descriptor: FIELDJOBS UNLIMITED
 ```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
-- **Price**: `$3,499.00`
+- **Price**: `$3,149.00` (10% discount from monthly equivalent)
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
 
 ### Copy-Paste Description:
 ```
-Everything in Enterprise plus custom integrations and priority feature requests
+Unlimited job postings, 100 resume credits, priority support, advanced analytics, custom integrations, and priority feature requests
 ```
+
+### Pricing Calculation:
+- Monthly equivalent: $262/month × 12 = $3,144
+- Annual price with 10% discount: $3,149 ($262/month when billed annually)
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -329,14 +337,16 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
 
 | Product | Price | Billing | Display As | Features |
 |---------|-------|---------|------------|----------|
-| **Single Job** | $199 | One-time | $199 | 1 job, 60 days |
-| **Enterprise** | $1,999 | Yearly | $167/mo | Unlimited jobs, unlimited credits, priority support |
-| **Unlimited** | $3,499 | Yearly | $292/mo | Everything + account manager |
+| **Single Job** | $199 | One-time | $199 | 1 job, 60 days, email support, analytics |
+| **Enterprise** | $1,799 | Yearly | $150/mo | 20 jobs, 25 credits, email support, analytics |
+| **Unlimited** | $3,149 | Yearly | $262/mo | Unlimited jobs, 100 credits, priority support, analytics, custom integrations |
 | Resume 10-pack | $39 | One-time | $39 | 10 resume credits |
 | Resume 25-pack | $79 | One-time | $79 | 25 resume credits |
 | Resume 50-pack | $149 | One-time | $149 | 50 resume credits |
 | Featured Listing | $29 | One-time | $29 | 30 days featured |
 | Urgent Badge | $19 | One-time | $19 | 30 days urgent |
+
+**Note**: Annual plans include 10% discount compared to monthly equivalent pricing.
 
 ---
 

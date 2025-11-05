@@ -8,7 +8,8 @@ function getPlanLimits(planType) {
     starter: { active_jobs_limit: 3, credits: 0 },
     growth: { active_jobs_limit: 6, credits: 5 },
     professional: { active_jobs_limit: 15, credits: 25 },
-    enterprise: { active_jobs_limit: 999999, credits: 100 }
+    enterprise: { active_jobs_limit: 20, credits: 25 },
+    unlimited: { active_jobs_limit: 999999, credits: 100 }
   }
   return limits[planType] || limits.starter
 }

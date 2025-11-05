@@ -338,108 +338,71 @@ export default function EmployersPage() {
           )}
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* Single Job Option */}
           <div className="border-2 border-gray-200 rounded-lg p-6 text-center flex flex-col">
-            <h3 className="text-lg font-semibold mb-4">Single Job</h3>
-            <div className="text-3xl font-bold text-orange-500 mb-2">$99</div>
-            <div className="text-gray-600 mb-4">one-time</div>
+            <h3 className="text-xl font-semibold mb-4">Single Job Post</h3>
+            <div className="text-3xl font-bold text-orange-500 mb-2">$199</div>
+            <div className="text-gray-600 mb-4">one-time payment</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
-              <li>✓ 1 job posting (30 days)</li>
-              <li>✓ Manage applications & resumes</li>
-              <li>✓ Email support</li>
-              <li>✓ Auto-expires after 30 days</li>
+              <li>✅ 1 job posting</li>
+              <li>✅ 60-day duration</li>
+              <li>✅ Full applicant access</li>
+              <li>✅ Email support</li>
+              <li>✅ Advanced analytics</li>
             </ul>
             <button 
               onClick={() => handleSubscriptionPurchase('single')}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded font-semibold"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold"
             >
-              Post Single Job
+              Purchase Now
             </button>
           </div>
 
-          {/* Starter Plan */}
-          <div className="border-2 border-gray-200 rounded-lg p-6 text-center flex flex-col">
-            <h3 className="text-lg font-semibold mb-4">Starter</h3>
-            <div className="text-3xl font-bold text-orange-500 mb-2">$199</div>
-            <div className="text-gray-600 mb-4">per month</div>
-            <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
-              <li>✓ 3 job postings</li>
-              <li>✓ Manage applications & resumes</li>
-              <li>✓ Browse candidate database</li>
-              <li>✓ Email support</li>
-              <li className="text-red-600 font-medium">✗ No resume credits included</li>
-            </ul>
-            <button 
-              onClick={() => handleSubscriptionPurchase('starter')}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded font-semibold"
-            >
-              Get Started
-            </button>
-          </div>
-
-          {/* Growth Plan */}
-          <div className="border border-gray-200 rounded-lg p-6 bg-white text-center">
-            <h3 className="text-lg font-semibold mb-4 mt-2">Growth</h3>
-            <div className="text-3xl font-bold text-orange-500 mb-2">$299</div>
-            <div className="text-gray-600 mb-4">per month</div>
-            <ul className="space-y-2 text-sm mb-6 text-left">
-              <li>✓ 6 job postings</li>
-              <li>✓ Manage applications & resumes</li>
-              <li>✓ 5 resume credits monthly</li>
-              <li>✓ Browse all candidate profiles</li>
-              <li>✓ Priority support</li>
-              <li>✓ Application analytics</li>
-            </ul>
-            <button 
-              onClick={() => handleSubscriptionPurchase('growth')}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded font-semibold"
-            >
-              Choose Growth
-            </button>
-          </div>
-
-          {/* Professional Plan */}
-          <div className="border-2 border-orange-500 rounded-lg p-6 bg-orange-50 text-center flex flex-col relative">
+          {/* Enterprise Plan */}
+          <div className="border-2 border-purple-500 rounded-lg p-6 bg-purple-50 text-center flex flex-col relative">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">MOST POPULAR</span>
+              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">BEST VALUE</span>
             </div>
-            <h3 className="text-lg font-semibold mb-4">Professional</h3>
-            <div className="text-3xl font-bold text-orange-500 mb-2">$599</div>
-            <div className="text-gray-600 mb-4">per month</div>
+            <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
+            <div className="text-3xl font-bold text-purple-600 mb-2">$150</div>
+            <div className="text-gray-600 text-sm mb-1">per month</div>
+            <div className="text-gray-600 text-xs mb-2">billed annually at $1,799</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
-              <li>✓ 15 job postings</li>
-              <li>✓ Manage applications & resumes</li>
-              <li>✓ 25 resume credits monthly</li>
-              <li>✓ Advanced analytics</li>
-              <li>✓ Featured job listings</li>
-              <li>✓ Priority support</li>
+              <li>✅ 20 job postings</li>
+              <li>✅ 25 resume credits</li>
+              <li>✅ Email support</li>
+              <li>✅ Advanced analytics</li>
             </ul>
-            <button 
-              onClick={() => handleSubscriptionPurchase('professional')}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded font-semibold"
-            >
-              Go Professional
-            </button>
-          </div>
-        </div>
-
-        {/* Enterprise Plan - Full Width */}
-        <div className="mb-8">
-          <div className="border-2 border-purple-500 rounded-lg p-8 bg-purple-50 text-center">
-            <h3 className="text-2xl font-semibold mb-4">Enterprise</h3>
-            <div className="text-4xl font-bold text-purple-600 mb-2">$1,999</div>
-            <div className="text-gray-600 mb-6">per month</div>
-            <div className="grid md:grid-cols-3 gap-4 text-sm mb-6">
-              <div>✓ Unlimited job postings</div>
-              <div>✓ 100 resume credits monthly</div>
-              <div>✓ Dedicated account manager</div>
-            </div>
             <button 
               onClick={() => handleSubscriptionPurchase('enterprise')}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg text-lg font-semibold"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
             >
-              Choose Enterprise
+              Upgrade
+            </button>
+          </div>
+
+          {/* Unlimited Plan */}
+          <div className="border-2 border-indigo-500 rounded-lg p-6 bg-indigo-50 text-center flex flex-col">
+            <h3 className="text-xl font-semibold mb-4">Unlimited</h3>
+            <div className="text-3xl font-bold text-indigo-600 mb-2">$262</div>
+            <div className="text-gray-600 text-sm mb-1">per month</div>
+            <div className="text-gray-600 text-xs mb-2">billed annually at $3,149</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
+            <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
+              <li>✅ Unlimited job postings</li>
+              <li>✅ 100 resume credits</li>
+              <li>✅ Priority support</li>
+              <li>✅ Advanced analytics</li>
+              <li>✅ Custom integrations</li>
+              <li>✅ Priority feature requests</li>
+            </ul>
+            <button 
+              onClick={() => handleSubscriptionPurchase('unlimited')}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold"
+            >
+              Go Unlimited
             </button>
           </div>
         </div>
