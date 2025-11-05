@@ -2105,7 +2105,6 @@ function EmployerDashboardContent() {
                     >
                       🚨 Manage Urgent Jobs
                     </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -2148,31 +2147,26 @@ function EmployerDashboardContent() {
                       onClick={async () => {
                         try {
                           setIsLoading(true)
-                          const { error } = await supabase
-                            .from('profiles')
-                            .update({
+                          const response = await fetch('/api/profile', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              userId: user?.id,
                               company: profileForm.company,
                               phone: profileForm.phone,
                               website: profileForm.website,
                               address: profileForm.address,
                               city: profileForm.city,
                               state: profileForm.state,
-                              zip_code: profileForm.zipCode,
-                              updated_at: new Date().toISOString()
+                              zip_code: profileForm.zipCode
                             })
-                            .eq('id', user?.id)
+                          })
 
-                          if (error) throw error
+                          if (!response.ok) throw new Error('Failed to update profile')
 
                           alert('✅ Profile updated successfully!')
                           setIsEditingProfile(false)
-                          // Reload profile data
-                          const { data } = await supabase
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', user?.id)
-                            .single()
-                          if (data) setProfile(data)
+                          await loadProfile()
                         } catch (error) {
                           console.error('Error updating profile:', error)
                           alert('❌ Failed to update profile')

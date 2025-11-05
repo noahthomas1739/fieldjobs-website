@@ -1,10 +1,21 @@
-# Stripe Products Setup Guide - 3-Tier Structure
+# Stripe Products Setup Guide - Complete Product Catalog
 
 ## Overview
-This guide will help you create/update Stripe products for the new simplified pricing structure:
-- **Single Job Post**: $199 one-time
-- **Enterprise**: $1,999/year ($167/month)
-- **Unlimited**: $3,499/year ($292/month)
+This guide will help you create/update ALL Stripe products for FieldJobs:
+
+### Core Products (3):
+1. **Single Job Post**: $199 one-time
+2. **Enterprise Plan**: $1,999/year ($167/month)
+3. **Unlimited Plan**: $3,499/year ($292/month)
+
+### Add-On Products (5):
+4. **Resume Credits 10-Pack**: $39 one-time
+5. **Resume Credits 25-Pack**: $79 one-time
+6. **Resume Credits 50-Pack**: $149 one-time
+7. **Featured Job Listing**: $29 one-time (30 days)
+8. **Urgent Job Badge**: $19 one-time (30 days)
+
+**Total: 8 Products, 8 Price IDs**
 
 ---
 
@@ -25,15 +36,22 @@ This guide will help you create/update Stripe products for the new simplified pr
 ## Step 2: Create Single Job Post Product
 
 ### Product Details:
-- **Name**: `Single Job Posting`
-- **Description**: `Post one job for 60 days with full applicant access`
-- **Statement descriptor**: `FIELDJOBS JOB POST`
+```
+Name: Single Job Posting
+Description: Post one job for 60 days with full applicant access and email notifications
+Statement descriptor: FIELDJOBS JOB POST
+```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
 - **Price**: `$199.00`
 - **Billing period**: One time
 - **Currency**: USD
+
+### Copy-Paste Description:
+```
+Post one job for 60 days with full applicant access and email notifications
+```
 
 ### After Creating:
 - ✅ Copy the **Price ID** (starts with `price_`)
@@ -43,12 +61,14 @@ This guide will help you create/update Stripe products for the new simplified pr
 
 ---
 
-## Step 3: Create Enterprise Plan Product
+## Step 3: Create Enterprise Plan Product (Annual)
 
 ### Product Details:
-- **Name**: `Enterprise Plan`
-- **Description**: `Unlimited job postings, unlimited resume credits, priority support, and advanced analytics`
-- **Statement descriptor**: `FIELDJOBS ENTERPRISE`
+```
+Name: Enterprise Plan (Annual)
+Description: Unlimited job postings, unlimited resume credits, priority support, and advanced analytics
+Statement descriptor: FIELDJOBS ENTERPRISE
+```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
@@ -56,6 +76,11 @@ This guide will help you create/update Stripe products for the new simplified pr
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
+
+### Copy-Paste Description:
+```
+Unlimited job postings, unlimited resume credits, priority support, and advanced analytics
+```
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -65,14 +90,26 @@ This guide will help you create/update Stripe products for the new simplified pr
 - ✅ Copy the **Price ID** (starts with `price_`)
 - ✅ Save it as: `NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID`
 
+### Optional: Create Monthly Version
+If you want to offer monthly billing:
+```
+Name: Enterprise Plan (Monthly)
+Price: $199.00
+Billing period: Monthly
+Description: Same as annual, billed monthly
+```
+- Save as: `NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID`
+
 ---
 
-## Step 4: Create Unlimited Plan Product
+## Step 4: Create Unlimited Plan Product (Annual)
 
 ### Product Details:
-- **Name**: `Unlimited Plan`
-- **Description**: `Everything in Enterprise plus dedicated account manager, custom integrations, and priority feature requests`
-- **Statement descriptor**: `FIELDJOBS UNLIMITED`
+```
+Name: Unlimited Plan (Annual)
+Description: Everything in Enterprise plus custom integrations and priority feature requests
+Statement descriptor: FIELDJOBS UNLIMITED
+```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
@@ -80,6 +117,11 @@ This guide will help you create/update Stripe products for the new simplified pr
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
+
+### Copy-Paste Description:
+```
+Everything in Enterprise plus custom integrations and priority feature requests
+```
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -89,27 +131,92 @@ This guide will help you create/update Stripe products for the new simplified pr
 - ✅ Copy the **Price ID** (starts with `price_`)
 - ✅ Save it as: `NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID`
 
+### Optional: Create Monthly Version
+If you want to offer monthly billing:
+```
+Name: Unlimited Plan (Monthly)
+Price: $349.00
+Billing period: Monthly
+Description: Same as annual, billed monthly
+```
+- Save as: `NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID`
+
 ---
 
 ## Step 5: Create Resume Credit Packs (Add-Ons)
 
-### 10 Credits Pack:
-- **Name**: `Resume Credits - 10 Pack`
+### Product 1: 10 Credits Pack
+
+**Product Details:**
+```
+Name: Resume Credits - 10 Pack
+Description: 10 resume view credits for unlocking candidate resumes
+Statement descriptor: FIELDJOBS RESUME 10
+```
+
+**Pricing:**
 - **Price**: `$39.00`
-- **Billing**: One time
-- Save as: `NEXT_PUBLIC_STRIPE_RESUME_10_PRICE_ID`
+- **Billing period**: One time
+- **Currency**: USD
 
-### 25 Credits Pack:
-- **Name**: `Resume Credits - 25 Pack`
+**Copy-Paste Description:**
+```
+10 resume view credits for unlocking candidate resumes
+```
+
+**After Creating:**
+- ✅ Copy the **Price ID** (starts with `price_`)
+- ✅ Save it as: `NEXT_PUBLIC_STRIPE_RESUME_10_PRICE_ID`
+
+---
+
+### Product 2: 25 Credits Pack
+
+**Product Details:**
+```
+Name: Resume Credits - 25 Pack
+Description: 25 resume view credits for unlocking candidate resumes (Best Value)
+Statement descriptor: FIELDJOBS RESUME 25
+```
+
+**Pricing:**
 - **Price**: `$79.00`
-- **Billing**: One time
-- Save as: `NEXT_PUBLIC_STRIPE_RESUME_25_PRICE_ID`
+- **Billing period**: One time
+- **Currency**: USD
 
-### 50 Credits Pack:
-- **Name**: `Resume Credits - 50 Pack`
+**Copy-Paste Description:**
+```
+25 resume view credits for unlocking candidate resumes (Best Value)
+```
+
+**After Creating:**
+- ✅ Copy the **Price ID** (starts with `price_`)
+- ✅ Save it as: `NEXT_PUBLIC_STRIPE_RESUME_25_PRICE_ID`
+
+---
+
+### Product 3: 50 Credits Pack
+
+**Product Details:**
+```
+Name: Resume Credits - 50 Pack
+Description: 50 resume view credits for unlocking candidate resumes (Maximum Savings)
+Statement descriptor: FIELDJOBS RESUME 50
+```
+
+**Pricing:**
 - **Price**: `$149.00`
-- **Billing**: One time
-- Save as: `NEXT_PUBLIC_STRIPE_RESUME_50_PRICE_ID`
+- **Billing period**: One time
+- **Currency**: USD
+
+**Copy-Paste Description:**
+```
+50 resume view credits for unlocking candidate resumes (Maximum Savings)
+```
+
+**After Creating:**
+- ✅ Copy the **Price ID** (starts with `price_`)
+- ✅ Save it as: `NEXT_PUBLIC_STRIPE_RESUME_50_PRICE_ID`
 
 ---
 
