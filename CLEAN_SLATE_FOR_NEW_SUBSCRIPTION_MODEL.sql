@@ -52,7 +52,6 @@ SELECT 'Deleted all job feature purchases' as status;
 UPDATE profiles 
 SET 
   stripe_customer_id = NULL,
-  credits = 0,
   active_jobs_limit = 0
 WHERE account_type = 'employer';
 SELECT 'Reset all employer profiles' as status;
@@ -108,8 +107,6 @@ SELECT 'Total Employers', COUNT(*) FROM profiles WHERE account_type = 'employer'
 UNION ALL
 SELECT 'Employers with Stripe ID', COUNT(*) FROM profiles WHERE account_type = 'employer' AND stripe_customer_id IS NOT NULL
 UNION ALL
-SELECT 'Employers with Credits', COUNT(*) FROM profiles WHERE account_type = 'employer' AND credits > 0
-UNION ALL
 SELECT 'Employers with Job Limits', COUNT(*) FROM profiles WHERE account_type = 'employer' AND active_jobs_limit > 0
 UNION ALL
 SELECT '---', 0
@@ -142,7 +139,6 @@ SELECT
   email,
   company,
   stripe_customer_id,
-  credits,
   active_jobs_limit,
   created_at
 FROM profiles 
