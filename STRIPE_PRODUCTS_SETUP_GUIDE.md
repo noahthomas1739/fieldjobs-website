@@ -72,7 +72,7 @@ Statement descriptor: FIELDJOBS ENTERPRISE
 
 ### Pricing:
 - **Pricing model**: Standard pricing
-- **Price**: `$2,250.00` (10% discount from monthly equivalent)
+- **Price**: `$2,246.00` (10% discount from monthly equivalent)
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
@@ -83,8 +83,8 @@ Statement descriptor: FIELDJOBS ENTERPRISE
 ```
 
 ### Pricing Calculation:
-- Monthly plan: $208.33/month × 12 = $2,500/year
-- Annual price with 10% discount: $2,250 ($187.50/month when billed annually)
+- Monthly plan: $208/month × 12 = $2,496/year
+- Annual price with 10% discount: $2,246 ($187/month when billed annually)
 - **You save: $250 per year!**
 
 ### Advanced Settings:
@@ -99,7 +99,7 @@ Statement descriptor: FIELDJOBS ENTERPRISE
 If you want to offer monthly billing:
 ```
 Name: Enterprise Plan (Monthly)
-Price: $208.33
+Price: $208.00
 Billing period: Monthly
 Description: Same as annual, billed monthly (no discount)
 ```
@@ -118,7 +118,7 @@ Statement descriptor: FIELDJOBS UNLIMITED
 
 ### Pricing:
 - **Pricing model**: Standard pricing
-- **Price**: `$3,550.50` (10% discount from monthly equivalent)
+- **Price**: `$3,553.00` (10% discount from monthly equivalent)
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
@@ -129,9 +129,9 @@ Unlimited job postings, 100 resume search credits, priority support, advanced an
 ```
 
 ### Pricing Calculation:
-- Monthly plan: $328.75/month × 12 = $3,945/year
-- Annual price with 10% discount: $3,550.50 ($295.88/month when billed annually)
-- **You save: $394.50 per year!**
+- Monthly plan: $329/month × 12 = $3,948/year
+- Annual price with 10% discount: $3,553 ($296/month when billed annually)
+- **You save: $395 per year!**
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -145,7 +145,7 @@ Unlimited job postings, 100 resume search credits, priority support, advanced an
 If you want to offer monthly billing:
 ```
 Name: Unlimited Plan (Monthly)
-Price: $328.75
+Price: $329.00
 Billing period: Monthly
 Description: Same as annual, billed monthly (no discount)
 ```
@@ -340,8 +340,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
 | Product | Annual Price | Monthly Equivalent | Display As | Savings | Features |
 |---------|--------------|-------------------|------------|---------|----------|
 | **Single Job** | $199 | N/A | $199 | N/A | 1 job, 60 days, email support, analytics |
-| **Enterprise** | $2,250 | $208/mo × 12 = $2,500 | $188/mo | **Save $250** | 20 jobs, 25 credits, email support, analytics |
-| **Unlimited** | $3,551 | $329/mo × 12 = $3,945 | $296/mo | **Save $394** | Unlimited jobs, 100 credits, priority support, analytics, custom integrations |
+| **Enterprise** | $2,246 | $208/mo × 12 = $2,496 | $187/mo | **Save $250** | 20 jobs, 25 credits, email support, analytics |
+| **Unlimited** | $3,553 | $329/mo × 12 = $3,948 | $296/mo | **Save $395** | Unlimited jobs, 100 credits, priority support, analytics, custom integrations |
 | Resume 10-pack | $39 | N/A | $39 | N/A | 10 resume search credits |
 | Resume 25-pack | $79 | N/A | $79 | N/A | 25 resume search credits |
 | Resume 50-pack | $149 | N/A | $149 | N/A | 50 resume search credits |

@@ -2962,13 +2962,13 @@ function EmployerDashboardContent() {
                       <div>
                         <div className="text-sm text-gray-600">Monthly Plan</div>
                         <div className="text-2xl font-bold text-gray-800">$208/month</div>
-                        <div className="text-xs text-gray-500">$2,500/year total</div>
+                        <div className="text-xs text-gray-500">$2,496/year total</div>
                       </div>
                       <div className="text-3xl">→</div>
                       <div>
                         <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
-                        <div className="text-2xl font-bold text-green-600">$188/month</div>
-                        <div className="text-xs text-green-700">$2,250/year total</div>
+                        <div className="text-2xl font-bold text-green-600">$187/month</div>
+                        <div className="text-xs text-green-700">$2,246/year total</div>
                       </div>
                     </div>
                     <div className="text-center">
@@ -2984,18 +2984,18 @@ function EmployerDashboardContent() {
                       <div>
                         <div className="text-sm text-gray-600">Monthly Plan</div>
                         <div className="text-2xl font-bold text-gray-800">$329/month</div>
-                        <div className="text-xs text-gray-500">$3,945/year total</div>
+                        <div className="text-xs text-gray-500">$3,948/year total</div>
                       </div>
                       <div className="text-3xl">→</div>
                       <div>
                         <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
                         <div className="text-2xl font-bold text-green-600">$296/month</div>
-                        <div className="text-xs text-green-700">$3,551/year total</div>
+                        <div className="text-xs text-green-700">$3,553/year total</div>
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
-                        Save $394 per year! 💵
+                        Save $395 per year! 💵
                       </div>
                     </div>
                   </>
