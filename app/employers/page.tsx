@@ -365,13 +365,13 @@ export default function EmployersPage() {
               <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">BEST VALUE</span>
             </div>
             <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
-            <div className="text-3xl font-bold text-purple-600 mb-2">$150</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">$188</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
-            <div className="text-gray-600 text-xs mb-2">billed annually at $1,799</div>
-            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
+            <div className="text-gray-600 text-xs mb-2">billed annually at $2,250</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save $250 with annual billing!</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
               <li>✅ 20 job postings</li>
-              <li>✅ 25 resume credits</li>
+              <li>✅ 25 resume search credits</li>
               <li>✅ Email support</li>
               <li>✅ Advanced analytics</li>
             </ul>
@@ -386,13 +386,13 @@ export default function EmployersPage() {
           {/* Unlimited Plan */}
           <div className="border-2 border-indigo-500 rounded-lg p-6 bg-indigo-50 text-center flex flex-col">
             <h3 className="text-xl font-semibold mb-4">Unlimited</h3>
-            <div className="text-3xl font-bold text-indigo-600 mb-2">$262</div>
+            <div className="text-3xl font-bold text-indigo-600 mb-2">$296</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
-            <div className="text-gray-600 text-xs mb-2">billed annually at $3,149</div>
-            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
+            <div className="text-gray-600 text-xs mb-2">billed annually at $3,551</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save $394 with annual billing!</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
               <li>✅ Unlimited job postings</li>
-              <li>✅ 100 resume credits</li>
+              <li>✅ 100 resume search credits</li>
               <li>✅ Priority support</li>
               <li>✅ Advanced analytics</li>
               <li>✅ Custom integrations</li>
@@ -412,7 +412,7 @@ export default function EmployersPage() {
           <h3 className="text-2xl font-bold text-center mb-6">Premium Add-Ons</h3>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center p-6 bg-white rounded-lg border">
-              <h4 className="font-semibold mb-3">Extra Resume Credits</h4>
+              <h4 className="font-semibold mb-3">Extra Resume Search Credits</h4>
               <div className="text-lg font-bold text-orange-500 mb-4">Never expire</div>
               <div className="space-y-3">
                 <div>

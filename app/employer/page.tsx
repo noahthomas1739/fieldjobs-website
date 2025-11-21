@@ -102,6 +102,10 @@ function EmployerDashboardContent() {
     zipCode: ''
   })
 
+  // Annual savings modal state
+  const [showAnnualSavingsModal, setShowAnnualSavingsModal] = useState(false)
+  const [selectedPlanForModal, setSelectedPlanForModal] = useState<{plan: string, priceId: string} | null>(null)
+
   // Application filtering states
   const [selectedJobFilter, setSelectedJobFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('') // Empty = show all statuses
@@ -360,7 +364,10 @@ function EmployerDashboardContent() {
     } else {
       return (
         <button 
-          onClick={() => handleSubscriptionPurchase(plan)}
+          onClick={() => {
+            setSelectedPlanForModal({plan, priceId})
+            setShowAnnualSavingsModal(true)
+          }}
           className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
           disabled={isLoading}
         >
@@ -689,7 +696,7 @@ function EmployerDashboardContent() {
     if (!user?.id) return
     
     if (userCredits < 1) {
-      alert('Insufficient credits. Please purchase resume credits to view contact details.')
+      alert('Insufficient credits. Please purchase resume search credits to view contact details.')
       return
     }
     
@@ -1296,7 +1303,7 @@ function EmployerDashboardContent() {
               <div className="text-2xl font-bold text-purple-500">
                 {subscription.tier === 'enterprise' ? '∞' : userCredits}
             </div>
-              <div className="text-sm text-gray-600">Resume Credits</div>
+              <div className="text-sm text-gray-600">Resume Search Credits</div>
             </div>
           </div>
         </div>
@@ -1707,14 +1714,14 @@ function EmployerDashboardContent() {
                 </div>
               </div>
 
-              {/* Resume Credits Purchase Section */}
+              {/* Resume Search Credits Purchase Section */}
               {userCredits < 5 && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="text-2xl">💳</div>
                     <div>
-                      <h3 className="text-lg font-semibold text-orange-800">Need More Resume Credits?</h3>
-                      <p className="text-orange-700">Purchase resume credits to unlock candidate contact information</p>
+                      <h3 className="text-lg font-semibold text-orange-800">Need More Resume Search Credits?</h3>
+                      <p className="text-orange-700">Purchase resume search credits to unlock candidate contact information</p>
                     </div>
                   </div>
                   
@@ -2007,13 +2014,13 @@ function EmployerDashboardContent() {
                   </div>
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Enterprise</h3>
-                    <div className="text-3xl font-bold text-purple-600 my-2">$150</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $1,799</div>
-                    <div className="text-green-600 text-xs font-semibold mt-1">Save 10% with annual billing!</div>
+                    <div className="text-3xl font-bold text-purple-600 my-2">$188</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $2,250</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save $250 with annual billing!</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ 20 job postings</li>
-                    <li>✅ 25 resume credits</li>
+                    <li>✅ 25 resume search credits</li>
                     <li>✅ Email support</li>
                     <li>✅ Advanced analytics</li>
                   </ul>
@@ -2023,13 +2030,13 @@ function EmployerDashboardContent() {
                 <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Unlimited</h3>
-                    <div className="text-3xl font-bold text-indigo-600 my-2">$262</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,149</div>
-                    <div className="text-green-600 text-xs font-semibold mt-1">Save 10% with annual billing!</div>
+                    <div className="text-3xl font-bold text-indigo-600 my-2">$296</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,551</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save $394 with annual billing!</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm">
                     <li>✅ Unlimited job postings</li>
-                    <li>✅ 100 resume credits</li>
+                    <li>✅ 100 resume search credits</li>
                     <li>✅ Priority support</li>
                     <li>✅ Advanced analytics</li>
                     <li>✅ Custom integrations</li>
@@ -2045,9 +2052,9 @@ function EmployerDashboardContent() {
                 <h2 className="text-xl font-bold mb-6">Premium Add-Ons</h2>
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Resume Credits - 10 Pack</h4>
+                    <h4 className="font-semibold mb-2">Resume Search Credits - 10 Pack</h4>
                     <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
-                    <p className="text-gray-600 text-sm mb-4">10 credits for candidate contact</p>
+                    <p className="text-gray-600 text-sm mb-4">10 credits to unlock candidate profiles</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_10')}
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
@@ -2058,7 +2065,7 @@ function EmployerDashboardContent() {
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Resume Credits - 25 Pack</h4>
+                    <h4 className="font-semibold mb-2">Resume Search Credits - 25 Pack</h4>
                     <div className="text-2xl font-bold text-orange-500 mb-2">$79</div>
                     <p className="text-gray-600 text-sm mb-4">25 credits - Best Value</p>
                     <button
@@ -2071,7 +2078,7 @@ function EmployerDashboardContent() {
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Resume Credits - 50 Pack</h4>
+                    <h4 className="font-semibold mb-2">Resume Search Credits - 50 Pack</h4>
                     <div className="text-2xl font-bold text-orange-500 mb-2">$129</div>
                     <p className="text-gray-600 text-sm mb-4">50 credits for high volume</p>
                     <button
@@ -2340,7 +2347,7 @@ function EmployerDashboardContent() {
                       <p className="font-medium capitalize">{subscription.tier || 'Free'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Resume Credits</p>
+                      <p className="text-sm text-gray-500">Resume Search Credits</p>
                       <p className="font-medium">{userCredits}</p>
                     </div>
                   </div>
@@ -2932,6 +2939,97 @@ function EmployerDashboardContent() {
                   className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
                 >
                   View Plans
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Annual Savings Modal */}
+        {showAnnualSavingsModal && selectedPlanForModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-8 w-full max-w-lg">
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-3">💰</div>
+                <h2 className="text-2xl font-bold mb-2">Save Big with Annual Billing!</h2>
+                <p className="text-gray-600">Get 10% off when you pay annually</p>
+              </div>
+              
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 mb-6">
+                {selectedPlanForModal.plan === 'enterprise' && (
+                  <>
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <div className="text-sm text-gray-600">Monthly Plan</div>
+                        <div className="text-2xl font-bold text-gray-800">$208/month</div>
+                        <div className="text-xs text-gray-500">$2,500/year total</div>
+                      </div>
+                      <div className="text-3xl">→</div>
+                      <div>
+                        <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
+                        <div className="text-2xl font-bold text-green-600">$188/month</div>
+                        <div className="text-xs text-green-700">$2,250/year total</div>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                        Save $250 per year! 💵
+                      </div>
+                    </div>
+                  </>
+                )}
+                {selectedPlanForModal.plan === 'unlimited' && (
+                  <>
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <div className="text-sm text-gray-600">Monthly Plan</div>
+                        <div className="text-2xl font-bold text-gray-800">$329/month</div>
+                        <div className="text-xs text-gray-500">$3,945/year total</div>
+                      </div>
+                      <div className="text-3xl">→</div>
+                      <div>
+                        <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
+                        <div className="text-2xl font-bold text-green-600">$296/month</div>
+                        <div className="text-xs text-green-700">$3,551/year total</div>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                        Save $394 per year! 💵
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    setShowAnnualSavingsModal(false)
+                    handleSubscriptionPurchase(selectedPlanForModal.plan)
+                  }}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-lg"
+                >
+                  ✓ Choose Annual Plan & Save!
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAnnualSavingsModal(false)
+                    // TODO: Add monthly plan purchase logic
+                    alert('Monthly billing coming soon! For now, please select the annual plan.')
+                  }}
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium"
+                >
+                  Continue with Monthly Plan
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAnnualSavingsModal(false)
+                    setSelectedPlanForModal(null)
+                  }}
+                  className="w-full text-gray-500 hover:text-gray-700 py-2 text-sm"
+                >
+                  Cancel
                 </button>
               </div>
             </div>

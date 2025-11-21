@@ -66,25 +66,26 @@ Post one job for 60 days with full applicant access and email notifications
 ### Product Details:
 ```
 Name: Enterprise Plan (Annual)
-Description: 20 job postings, 25 resume credits, email support, and advanced analytics
+Description: 20 job postings, 25 resume search credits, email support, and advanced analytics. Save $250 with annual billing!
 Statement descriptor: FIELDJOBS ENTERPRISE
 ```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
-- **Price**: `$1,799.00` (10% discount from monthly equivalent)
+- **Price**: `$2,250.00` (10% discount from monthly equivalent)
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
 
 ### Copy-Paste Description:
 ```
-20 job postings, 25 resume credits, email support, and advanced analytics
+20 job postings, 25 resume search credits, email support, and advanced analytics. Save $250 with annual billing!
 ```
 
 ### Pricing Calculation:
-- Monthly equivalent: $150/month × 12 = $1,800
-- Annual price with 10% discount: $1,799 ($150/month when billed annually)
+- Monthly plan: $208.33/month × 12 = $2,500/year
+- Annual price with 10% discount: $2,250 ($187.50/month when billed annually)
+- **You save: $250 per year!**
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -98,9 +99,9 @@ Statement descriptor: FIELDJOBS ENTERPRISE
 If you want to offer monthly billing:
 ```
 Name: Enterprise Plan (Monthly)
-Price: $199.00
+Price: $208.33
 Billing period: Monthly
-Description: Same as annual, billed monthly
+Description: Same as annual, billed monthly (no discount)
 ```
 - Save as: `NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID`
 
@@ -111,25 +112,26 @@ Description: Same as annual, billed monthly
 ### Product Details:
 ```
 Name: Unlimited Plan (Annual)
-Description: Unlimited job postings, 100 resume credits, priority support, advanced analytics, custom integrations, and priority feature requests
+Description: Unlimited job postings, 100 resume search credits, priority support, advanced analytics, custom integrations, and priority feature requests. Save $394 with annual billing!
 Statement descriptor: FIELDJOBS UNLIMITED
 ```
 
 ### Pricing:
 - **Pricing model**: Standard pricing
-- **Price**: `$3,149.00` (10% discount from monthly equivalent)
+- **Price**: `$3,550.50` (10% discount from monthly equivalent)
 - **Billing period**: **Yearly** (IMPORTANT!)
 - **Currency**: USD
 - **Usage type**: Licensed
 
 ### Copy-Paste Description:
 ```
-Unlimited job postings, 100 resume credits, priority support, advanced analytics, custom integrations, and priority feature requests
+Unlimited job postings, 100 resume search credits, priority support, advanced analytics, custom integrations, and priority feature requests. Save $394 with annual billing!
 ```
 
 ### Pricing Calculation:
-- Monthly equivalent: $262/month × 12 = $3,144
-- Annual price with 10% discount: $3,149 ($262/month when billed annually)
+- Monthly plan: $328.75/month × 12 = $3,945/year
+- Annual price with 10% discount: $3,550.50 ($295.88/month when billed annually)
+- **You save: $394.50 per year!**
 
 ### Advanced Settings:
 - **Trial period**: None (or 7 days if you want)
@@ -143,22 +145,22 @@ Unlimited job postings, 100 resume credits, priority support, advanced analytics
 If you want to offer monthly billing:
 ```
 Name: Unlimited Plan (Monthly)
-Price: $349.00
+Price: $328.75
 Billing period: Monthly
-Description: Same as annual, billed monthly
+Description: Same as annual, billed monthly (no discount)
 ```
 - Save as: `NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID`
 
 ---
 
-## Step 5: Create Resume Credit Packs (Add-Ons)
+## Step 5: Create Resume Search Credit Packs (Add-Ons)
 
 ### Product 1: 10 Credits Pack
 
 **Product Details:**
 ```
-Name: Resume Credits - 10 Pack
-Description: 10 resume view credits for unlocking candidate resumes
+Name: Resume Search Credits - 10 Pack
+Description: 10 resume search credits for unlocking candidate profiles in database
 Statement descriptor: FIELDJOBS RESUME 10
 ```
 
@@ -169,7 +171,7 @@ Statement descriptor: FIELDJOBS RESUME 10
 
 **Copy-Paste Description:**
 ```
-10 resume view credits for unlocking candidate resumes
+10 resume search credits for unlocking candidate profiles in database
 ```
 
 **After Creating:**
@@ -182,8 +184,8 @@ Statement descriptor: FIELDJOBS RESUME 10
 
 **Product Details:**
 ```
-Name: Resume Credits - 25 Pack
-Description: 25 resume view credits for unlocking candidate resumes (Best Value)
+Name: Resume Search Credits - 25 Pack
+Description: 25 resume search credits for unlocking candidate profiles in database (Best Value)
 Statement descriptor: FIELDJOBS RESUME 25
 ```
 
@@ -194,7 +196,7 @@ Statement descriptor: FIELDJOBS RESUME 25
 
 **Copy-Paste Description:**
 ```
-25 resume view credits for unlocking candidate resumes (Best Value)
+25 resume search credits for unlocking candidate profiles in database (Best Value)
 ```
 
 **After Creating:**
@@ -335,18 +337,18 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
 
 ## Quick Reference: Pricing Summary
 
-| Product | Price | Billing | Display As | Features |
-|---------|-------|---------|------------|----------|
-| **Single Job** | $199 | One-time | $199 | 1 job, 60 days, email support, analytics |
-| **Enterprise** | $1,799 | Yearly | $150/mo | 20 jobs, 25 credits, email support, analytics |
-| **Unlimited** | $3,149 | Yearly | $262/mo | Unlimited jobs, 100 credits, priority support, analytics, custom integrations |
-| Resume 10-pack | $39 | One-time | $39 | 10 resume credits |
-| Resume 25-pack | $79 | One-time | $79 | 25 resume credits |
-| Resume 50-pack | $149 | One-time | $149 | 50 resume credits |
-| Featured Listing | $29 | One-time | $29 | 30 days featured |
-| Urgent Badge | $19 | One-time | $19 | 30 days urgent |
+| Product | Annual Price | Monthly Equivalent | Display As | Savings | Features |
+|---------|--------------|-------------------|------------|---------|----------|
+| **Single Job** | $199 | N/A | $199 | N/A | 1 job, 60 days, email support, analytics |
+| **Enterprise** | $2,250 | $208/mo × 12 = $2,500 | $188/mo | **Save $250** | 20 jobs, 25 credits, email support, analytics |
+| **Unlimited** | $3,551 | $329/mo × 12 = $3,945 | $296/mo | **Save $394** | Unlimited jobs, 100 credits, priority support, analytics, custom integrations |
+| Resume 10-pack | $39 | N/A | $39 | N/A | 10 resume search credits |
+| Resume 25-pack | $79 | N/A | $79 | N/A | 25 resume search credits |
+| Resume 50-pack | $149 | N/A | $149 | N/A | 50 resume search credits |
+| Featured Listing | $29 | N/A | $29 | N/A | 30 days featured |
+| Urgent Badge | $19 | N/A | $19 | N/A | 30 days urgent |
 
-**Note**: Annual plans include 10% discount compared to monthly equivalent pricing.
+**Note**: Annual plans include 10% discount compared to monthly billing. Customers who choose monthly billing will pay the full monthly rate ($208 or $329) without the discount.
 
 ---
 

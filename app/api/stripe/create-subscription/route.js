@@ -327,8 +327,8 @@ function getPlanDetailsFromAmount(amount) {
     19900: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
     29900: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
     59900: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
-    199900: { planType: 'enterprise', price: 199900, jobLimit: 20, credits: 25 },
-    349900: { planType: 'unlimited', price: 349900, jobLimit: 999999, credits: 100 }
+    225000: { planType: 'enterprise', price: 225000, jobLimit: 20, credits: 25 },
+    355050: { planType: 'unlimited', price: 355050, jobLimit: 999999, credits: 100 }
   }
   
   return planMapping[amount] || { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 }

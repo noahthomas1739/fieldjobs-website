@@ -39,10 +39,11 @@ export async function POST(request) {
 
     // Get plan details
     const planDetails = {
-      'starter': { active_jobs_limit: 3, credits: 5, price: 19900 },
-      'growth': { active_jobs_limit: 6, credits: 10, price: 29900 },
+      'starter': { active_jobs_limit: 3, credits: 0, price: 19900 },
+      'growth': { active_jobs_limit: 6, credits: 5, price: 29900 },
       'professional': { active_jobs_limit: 15, credits: 25, price: 59900 },
-      'enterprise': { active_jobs_limit: 999, credits: 999, price: 199900 }
+      'enterprise': { active_jobs_limit: 20, credits: 25, price: 225000 },
+      'unlimited': { active_jobs_limit: 999999, credits: 100, price: 355050 }
     }
 
     const plan = planDetails[planFromSession]

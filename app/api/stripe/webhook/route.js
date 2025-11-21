@@ -448,8 +448,8 @@ async function syncSubscriptionToDatabase(subscription, userId) {
     starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
     growth: { active_jobs_limit: 6, credits: 5, price: 29900 },
     professional: { active_jobs_limit: 15, credits: 25, price: 59900 },
-    enterprise: { active_jobs_limit: 20, credits: 25, price: 199900 },
-    unlimited: { active_jobs_limit: 999999, credits: 100, price: 349900 }
+    enterprise: { active_jobs_limit: 20, credits: 25, price: 225000 },
+    unlimited: { active_jobs_limit: 999999, credits: 100, price: 355050 }
   }
   
   const limits = planLimits[planType] || planLimits.starter
