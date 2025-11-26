@@ -155,6 +155,8 @@ Description: Same as annual, billed monthly (no discount)
 
 ## Step 5: Create Resume Search Credit Packs (Add-Ons)
 
+> **Note:** Your code currently uses dynamic pricing for add-ons. To enable Stripe's built-in checkout features (like suggested add-ons, better analytics, and upsells), create these products in Stripe and update your code to use Price IDs instead of `price_data`.
+
 ### Product 1: 10 Credits Pack
 
 **Product Details:**
@@ -215,13 +217,13 @@ Statement descriptor: FIELDJOBS RESUME 50
 ```
 
 **Pricing:**
-- **Price**: `$149.00`
+- **Price**: `$129.00`
 - **Billing period**: One time
 - **Currency**: USD
 
 **Copy-Paste Description:**
 ```
-50 resume view credits for unlocking candidate resumes (Maximum Savings)
+50 resume search credits for unlocking candidate profiles in database (Maximum Savings)
 ```
 
 **After Creating:**
@@ -305,6 +307,15 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
 2. Set **brand color**: `#9333EA` (purple) or `#FF6B35` (orange)
 3. Add **business info**: FieldJobs LLC, support@field-jobs.co
 
+### Checkout Add-ons (Optional but Recommended):
+**URL**: https://dashboard.stripe.com/settings/checkout
+
+To show suggested add-ons at checkout (like "Add resume credits?"):
+1. Enable **"Product recommendations"**
+2. Configure which products to suggest together
+3. Example: When buying a subscription, suggest resume credit packs
+4. **Note:** This only works with pre-created products (Price IDs), not dynamic pricing
+
 ---
 
 ## Step 9: Test Mode vs Live Mode
@@ -368,6 +379,87 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
 - Verify price ID matches the product
 - Check currency is USD
 - Ensure billing period is correct (yearly for Enterprise/Unlimited)
+
+---
+
+## Switching from Dynamic Pricing to Price IDs (For Add-ons)
+
+If you want to use Stripe's checkout add-on suggestions, you'll need to update your code to use Price IDs instead of dynamic pricing.
+
+### Files to Update:
+
+#### 1. `app/api/purchase-credits/route.js`
+
+**Current (Dynamic Pricing):**
+```javascript
+const lineItem = { 
+  price_data: {
+    currency: 'usd',
+    product_data: {
+      name: `Resume Credits - ${creditAmounts[addonType]} Pack`,
+      description: `${creditAmounts[addonType]} credits for candidate contact`
+    },
+    unit_amount: prices[addonType]
+  },
+  quantity: 1 
+}
+```
+
+**Updated (Price IDs):**
+```javascript
+// Map addon types to Price IDs
+const priceIdMap = {
+  'resume_credits_10': process.env.NEXT_PUBLIC_STRIPE_RESUME_10_PRICE_ID,
+  'resume_credits_25': process.env.NEXT_PUBLIC_STRIPE_RESUME_25_PRICE_ID,
+  'resume_credits_50': process.env.NEXT_PUBLIC_STRIPE_RESUME_50_PRICE_ID
+}
+
+const lineItem = { 
+  price: priceIdMap[addonType],
+  quantity: 1 
+}
+```
+
+#### 2. `app/api/purchase-job-feature/route.js`
+
+**Current (Dynamic Pricing):**
+```javascript
+const lineItem = {
+  price_data: {
+    currency: 'usd',
+    product_data: {
+      name: featureConfig.name,
+      description: featureConfig.description
+    },
+    unit_amount: featureConfig.amount
+  },
+  quantity: 1
+}
+```
+
+**Updated (Price IDs):**
+```javascript
+const priceIdMap = {
+  'featured': process.env.NEXT_PUBLIC_STRIPE_FEATURED_PRICE_ID,
+  'urgent': process.env.NEXT_PUBLIC_STRIPE_URGENT_PRICE_ID
+}
+
+const lineItem = {
+  price: priceIdMap[featureType],
+  quantity: 1
+}
+```
+
+### Benefits of Using Price IDs:
+- ✅ Enable Stripe's checkout add-on suggestions
+- ✅ Better analytics and reporting in Stripe
+- ✅ Easier to update pricing from Stripe Dashboard
+- ✅ Consistent product catalog
+- ✅ Support for promotional pricing and coupons
+
+### Drawbacks:
+- ❌ Need to update environment variables when changing prices
+- ❌ More setup work initially
 
 ---
 
