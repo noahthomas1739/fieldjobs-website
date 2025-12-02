@@ -257,15 +257,20 @@ export async function POST(request) {
     if (actualPriceId) {
       lineItem = { price: actualPriceId, quantity: 1 }
     } else {
-      // Use dynamic pricing
+      // Use dynamic pricing (annual billing)
       const planPricing = {
-        'starter': { amount: 19900, name: 'Starter Plan', description: '3 active jobs, basic features' },
-        'growth': { amount: 29900, name: 'Growth Plan', description: '6 active jobs, 5 monthly credits' },
-        'professional': { amount: 59900, name: 'Professional Plan', description: '15 active jobs, 25 monthly credits' },
-        'enterprise': { amount: 199900, name: 'Enterprise Plan', description: 'Unlimited jobs, 100 monthly credits' }
+        'starter': { amount: 19900, name: 'Starter Plan (Annual)', description: '3 active jobs, basic features', interval: 'year' },
+        'growth': { amount: 29900, name: 'Growth Plan (Annual)', description: '6 active jobs, 5 resume search credits', interval: 'year' },
+        'professional': { amount: 59900, name: 'Professional Plan (Annual)', description: '15 active jobs, 25 resume search credits', interval: 'year' },
+        'enterprise': { amount: 224600, name: 'Enterprise Plan (Annual)', description: '20 job postings, 25 resume search credits', interval: 'year' },
+        'unlimited': { amount: 355300, name: 'Unlimited Plan (Annual)', description: 'Unlimited job postings, 100 resume search credits', interval: 'year' }
       }
       
       const pricing = planPricing[planType]
+      if (!pricing) {
+        return NextResponse.json({ error: `Invalid plan type: ${planType}` }, { status: 400 })
+      }
+      
       lineItem = {
         price_data: {
           currency: 'usd',
@@ -274,7 +279,7 @@ export async function POST(request) {
             description: pricing.description
           },
           unit_amount: pricing.amount,
-          recurring: { interval: 'month' }
+          recurring: { interval: pricing.interval }
         },
         quantity: 1
       }

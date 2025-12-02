@@ -1985,28 +1985,27 @@ function EmployerDashboardContent() {
                 <h2 className="text-xl font-bold mb-6">Plans & Pricing</h2>
 
               <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="border border-orange-200 rounded-lg p-6 bg-orange-50">
+                <div className="border border-orange-200 rounded-lg p-6 bg-orange-50 flex flex-col">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Single Job Post</h3>
                     <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
                     <div className="text-gray-600 text-sm">one-time payment</div>
                   </div>
-                  <ul className="space-y-2 mb-6 text-sm">
+                  <ul className="space-y-2 mb-6 text-sm flex-grow">
                     <li>✅ 1 job posting</li>
                     <li>✅ 60-day duration</li>
                     <li>✅ Full applicant access</li>
-                    <li>✅ Email support</li>
                   </ul>
                   <button 
                     onClick={handleSingleJobPurchase}
                     disabled={isLoading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium disabled:opacity-50 mt-auto"
                   >
                     {isLoading ? 'Processing...' : 'Purchase Now'}
                   </button>
                 </div>
 
-                <div className="border border-purple-300 rounded-lg p-6 bg-purple-50 relative">
+                <div className="border border-purple-300 rounded-lg p-6 bg-purple-50 relative flex flex-col">
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                     <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                       BEST VALUE
@@ -2015,34 +2014,34 @@ function EmployerDashboardContent() {
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Enterprise</h3>
                     <div className="text-3xl font-bold text-purple-600 my-2">$188</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $2,250</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $2,246</div>
                     <div className="text-green-600 text-xs font-semibold mt-1">Save $250 with annual billing!</div>
                   </div>
-                  <ul className="space-y-2 mb-6 text-sm">
+                  <ul className="space-y-2 mb-6 text-sm flex-grow">
                     <li>✅ 20 job postings</li>
                     <li>✅ 25 resume search credits</li>
-                    <li>✅ Email support</li>
-                    <li>✅ Advanced analytics</li>
+                    <li>✅ Priority support</li>
                   </ul>
-                  {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
+                  <div className="mt-auto">
+                    {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
+                  </div>
                 </div>
 
-                <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
+                <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50 flex flex-col">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Unlimited</h3>
                     <div className="text-3xl font-bold text-indigo-600 my-2">$296</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,551</div>
-                    <div className="text-green-600 text-xs font-semibold mt-1">Save $394 with annual billing!</div>
+                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,553</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save $395 with annual billing!</div>
                   </div>
-                  <ul className="space-y-2 mb-6 text-sm">
+                  <ul className="space-y-2 mb-6 text-sm flex-grow">
                     <li>✅ Unlimited job postings</li>
                     <li>✅ 100 resume search credits</li>
                     <li>✅ Priority support</li>
-                    <li>✅ Advanced analytics</li>
-                    <li>✅ Custom integrations</li>
-                    <li>✅ Priority feature requests</li>
                   </ul>
-                  {renderSubscriptionButton('unlimited', process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
+                  <div className="mt-auto">
+                    {renderSubscriptionButton('unlimited', process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
+                  </div>
                 </div>
               </div>
               </div>
@@ -2051,39 +2050,39 @@ function EmployerDashboardContent() {
               <div>
                 <h2 className="text-xl font-bold mb-6">Premium Add-Ons</h2>
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
                     <h4 className="font-semibold mb-2">Resume Search Credits - 10 Pack</h4>
                     <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
-                    <p className="text-gray-600 text-sm mb-4">10 credits to unlock candidate profiles</p>
+                    <p className="text-gray-600 text-sm mb-4 flex-grow">10 credits to unlock candidate profiles</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_10')}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-auto"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Buy 10 Credits'}
                     </button>
                   </div>
                   
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
                     <h4 className="font-semibold mb-2">Resume Search Credits - 25 Pack</h4>
                     <div className="text-2xl font-bold text-orange-500 mb-2">$79</div>
-                    <p className="text-gray-600 text-sm mb-4">25 credits - Best Value</p>
+                    <p className="text-gray-600 text-sm mb-4 flex-grow">25 credits - Best Value</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_25')}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-auto"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Buy 25 Credits'}
                     </button>
                   </div>
                   
-                  <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
                     <h4 className="font-semibold mb-2">Resume Search Credits - 50 Pack</h4>
                     <div className="text-2xl font-bold text-orange-500 mb-2">$129</div>
-                    <p className="text-gray-600 text-sm mb-4">50 credits for high volume</p>
+                    <p className="text-gray-600 text-sm mb-4 flex-grow">50 credits for high volume</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_50')}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded"
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-auto"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Buy 50 Credits'}
