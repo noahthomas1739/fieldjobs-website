@@ -439,10 +439,18 @@ async function syncSubscriptionToDatabase(subscription, userId) {
   const supabase = supabaseAdmin
   
   const priceId = subscription.items.data[0]?.price?.id
-  const planType = getPlanTypeFromPriceId(priceId)
+  const priceAmount = subscription.items.data[0]?.price?.unit_amount || 0
+  
+  // Try to get plan type from Price ID first, then fall back to amount
+  let planType = getPlanTypeFromPriceId(priceId)
+  if (planType === 'starter' && priceAmount > 19900) {
+    // Price ID didn't match, detect from amount (for dynamic pricing)
+    planType = getPlanTypeFromAmount(priceAmount)
+  }
   
   console.log('🔵 Plan type:', planType)
   console.log('🔵 Price ID:', priceId)
+  console.log('🔵 Price amount:', priceAmount)
   
   const planLimits = {
     starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
@@ -514,10 +522,24 @@ function getPlanTypeFromPriceId(priceId) {
     [process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID]: 'starter',
     [process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID]: 'growth',
     [process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID]: 'professional',
-    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID]: 'enterprise'
+    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID]: 'enterprise',
+    [process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID]: 'unlimited'
   }
   
   return priceMapping[priceId] || 'starter'
+}
+
+function getPlanTypeFromAmount(amount) {
+  // Map price amounts to plan types (for dynamic pricing)
+  const amountMapping = {
+    19900: 'starter',
+    29900: 'growth',
+    59900: 'professional',
+    224600: 'enterprise',
+    355300: 'unlimited'
+  }
+  
+  return amountMapping[amount] || 'starter'
 }
 
 // Handle subscription success
