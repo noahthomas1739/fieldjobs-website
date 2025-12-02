@@ -89,23 +89,41 @@ export async function POST(request) {
       metadata: metadata
     })
     
-    // Create Stripe checkout session with dynamic pricing
+    // Try to use Price IDs from environment, otherwise use dynamic pricing
+    const priceIdMap = {
+      'featured': process.env.NEXT_PUBLIC_STRIPE_FEATURED_PRICE_ID,
+      'urgent': process.env.NEXT_PUBLIC_STRIPE_URGENT_PRICE_ID
+    }
+    
+    let lineItem
+    const priceId = priceIdMap[featureType]
+    
+    if (priceId) {
+      console.log('✅ Using Price ID from environment for', featureType)
+      lineItem = {
+        price: priceId,
+        quantity: 1
+      }
+    } else {
+      console.log('⚠️ No Price ID found, using dynamic pricing for', featureType)
+      lineItem = {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: featureConfig.name,
+            description: featureConfig.description,
+          },
+          unit_amount: featureConfig.amount,
+        },
+        quantity: 1
+      }
+    }
+    
+    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: profile.email,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: featureConfig.name,
-              description: featureConfig.description,
-            },
-            unit_amount: featureConfig.amount,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: [lineItem],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?session_id={CHECKOUT_SESSION_ID}&feature_success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/employer?feature_cancelled=true`,

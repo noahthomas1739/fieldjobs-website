@@ -39,26 +39,28 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
     
-    // If no priceId provided, use dynamic pricing
+    // If no priceId provided, try to get from environment variables
     let actualPriceId = priceId
     if (!actualPriceId) {
-      console.log('No priceId provided, using dynamic pricing for plan:', planType)
+      console.log('No priceId provided, checking environment variables for plan:', planType)
       
-      // Create dynamic price based on plan type
-      const planPricing = {
-        'starter': { amount: 19900, name: 'Starter Plan', description: '3 active jobs, basic features' },
-        'growth': { amount: 29900, name: 'Growth Plan', description: '6 active jobs, 5 monthly credits' },
-        'professional': { amount: 59900, name: 'Professional Plan', description: '15 active jobs, 25 monthly credits' },
-        'enterprise': { amount: 199900, name: 'Enterprise Plan', description: 'Unlimited jobs, 100 monthly credits' }
+      // Try to get Price ID from environment variables first
+      const priceIdMap = {
+        'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
+        'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
+        'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+        'unlimited': process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID
       }
       
-      const pricing = planPricing[planType]
-      if (!pricing) {
-        return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 })
-      }
+      actualPriceId = priceIdMap[planType]
       
-      // We'll create the subscription with price_data instead of priceId
-      actualPriceId = null // Signal to use price_data
+      if (actualPriceId) {
+        console.log('✅ Using Price ID from environment:', actualPriceId)
+      } else {
+        console.log('⚠️ No Price ID found, will use dynamic pricing')
+        actualPriceId = null // Signal to use price_data
+      }
     }
 
     console.log('Checking existing subscriptions...')

@@ -58,20 +58,38 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid package type' }, { status: 400 })
     }
 
-    // Create line item with dynamic pricing (same as purchase-addon route)
+    // Try to use Price IDs from environment, otherwise use dynamic pricing
+    const priceIdMap = {
+      'resume_credits_10': process.env.NEXT_PUBLIC_STRIPE_RESUME_10_PRICE_ID,
+      'resume_credits_25': process.env.NEXT_PUBLIC_STRIPE_RESUME_25_PRICE_ID,
+      'resume_credits_50': process.env.NEXT_PUBLIC_STRIPE_RESUME_50_PRICE_ID
+    }
+    
     const creditAmounts = { 'resume_credits_10': 10, 'resume_credits_25': 25, 'resume_credits_50': 50 }
     const prices = { 'resume_credits_10': 3900, 'resume_credits_25': 7900, 'resume_credits_50': 12900 }
     
-    const lineItem = { 
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: `Resume Credits - ${creditAmounts[addonType]} Pack`,
-          description: `${creditAmounts[addonType]} credits for candidate contact`
+    let lineItem
+    const priceId = priceIdMap[addonType]
+    
+    if (priceId) {
+      console.log('✅ Using Price ID from environment for', addonType)
+      lineItem = { 
+        price: priceId,
+        quantity: 1 
+      }
+    } else {
+      console.log('⚠️ No Price ID found, using dynamic pricing for', addonType)
+      lineItem = { 
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `Resume Search Credits - ${creditAmounts[addonType]} Pack`,
+            description: `${creditAmounts[addonType]} credits for unlocking candidate profiles`
+          },
+          unit_amount: prices[addonType]
         },
-        unit_amount: prices[addonType]
-      },
-      quantity: 1 
+        quantity: 1 
+      }
     }
 
     const metadata = { 

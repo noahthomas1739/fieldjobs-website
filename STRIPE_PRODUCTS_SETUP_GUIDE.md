@@ -234,19 +234,55 @@ Statement descriptor: FIELDJOBS RESUME 50
 
 ## Step 6: Create Job Feature Add-Ons
 
-### Featured Listing:
-- **Name**: `Featured Job Listing`
-- **Description**: `Top of search results with bright highlight badge for 30 days`
-- **Price**: `$29.00`
-- **Billing**: One time
-- Save as: `NEXT_PUBLIC_STRIPE_FEATURED_PRICE_ID`
+### Product 1: Featured Job Listing
 
-### Urgent Badge:
-- **Name**: `Urgent Job Badge`
-- **Description**: `Bright "URGENT" badge for immediate attention for 30 days`
+**Product Details:**
+```
+Name: Featured Job Listing
+Description: Top of search results with bright highlight badge for 30 days
+Statement descriptor: FIELDJOBS FEATURED
+```
+
+**Pricing:**
+- **Pricing model**: Standard pricing
+- **Price**: `$29.00`
+- **Billing period**: One time
+- **Currency**: USD
+
+**Copy-Paste Description:**
+```
+Top of search results with bright highlight badge for 30 days
+```
+
+**After Creating:**
+- ✅ Copy the **Price ID** (starts with `price_`)
+- ✅ Save it as: `NEXT_PUBLIC_STRIPE_FEATURED_PRICE_ID`
+
+---
+
+### Product 2: Urgent Job Badge
+
+**Product Details:**
+```
+Name: Urgent Job Badge
+Description: Bright "URGENT" badge for immediate attention for 30 days
+Statement descriptor: FIELDJOBS URGENT
+```
+
+**Pricing:**
+- **Pricing model**: Standard pricing
 - **Price**: `$19.00`
-- **Billing**: One time
-- Save as: `NEXT_PUBLIC_STRIPE_URGENT_PRICE_ID`
+- **Billing period**: One time
+- **Currency**: USD
+
+**Copy-Paste Description:**
+```
+Bright "URGENT" badge for immediate attention for 30 days
+```
+
+**After Creating:**
+- ✅ Copy the **Price ID** (starts with `price_`)
+- ✅ Save it as: `NEXT_PUBLIC_STRIPE_URGENT_PRICE_ID`
 
 ---
 
@@ -255,20 +291,24 @@ Statement descriptor: FIELDJOBS RESUME 50
 ### Required Variables:
 
 ```bash
-# Subscription Plans (Annual Billing)
+# Core Products
+NEXT_PUBLIC_STRIPE_SINGLE_JOB_PRICE_ID=price_xxxxxxxxxxxxx
 NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID=price_xxxxxxxxxxxxx
 NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID=price_xxxxxxxxxxxxx
 
-# Add-Ons (Optional - only if using)
+# Resume Credit Add-Ons
 NEXT_PUBLIC_STRIPE_RESUME_10_PRICE_ID=price_xxxxxxxxxxxxx
 NEXT_PUBLIC_STRIPE_RESUME_25_PRICE_ID=price_xxxxxxxxxxxxx
 NEXT_PUBLIC_STRIPE_RESUME_50_PRICE_ID=price_xxxxxxxxxxxxx
+
+# Job Feature Add-Ons
 NEXT_PUBLIC_STRIPE_FEATURED_PRICE_ID=price_xxxxxxxxxxxxx
 NEXT_PUBLIC_STRIPE_URGENT_PRICE_ID=price_xxxxxxxxxxxxx
 
 # Existing (Keep These)
 STRIPE_SECRET_KEY=sk_live_xxxxxxxxxxxxx
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
 ```
 
 ### How to Update in Vercel:
