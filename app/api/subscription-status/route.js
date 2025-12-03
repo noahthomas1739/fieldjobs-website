@@ -131,6 +131,24 @@ export async function GET(request) {
             // Clean up any old subscriptions first
             await cleanupOldSubscriptions(userId, stripeSubscription.id, supabase)
             
+            // Validate and convert timestamps safely
+            const periodStart = stripeSubscription.current_period_start 
+              ? new Date(stripeSubscription.current_period_start * 1000) 
+              : new Date()
+            const periodEnd = stripeSubscription.current_period_end 
+              ? new Date(stripeSubscription.current_period_end * 1000) 
+              : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
+            
+            // Validate dates are valid
+            if (isNaN(periodStart.getTime())) {
+              console.error('⚠️ Invalid period start date from Stripe')
+              periodStart = new Date()
+            }
+            if (isNaN(periodEnd.getTime())) {
+              console.error('⚠️ Invalid period end date from Stripe')
+              periodEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+            }
+            
             const { data: syncedSubscription, error: syncError } = await supabase
               .from('subscriptions')
               .insert({
@@ -142,8 +160,8 @@ export async function GET(request) {
                 price: planDetails.price,
                 active_jobs_limit: planDetails.jobLimit,
                 credits: planDetails.credits,
-                current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+                current_period_start: periodStart.toISOString(),
+                current_period_end: periodEnd.toISOString(),
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
               })
@@ -360,8 +378,8 @@ function getPlanDetailsFromStripeSubscription(stripeSubscription) {
     19900: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
     29900: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
     59900: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
-    225000: { planType: 'enterprise', price: 225000, jobLimit: 20, credits: 25 },
-    355050: { planType: 'unlimited', price: 355050, jobLimit: 999999, credits: 100 }
+    224600: { planType: 'enterprise', price: 224600, jobLimit: 20, credits: 25 },
+    355300: { planType: 'unlimited', price: 355300, jobLimit: 999999, credits: 100 }
   }
   
   return planMapping[amount] || { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 }

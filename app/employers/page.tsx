@@ -365,10 +365,10 @@ export default function EmployersPage() {
               <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">BEST VALUE</span>
             </div>
             <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
-            <div className="text-3xl font-bold text-purple-600 mb-2">$188</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">$187</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
-            <div className="text-gray-600 text-xs mb-2">billed annually at $2,250</div>
-            <div className="text-green-600 text-xs font-semibold mb-4">Save $250 with annual billing!</div>
+            <div className="text-gray-600 text-xs mb-2">billed annually at $2,246</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
               <li>✅ 20 job postings</li>
               <li>✅ 25 resume search credits</li>
@@ -379,7 +379,7 @@ export default function EmployersPage() {
               onClick={() => handleSubscriptionPurchase('enterprise')}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
             >
-              Upgrade
+              Choose Plan
             </button>
           </div>
 
@@ -388,21 +388,19 @@ export default function EmployersPage() {
             <h3 className="text-xl font-semibold mb-4">Unlimited</h3>
             <div className="text-3xl font-bold text-indigo-600 mb-2">$296</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
-            <div className="text-gray-600 text-xs mb-2">billed annually at $3,551</div>
-            <div className="text-green-600 text-xs font-semibold mb-4">Save $394 with annual billing!</div>
+            <div className="text-gray-600 text-xs mb-2">billed annually at $3,553</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
               <li>✅ Unlimited job postings</li>
               <li>✅ 100 resume search credits</li>
               <li>✅ Priority support</li>
               <li>✅ Advanced analytics</li>
-              <li>✅ Custom integrations</li>
-              <li>✅ Priority feature requests</li>
             </ul>
             <button 
               onClick={() => handleSubscriptionPurchase('unlimited')}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold"
             >
-              Go Unlimited
+              Choose Plan
             </button>
           </div>
         </div>
