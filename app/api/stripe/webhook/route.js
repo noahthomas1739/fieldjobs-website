@@ -441,23 +441,28 @@ async function syncSubscriptionToDatabase(subscription, userId) {
   const priceId = subscription.items.data[0]?.price?.id
   const priceAmount = subscription.items.data[0]?.price?.unit_amount || 0
   
-  // Try to get plan type from Price ID first, then fall back to amount
-  let planType = getPlanTypeFromPriceId(priceId)
-  if (planType === 'starter' && priceAmount > 19900) {
-    // Price ID didn't match, detect from amount (for dynamic pricing)
-    planType = getPlanTypeFromAmount(priceAmount)
-  }
-  
-  console.log('🔵 Plan type:', planType)
   console.log('🔵 Price ID:', priceId)
   console.log('🔵 Price amount:', priceAmount)
+  
+  // Try to get plan type from Price ID first
+  let planType = getPlanTypeFromPriceId(priceId)
+  console.log('🔵 Plan type from Price ID:', planType)
+  
+  // If Price ID didn't match or returned starter, try amount-based detection
+  if (!planType || (planType === 'starter' && priceAmount > 19900)) {
+    console.log('🔵 Price ID did not match, trying amount-based detection...')
+    planType = getPlanTypeFromAmount(priceAmount)
+    console.log('🔵 Plan type from amount:', planType)
+  }
+  
+  console.log('🔵 Final plan type:', planType)
   
   const planLimits = {
     starter: { active_jobs_limit: 3, credits: 0, price: 19900 },
     growth: { active_jobs_limit: 6, credits: 5, price: 29900 },
     professional: { active_jobs_limit: 15, credits: 25, price: 59900 },
-    enterprise: { active_jobs_limit: 20, credits: 25, price: 225000 },
-    unlimited: { active_jobs_limit: 999999, credits: 100, price: 355050 }
+    enterprise: { active_jobs_limit: 20, credits: 25, price: 224600 },
+    unlimited: { active_jobs_limit: 999999, credits: 100, price: 355300 }
   }
   
   const limits = planLimits[planType] || planLimits.starter

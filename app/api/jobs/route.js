@@ -227,6 +227,67 @@ export async function POST(request) {
     const finalEmployerId = employerId || userId
     const finalIndustry = primaryIndustry || industry
 
+    // Check if user has credits/subscription to post jobs
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get user's active jobs count
+    const { count: activeJobsCount } = await supabase
+      .from('jobs')
+      .select('*', { count: 'exact', head: true })
+      .eq('employer_id', finalEmployerId)
+      .eq('active', true)
+
+    // Check subscription/limits
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('active_jobs_limit, plan_type')
+      .eq('user_id', finalEmployerId)
+      .eq('status', 'active')
+      .single()
+
+    // Check if they have available credits from single job purchases
+    const { data: payments } = await supabase
+      .from('stripe_payments')
+      .select('*')
+      .eq('user_id', finalEmployerId)
+      .eq('payment_type', 'single_job')
+
+    const singleJobCredits = payments?.length || 0
+    const subscriptionLimit = subscription?.active_jobs_limit || 0
+    const totalAllowedJobs = subscriptionLimit + singleJobCredits
+    
+    console.log('🔍 Job posting check:', {
+      activeJobsCount,
+      subscriptionLimit,
+      singleJobCredits,
+      totalAllowedJobs,
+      canPost: activeJobsCount < totalAllowedJobs
+    })
+
+    // Allow posting if they haven't reached their limit
+    if (activeJobsCount >= totalAllowedJobs && totalAllowedJobs > 0) {
+      return Response.json({ 
+        error: 'Job limit reached',
+        message: `You have ${activeJobsCount} active jobs. Your limit is ${totalAllowedJobs}. Please upgrade your plan or purchase additional job postings.`,
+        needsUpgrade: true
+      }, { status: 403 })
+    }
+
+    // If they have 0 allowed jobs and 0 active jobs, this is their first free job
+    const isFirstFreeJob = totalAllowedJobs === 0 && activeJobsCount === 0
+
+    if (!isFirstFreeJob && totalAllowedJobs === 0) {
+      return Response.json({ 
+        error: 'No job postings available',
+        message: 'Please purchase a subscription or single job posting to continue.',
+        needsUpgrade: true
+      }, { status: 403 })
+    }
+
     // Validate required fields (removed contactEmail/contactPhone as employers reach out to seekers)
     if (!finalEmployerId || !title || !company || !description || !region || !hourlyRate) {
       console.log('❌ Missing required fields:', {
