@@ -69,12 +69,12 @@ export async function POST(request) {
     const prices = { 'resume_credits_10': 3900, 'resume_credits_25': 7900, 'resume_credits_50': 12900 }
     
     let lineItem
-    const priceId = priceIdMap[addonType]
+    const stripePriceId = priceIdMap[addonType]
     
-    if (priceId) {
+    if (stripePriceId) {
       console.log('✅ Using Price ID from environment for', addonType)
       lineItem = { 
-        price: priceId,
+        price: stripePriceId,
         quantity: 1 
       }
     } else {
