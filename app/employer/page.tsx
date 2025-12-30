@@ -1301,7 +1301,7 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-500">
-                {(subscription.tier === 'enterprise' || subscription.tier === 'unlimited') ? '∞' : userCredits}
+                {subscription.tier === 'enterprise' ? '∞' : userCredits}
               </div>
               <div className="text-sm text-gray-600">Resume Search Credits</div>
             </div>
@@ -1792,13 +1792,13 @@ function EmployerDashboardContent() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Classification</label>
+                    <label className="block text-sm font-medium mb-1">Experience Level</label>
                     <select
                       value={searchFilters.classification}
                       onChange={(e) => setSearchFilters(prev => ({ ...prev, classification: e.target.value }))}
                       className="w-full p-2 border border-gray-300 rounded"
                     >
-                      <option value="">Any Classification</option>
+                      <option value="">Select Experience Level</option>
                       <option value="0-5">0-5 years</option>
                       <option value="5-10">5-10 years</option>
                       <option value="10-15">10-15 years</option>
