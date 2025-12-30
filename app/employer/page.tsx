@@ -1301,7 +1301,7 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-500">
-                {subscription.tier === 'enterprise' ? '∞' : userCredits}
+                {userCredits}
               </div>
               <div className="text-sm text-gray-600">Resume Search Credits</div>
             </div>
