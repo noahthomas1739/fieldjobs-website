@@ -1799,8 +1799,11 @@ function EmployerDashboardContent() {
                       className="w-full p-2 border border-gray-300 rounded"
                     >
                       <option value="">Any Classification</option>
-                      <option value="Staff">Staff</option>
-                      <option value="Freelance">Freelance</option>
+                      <option value="0-5">0-5 years</option>
+                      <option value="5-10">5-10 years</option>
+                      <option value="10-15">10-15 years</option>
+                      <option value="15-20">15-20 years</option>
+                      <option value="20+">20+ years</option>
                     </select>
                   </div>
                 </div>
