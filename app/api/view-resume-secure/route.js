@@ -13,17 +13,25 @@ export async function GET(request) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - please log in' }, { status: 401 })
     }
 
-    // Verify user is an employer
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_type')
-      .eq('id', user.id)
-      .single()
+    // Check user metadata first (most reliable), then fall back to profiles table
+    const userMetadata = user.user_metadata
+    let isEmployer = userMetadata?.account_type === 'employer'
+    
+    // If not found in metadata, check profiles table
+    if (!isEmployer) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_type')
+        .eq('id', user.id)
+        .single()
+      
+      isEmployer = profile?.account_type === 'employer'
+    }
 
-    if (!profile || profile.account_type !== 'employer') {
+    if (!isEmployer) {
       return NextResponse.json({ error: 'Access denied - employers only' }, { status: 403 })
     }
 
