@@ -21,14 +21,21 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Resume URL is required' }, { status: 400 })
     }
 
-    // Verify the user is an employer (has access to view resumes)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('account_type')
-      .eq('id', user.id)
-      .single()
+    // Check user metadata first, then profiles table
+    const userMetadata = user.user_metadata
+    let isEmployer = userMetadata?.account_type === 'employer'
+    
+    if (!isEmployer) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_type')
+        .eq('id', user.id)
+        .single()
+      
+      isEmployer = profile?.account_type === 'employer'
+    }
 
-    if (!profile || profile.account_type !== 'employer') {
+    if (!isEmployer) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 

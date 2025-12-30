@@ -43,13 +43,11 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Resume URL is required' }, { status: 400 })
     }
 
-    // Encode the resume URL for Google Docs Viewer
-    const encodedUrl = encodeURIComponent(resumeUrl)
-    
-    // Google Docs Viewer URL - displays PDFs and Word docs without download option
-    const viewerUrl = `https://docs.google.com/gview?url=${encodedUrl}&embedded=false`
+    // Redirect to our custom secure viewer page
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'
+    const viewerUrl = `${baseUrl}/resume-viewer?url=${encodeURIComponent(resumeUrl)}`
 
-    // Redirect to the Google Docs Viewer
+    // Redirect to our secure viewer
     return NextResponse.redirect(viewerUrl)
 
   } catch (error) {
