@@ -78,6 +78,14 @@ export async function POST(request) {
       case 'invoice.payment_failed':
         await handlePaymentFailed(event.data.object)
         break
+      
+      case 'subscription_schedule.completed':
+        await handleSubscriptionScheduleCompleted(event.data.object)
+        break
+        
+      case 'subscription_schedule.canceled':
+        await handleSubscriptionScheduleCanceled(event.data.object)
+        break
         
       default:
         console.log(`🔵 Unhandled event type: ${event.type}`)
@@ -610,4 +618,76 @@ async function cleanupOldSubscriptions(userId, newSubscriptionId) {
     .in('status', ['active', 'trialing'])
   
     console.log('✅ Old subscriptions cleaned up')
+}
+
+/**
+ * Handle subscription schedule completed
+ * This fires when a scheduled plan change (like a downgrade) is applied
+ */
+async function handleSubscriptionScheduleCompleted(schedule) {
+  console.log('🔵 === SUBSCRIPTION SCHEDULE COMPLETED ===')
+  console.log('🔵 Schedule ID:', schedule.id)
+  console.log('🔵 Subscription:', schedule.subscription)
+  
+  const supabase = supabaseAdmin
+  
+  try {
+    // Mark the scheduled change as completed in our database
+    const { error: updateError } = await supabase
+      .from('subscription_schedule_changes')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('stripe_schedule_id', schedule.id)
+    
+    if (updateError) {
+      console.error('⚠️ Error updating schedule status:', updateError)
+    } else {
+      console.log('✅ Schedule marked as completed in database')
+    }
+    
+    // The subscription itself will be updated by the customer.subscription.updated event
+    // which fires when the schedule applies the plan change
+    
+    console.log('✅ === SUBSCRIPTION SCHEDULE COMPLETED HANDLER DONE ===')
+    
+  } catch (error) {
+    console.error('❌ Error handling schedule completed:', error)
+    throw error
+  }
+}
+
+/**
+ * Handle subscription schedule canceled
+ * This fires when a user cancels their scheduled plan change
+ */
+async function handleSubscriptionScheduleCanceled(schedule) {
+  console.log('🔵 === SUBSCRIPTION SCHEDULE CANCELED ===')
+  console.log('🔵 Schedule ID:', schedule.id)
+  
+  const supabase = supabaseAdmin
+  
+  try {
+    // Mark the scheduled change as canceled in our database
+    const { error: updateError } = await supabase
+      .from('subscription_schedule_changes')
+      .update({
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString()
+      })
+      .eq('stripe_schedule_id', schedule.id)
+    
+    if (updateError) {
+      console.error('⚠️ Error updating schedule status:', updateError)
+    } else {
+      console.log('✅ Schedule marked as cancelled in database')
+    }
+    
+    console.log('✅ === SUBSCRIPTION SCHEDULE CANCELED HANDLER DONE ===')
+    
+  } catch (error) {
+    console.error('❌ Error handling schedule canceled:', error)
+    throw error
+  }
 }

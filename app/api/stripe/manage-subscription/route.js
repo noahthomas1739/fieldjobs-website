@@ -74,6 +74,9 @@ export async function POST(request) {
       case 'reactivate':
         return await reactivateSubscription(supabase, validSubscription)
       
+      case 'cancel_scheduled_change':
+        return await cancelScheduledChange(supabase, validSubscription)
+      
       case 'get_billing_history':
         return await getBillingHistory(userId)
       
@@ -334,11 +337,12 @@ async function upgradeSubscriptionImmediate(supabase, validSubscription, newPric
 }
 
 /**
- * ROBUST: End-of-cycle downgrade with proper scheduling
+ * ROBUST: End-of-cycle downgrade with proper Stripe scheduling
+ * Uses Stripe Subscription Schedules API to ensure the change actually happens
  */
 async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPriceId, newPlanType) {
   try {
-    console.log('⬇️ Starting end-cycle downgrade...')
+    console.log('⬇️ Starting end-cycle downgrade with Stripe scheduling...')
     
     const stripeSubscription = validSubscription.stripeData
     
@@ -347,7 +351,17 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
       throw new Error(`Cannot downgrade ${stripeSubscription.status} subscription`)
     }
 
-    // Check for existing scheduled changes
+    // Check if subscription already has a schedule
+    if (stripeSubscription.schedule) {
+      console.log('⚠️ Subscription already has a schedule:', stripeSubscription.schedule)
+      return NextResponse.json({
+        success: false,
+        error: 'Change already scheduled',
+        message: 'You already have a scheduled plan change. Please cancel it first before scheduling a new one.'
+      }, { status: 400 })
+    }
+
+    // Check for existing scheduled changes in our database
     const { data: existingSchedule } = await supabase
       .from('subscription_schedule_changes')
       .select('*')
@@ -365,7 +379,6 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
 
     // Get plan details
     const planDetails = getPlanDetails(newPlanType)
-    const currentPlanDetails = getPlanDetails(validSubscription.plan_type)
     
     // Check if user has more active jobs than new plan allows
     const { data: activeJobs, error: jobsError } = await supabase
@@ -395,67 +408,72 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
       }
     }
     
-    // Debug the period end timestamp - check both possible locations
-    console.log('🐛 DEBUG stripeSubscription.current_period_end:', stripeSubscription.current_period_end)
-    console.log('🐛 DEBUG stripeSubscription.items.data[0]?.current_period_end:', stripeSubscription.items?.data?.[0]?.current_period_end)
+    // Get period end from subscription
+    const periodEnd = stripeSubscription.current_period_end || stripeSubscription.items?.data?.[0]?.current_period_end
+    console.log('📅 Current period end:', periodEnd)
     
-    // Try to get period end from subscription object, fallback to items
-    let periodEnd = stripeSubscription.current_period_end || stripeSubscription.items?.data?.[0]?.current_period_end
-    console.log('🐛 DEBUG final periodEnd value:', periodEnd)
-    
+    if (!periodEnd) {
+      throw new Error('Unable to determine billing period end date from Stripe.')
+    }
+
     const effectiveDate = toIsoFromUnixSeconds(periodEnd)
-    console.log('🐛 DEBUG effectiveDate after conversion:', effectiveDate)
-    
-    // If conversion failed, try direct conversion as fallback
-    if (!effectiveDate && periodEnd) {
-      console.log('🔧 Trying direct Date conversion as fallback...')
-      try {
-        const fallbackDate = new Date(periodEnd * 1000).toISOString()
-        console.log('🔧 Fallback conversion successful:', fallbackDate)
-        
-        // Store the scheduled change with fallback date
-        const { error: scheduleError } = await supabase
-          .from('subscription_schedule_changes')
-          .insert({
-            user_id: validSubscription.user_id,
-            subscription_id: validSubscription.id,
-            stripe_schedule_id: `manual_${Date.now()}`,
-            current_plan: validSubscription.plan_type,
-            new_plan: planDetails.planType,
-            effective_date: fallbackDate,
-            status: 'scheduled'
-          })
+    console.log('📅 Effective date for downgrade:', effectiveDate)
 
-        if (scheduleError) {
-          console.error('❌ Schedule error:', scheduleError)
-          throw new Error('Failed to schedule downgrade: ' + scheduleError.message)
+    // Create a Stripe Subscription Schedule from the existing subscription
+    // This is the proper way to schedule future subscription changes
+    console.log('📆 Creating Stripe Subscription Schedule...')
+    
+    const schedule = await stripe.subscriptionSchedules.create({
+      from_subscription: stripeSubscription.id
+    })
+    
+    console.log('✅ Schedule created:', schedule.id)
+    console.log('📊 Current phases:', schedule.phases.length)
+
+    // Now update the schedule with two phases:
+    // Phase 1: Current plan until period end (already set by from_subscription)
+    // Phase 2: New plan starting at period end
+    
+    const currentPhase = schedule.phases[0]
+    
+    console.log('🔄 Updating schedule with downgrade phase...')
+    
+    const updatedSchedule = await stripe.subscriptionSchedules.update(schedule.id, {
+      end_behavior: 'release', // After phases complete, convert back to regular subscription
+      phases: [
+        {
+          // Phase 1: Keep current plan until period end
+          items: currentPhase.items.map(item => ({
+            price: item.price,
+            quantity: item.quantity
+          })),
+          start_date: currentPhase.start_date,
+          end_date: periodEnd,
+          proration_behavior: 'none'
+        },
+        {
+          // Phase 2: New (downgraded) plan starting at period end
+          items: [{
+            price: newPriceId,
+            quantity: 1
+          }],
+          start_date: periodEnd,
+          iterations: 1, // Run for one billing cycle, then release
+          proration_behavior: 'none'
         }
+      ]
+    })
 
-        return NextResponse.json({
-          success: true,
-          message: `Downgrade scheduled to ${planDetails.planType} plan! Your current benefits continue until ${new Date(fallbackDate).toLocaleDateString()}.`,
-          effectiveDate: fallbackDate,
-          newPlan: planDetails
-        })
-        
-      } catch (fallbackError) {
-        console.error('❌ Fallback conversion also failed:', fallbackError)
-        throw new Error('Unable to determine billing period end date from Stripe. Please contact support.')
-      }
-    }
-    
-    // Ensure we have a valid effective date
-    if (!effectiveDate) {
-      throw new Error('Unable to determine billing period end date from Stripe. Please contact support.')
-    }
+    console.log('✅ Schedule updated successfully:', updatedSchedule.id)
+    console.log('📊 Updated phases:', updatedSchedule.phases.length)
 
-    // Store the scheduled change
+    // Store the scheduled change in our database for reference
     const { error: scheduleError } = await supabase
       .from('subscription_schedule_changes')
       .insert({
         user_id: validSubscription.user_id,
         subscription_id: validSubscription.id,
-        stripe_schedule_id: `manual_${Date.now()}`,
+        stripe_schedule_id: updatedSchedule.id,
         current_plan: validSubscription.plan_type,
         new_plan: planDetails.planType,
         effective_date: effectiveDate,
@@ -463,14 +481,21 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
       })
 
     if (scheduleError) {
-      console.error('❌ Schedule error:', scheduleError)
-      throw new Error('Failed to schedule downgrade: ' + scheduleError.message)
+      console.error('⚠️ Database record error (Stripe schedule still valid):', scheduleError)
+      // Don't fail - the Stripe schedule is what matters
     }
+
+    const formattedDate = new Date(periodEnd * 1000).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
 
     return NextResponse.json({
       success: true,
-      message: `Downgrade scheduled to ${planDetails.planType} plan! Your current benefits continue until ${effectiveDate ? new Date(effectiveDate).toLocaleDateString() : 'the end of your current period'}.`,
+      message: `Downgrade to ${planDetails.planType} plan scheduled! Your current benefits continue until ${formattedDate}. Stripe will automatically switch your plan on that date.`,
       effectiveDate: effectiveDate,
+      stripeScheduleId: updatedSchedule.id,
       newPlan: planDetails
     })
 
@@ -480,6 +505,80 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
       success: false,
       error: 'Downgrade scheduling failed', 
       details: error.message 
+    }, { status: 500 })
+  }
+}
+
+/**
+ * Cancel a scheduled plan change (downgrade/upgrade)
+ */
+async function cancelScheduledChange(supabase, validSubscription) {
+  try {
+    console.log('🔄 Canceling scheduled change...')
+    
+    const stripeSubscription = validSubscription.stripeData
+    
+    // Check if there's a schedule attached to this subscription
+    if (!stripeSubscription.schedule) {
+      // Check our database for a scheduled change
+      const { data: scheduledChange } = await supabase
+        .from('subscription_schedule_changes')
+        .select('*')
+        .eq('user_id', validSubscription.user_id)
+        .eq('status', 'scheduled')
+        .single()
+      
+      if (!scheduledChange) {
+        return NextResponse.json({
+          success: false,
+          error: 'No scheduled change found',
+          message: 'There is no pending plan change to cancel.'
+        }, { status: 404 })
+      }
+      
+      // If we have a database record but no Stripe schedule, just update the database
+      await supabase
+        .from('subscription_schedule_changes')
+        .update({
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString()
+        })
+        .eq('id', scheduledChange.id)
+      
+      return NextResponse.json({
+        success: true,
+        message: 'Scheduled plan change has been cancelled.'
+      })
+    }
+    
+    // Cancel the Stripe schedule
+    console.log('📆 Releasing Stripe schedule:', stripeSubscription.schedule)
+    
+    // Release the schedule - this removes the scheduled change but keeps the current subscription
+    await stripe.subscriptionSchedules.release(stripeSubscription.schedule)
+    
+    console.log('✅ Stripe schedule released')
+    
+    // Update our database
+    await supabase
+      .from('subscription_schedule_changes')
+      .update({
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString()
+      })
+      .eq('stripe_schedule_id', stripeSubscription.schedule)
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Scheduled plan change has been cancelled. Your current plan will continue.'
+    })
+    
+  } catch (error) {
+    console.error('❌ Cancel schedule error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to cancel scheduled change',
+      details: error.message
     }, { status: 500 })
   }
 }
