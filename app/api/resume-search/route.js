@@ -16,26 +16,21 @@ export async function GET(request) {
     const keywords = searchParams.get('keywords') || ''
     const location = searchParams.get('location') || ''
     const classification = searchParams.get('classification') || ''
-    const specialization = searchParams.get('specialization') || ''
-    const minExperience = searchParams.get('minExperience') || ''
-    const clearance = searchParams.get('clearance') || ''
-    const minRate = searchParams.get('minRate') || ''
 
-    console.log('🔍 Resume search parameters:', {
-      keywords, location, classification, specialization, minExperience, clearance, minRate
-    })
+    console.log('🔍 Resume search parameters:', { keywords, location, classification })
 
-    // Build the query
+    // Build the query - search profiles table for job seekers with resumes
     let query = supabase
-      .from('job_seeker_profiles')
+      .from('profiles')
       .select('*')
-      .eq('resume_uploaded', true) // Only show profiles with resumes
+      .eq('account_type', 'job_seeker')
+      .not('resume_url', 'is', null) // Only profiles with resumes uploaded
       .order('updated_at', { ascending: false })
 
     // Apply filters
     if (keywords) {
       // Search in multiple fields for keywords
-      query = query.or(`first_name.ilike.%${keywords}%,last_name.ilike.%${keywords}%,specialization.ilike.%${keywords}%,certifications.ilike.%${keywords}%,skills.cs.{${keywords}}`)
+      query = query.or(`first_name.ilike.%${keywords}%,last_name.ilike.%${keywords}%,specialization.ilike.%${keywords}%,skills.ilike.%${keywords}%,bio.ilike.%${keywords}%`)
     }
 
     if (location) {
@@ -44,29 +39,6 @@ export async function GET(request) {
 
     if (classification) {
       query = query.eq('classification', classification)
-    }
-
-    if (specialization) {
-      query = query.ilike('specialization', `%${specialization}%`)
-    }
-
-    if (minExperience) {
-      query = query.gte('years_experience', parseInt(minExperience))
-    }
-
-    if (clearance === 'true') {
-      query = query.eq('has_security_clearance', true)
-    } else if (clearance === 'false') {
-      query = query.eq('has_security_clearance', false)
-    }
-
-    if (minRate) {
-      // Extract numeric value from rate string like "$50/hr"
-      const rateMatch = minRate.match(/\d+/)
-      if (rateMatch) {
-        const rateNum = parseInt(rateMatch[0])
-        query = query.ilike('desired_rate', `%${rateNum}%`)
-      }
     }
 
     // Execute query with limit
@@ -80,12 +52,12 @@ export async function GET(request) {
       }, { status: 500 })
     }
 
-    console.log(`✅ Found ${profiles.length} matching profiles`)
+    console.log(`✅ Found ${profiles?.length || 0} matching profiles`)
 
     return NextResponse.json({
       success: true,
       profiles: profiles || [],
-      count: profiles.length
+      count: profiles?.length || 0
     })
 
   } catch (error) {
