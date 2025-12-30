@@ -2,21 +2,8 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder')
-
-// Create service role client for admin operations (bypasses RLS)
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
 
 // Safely convert a Unix seconds timestamp to ISO string, or return null
 function toIsoFromUnixSeconds(unixSeconds) {
@@ -360,8 +347,8 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
       throw new Error(`Cannot downgrade ${stripeSubscription.status} subscription`)
     }
 
-    // Check for existing scheduled changes (use admin client to bypass RLS)
-    const { data: existingSchedule } = await supabaseAdmin
+    // Check for existing scheduled changes
+    const { data: existingSchedule } = await supabase
       .from('subscription_schedule_changes')
       .select('*')
       .eq('user_id', validSubscription.user_id)
@@ -426,8 +413,8 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
         const fallbackDate = new Date(periodEnd * 1000).toISOString()
         console.log('🔧 Fallback conversion successful:', fallbackDate)
         
-        // Store the scheduled change with fallback date (use admin client to bypass RLS)
-        const { error: scheduleError } = await supabaseAdmin
+        // Store the scheduled change with fallback date
+        const { error: scheduleError } = await supabase
           .from('subscription_schedule_changes')
           .insert({
             user_id: validSubscription.user_id,
@@ -462,8 +449,8 @@ async function downgradeSubscriptionEndCycle(supabase, validSubscription, newPri
       throw new Error('Unable to determine billing period end date from Stripe. Please contact support.')
     }
 
-    // Store the scheduled change (use admin client to bypass RLS)
-    const { error: scheduleError } = await supabaseAdmin
+    // Store the scheduled change
+    const { error: scheduleError } = await supabase
       .from('subscription_schedule_changes')
       .insert({
         user_id: validSubscription.user_id,
