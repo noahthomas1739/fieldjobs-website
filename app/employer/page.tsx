@@ -216,7 +216,7 @@ function EmployerDashboardContent() {
 
   // Helper functions for subscription management
   const getPlanLevel = (plan: string) => {
-    const levels: Record<string, number> = { free: 0, starter: 1, growth: 2, professional: 3, enterprise: 4 }
+    const levels: Record<string, number> = { free: 0, starter: 1, growth: 2, professional: 3, enterprise: 4, unlimited: 5 }
     return levels[plan] || 0
   }
 
