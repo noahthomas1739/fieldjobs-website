@@ -1285,13 +1285,13 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-indigo-500">
-                {subscription.tier === 'enterprise' 
+                {(subscription.tier === 'enterprise' || subscription.tier === 'unlimited')
                   ? '∞'
                   : `${Math.max(0, (subscription.activeJobsLimit || 0) - jobs.length)}`
                 }
               </div>
               <div className="text-sm text-gray-600">Jobs Left</div>
-              {subscription.tier !== 'enterprise' && subscription.activeJobsLimit === 0 && (
+              {subscription.tier !== 'enterprise' && subscription.tier !== 'unlimited' && subscription.activeJobsLimit === 0 && (
                 <div className="text-xs text-gray-500 mt-1">Upgrade for more</div>
               )}
             </div>
@@ -1301,8 +1301,8 @@ function EmployerDashboardContent() {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-purple-500">
-                {subscription.tier === 'enterprise' ? '∞' : userCredits}
-            </div>
+                {(subscription.tier === 'enterprise' || subscription.tier === 'unlimited') ? '∞' : userCredits}
+              </div>
               <div className="text-sm text-gray-600">Resume Search Credits</div>
             </div>
           </div>
