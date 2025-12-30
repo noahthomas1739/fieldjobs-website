@@ -1669,8 +1669,9 @@ function EmployerDashboardContent() {
                           {app.resume_url && (
                           <button
                             onClick={() => {
-                              // Open resume in new browser window
-                              window.open(app.resume_url, '_blank', 'noopener,noreferrer')
+                              // Open resume in Google Docs Viewer (read-only, no download)
+                              const viewerUrl = `/api/view-resume-secure?url=${encodeURIComponent(app.resume_url)}`
+                              window.open(viewerUrl, '_blank', 'noopener,noreferrer')
                             }}
                             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
                           >
@@ -2812,8 +2813,9 @@ function EmployerDashboardContent() {
                   {selectedApplication.resume_url ? (
                     <button
                       onClick={() => {
-                        // Open resume in new browser window
-                        window.open(selectedApplication.resume_url, '_blank', 'noopener,noreferrer')
+                        // Open resume in Google Docs Viewer (read-only, no download)
+                        const viewerUrl = `/api/view-resume-secure?url=${encodeURIComponent(selectedApplication.resume_url)}`
+                        window.open(viewerUrl, '_blank', 'noopener,noreferrer')
                       }}
                       className="text-blue-600 hover:text-blue-800 underline font-medium"
                     >
