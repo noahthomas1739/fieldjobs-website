@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@/hooks/useAuth'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
@@ -10,6 +10,7 @@ export default function JobSeekerDashboard() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const supabase = createClientComponentClient()
+  const resumeInputRef = useRef<HTMLInputElement>(null)
   
   // State management
   const [activeTab, setActiveTab] = useState('overview')
@@ -653,8 +654,8 @@ export default function JobSeekerDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center text-gray-900 dark:text-white">
           <div className="text-2xl mb-4">⏳</div>
           <div>Loading your dashboard...</div>
         </div>
@@ -663,15 +664,15 @@ export default function JobSeekerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-6xl mx-auto">
         
         {/* Header */}
-        <div className="bg-white rounded-lg p-6 mb-6 shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-6 shadow">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">My Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {profile.firstName}! Manage your job search here.</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Dashboard</h1>
+              <p className="text-gray-600 dark:text-gray-300">Welcome back, {profile.firstName}! Manage your job search here.</p>
             </div>
             <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium">
               Browse Jobs
@@ -680,28 +681,28 @@ export default function JobSeekerDashboard() {
           
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-orange-500">{savedJobs.length}</div>
-              <div className="text-sm text-gray-600">Saved Jobs</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Saved Jobs</div>
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-green-500">{appliedJobs.length}</div>
-              <div className="text-sm text-gray-600">Applications</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Applications</div>
               {appliedJobs.filter((job: any) => job.applicationStatus === 'Shortlisted' || job.applicationStatus === 'Interview Scheduled').length > 0 && (
-                <div className="text-xs text-green-600 font-medium">
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium">
                   {appliedJobs.filter((job: any) => job.applicationStatus === 'Shortlisted' || job.applicationStatus === 'Interview Scheduled').length} Active
                 </div>
               )}
             </div>
-            <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
               <div className="text-2xl font-bold text-blue-500">{jobAlerts.length}</div>
-              <div className="text-sm text-gray-600">Job Alerts</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Job Alerts</div>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="bg-white rounded-lg p-4 mb-6 shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 shadow">
           <div className="flex flex-wrap gap-2 md:gap-3">
             {[
               { key: 'overview', label: 'Overview', icon: '📊' },
@@ -716,7 +717,7 @@ export default function JobSeekerDashboard() {
                 className={`px-2 py-2 md:px-4 md:py-2 rounded-lg font-medium transition-colors text-sm md:text-base ${
                   activeTab === tab.key
                     ? 'bg-orange-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 <span className="md:hidden">{tab.icon}</span>
@@ -728,45 +729,45 @@ export default function JobSeekerDashboard() {
         </div>
         
         {/* Tab Content */}
-        <div className="bg-white rounded-lg p-6 shadow">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
           
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div>
-              <h2 className="text-xl font-bold mb-6">Recent Activity</h2>
+              <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Recent Activity</h2>
               
               {/* Recent Saved Jobs */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Recently Saved Jobs</h3>
+                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Recently Saved Jobs</h3>
                 {savedJobs.slice(0, 3).map((job: any) => (
-                  <div key={job.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
-                    <div className="font-semibold">{job.title}</div>
-                    <div className="text-gray-600 text-sm">{job.company} • {job.region} • {job.hourlyRate}</div>
-                    <div className="text-gray-500 text-xs">Saved on {job.savedDate}</div>
+                  <div key={job.id} className="border border-gray-200 dark:border-gray-600 p-4 mb-2 rounded-lg">
+                    <div className="font-semibold text-gray-900 dark:text-white">{job.title}</div>
+                    <div className="text-gray-600 dark:text-gray-300 text-sm">{job.company} • {job.region} • {job.hourlyRate}</div>
+                    <div className="text-gray-500 dark:text-gray-400 text-xs">Saved on {job.savedDate}</div>
                   </div>
                 ))}
                 {savedJobs.length === 0 && (
-                  <p className="text-gray-500 italic">No saved jobs yet. <Link href="/" className="text-orange-500">Browse jobs</Link> to get started!</p>
+                  <p className="text-gray-500 dark:text-gray-400 italic">No saved jobs yet. <Link href="/" className="text-orange-500">Browse jobs</Link> to get started!</p>
                 )}
               </div>
               
               {/* Recent Applications */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-3">Recent Applications</h3>
+                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Recent Applications</h3>
                 {appliedJobs.slice(0, 3).map((job: any) => (
-                  <div key={job.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
+                  <div key={job.id} className="border border-gray-200 dark:border-gray-600 p-4 mb-2 rounded-lg">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="font-semibold">{job.title}</div>
-                        <div className="text-gray-600 text-sm">{job.company} • {job.region}</div>
-                        <div className="text-gray-500 text-xs">Applied on {job.appliedDate}</div>
+                        <div className="font-semibold text-gray-900 dark:text-white">{job.title}</div>
+                        <div className="text-gray-600 dark:text-gray-300 text-sm">{job.company} • {job.region}</div>
+                        <div className="text-gray-500 dark:text-gray-400 text-xs">Applied on {job.appliedDate}</div>
                       </div>
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        job.applicationStatus === 'Under Review' ? 'bg-yellow-100 text-yellow-800' : 
-                        job.applicationStatus === 'Shortlisted' ? 'bg-green-100 text-green-800' :
-                        job.applicationStatus === 'Interview Scheduled' ? 'bg-blue-100 text-blue-800' :
-                        job.applicationStatus === 'Not Selected' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                        job.applicationStatus === 'Under Review' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' : 
+                        job.applicationStatus === 'Shortlisted' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
+                        job.applicationStatus === 'Interview Scheduled' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' :
+                        job.applicationStatus === 'Not Selected' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
+                        'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                       }`}>
                         {job.applicationStatus}
                       </div>
@@ -774,22 +775,22 @@ export default function JobSeekerDashboard() {
                   </div>
                 ))}
                 {appliedJobs.length === 0 && (
-                  <p className="text-gray-500 italic">No applications yet. <Link href="/" className="text-orange-500">Find jobs</Link> to apply to!</p>
+                  <p className="text-gray-500 dark:text-gray-400 italic">No applications yet. <Link href="/" className="text-orange-500">Find jobs</Link> to apply to!</p>
                 )}
               </div>
               
               {/* Active Alerts */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">Active Job Alerts</h3>
+                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Active Job Alerts</h3>
                 {jobAlerts.filter((alert: any) => alert.active).map((alert: any) => (
-                  <div key={alert.id} className="border border-gray-200 p-4 mb-2 rounded-lg">
-                    <div className="font-semibold">{alert.name}</div>
-                    <div className="text-gray-600 text-sm">Keywords: {alert.keywords}</div>
-                    <div className="text-gray-500 text-xs">{alert.matchesCount} matches found • {alert.totalSent} alerts sent</div>
+                  <div key={alert.id} className="border border-gray-200 dark:border-gray-600 p-4 mb-2 rounded-lg">
+                    <div className="font-semibold text-gray-900 dark:text-white">{alert.name}</div>
+                    <div className="text-gray-600 dark:text-gray-300 text-sm">Keywords: {alert.keywords}</div>
+                    <div className="text-gray-500 dark:text-gray-400 text-xs">{alert.matchesCount} matches found • {alert.totalSent} alerts sent</div>
                   </div>
                 ))}
                 {jobAlerts.filter((alert: any) => alert.active).length === 0 && (
-                  <p className="text-gray-500 italic">No active job alerts. <button onClick={() => setShowAlertModal(true)} className="text-orange-500 underline">Create one now</button>!</p>
+                  <p className="text-gray-500 dark:text-gray-400 italic">No active job alerts. <button onClick={() => setShowAlertModal(true)} className="text-orange-500 underline">Create one now</button>!</p>
                 )}
               </div>
             </div>
@@ -799,7 +800,7 @@ export default function JobSeekerDashboard() {
           {activeTab === 'saved' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Saved Jobs</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Saved Jobs</h2>
                 <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
                   Browse More Jobs
                 </Link>
@@ -808,8 +809,8 @@ export default function JobSeekerDashboard() {
               {savedJobs.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-4xl mb-4">💼</div>
-                  <h3 className="text-lg font-semibold mb-2">No saved jobs yet</h3>
-                  <p className="text-gray-600 mb-4">Save jobs you're interested in to keep track of them</p>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No saved jobs yet</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">Save jobs you're interested in to keep track of them</p>
                   <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg">
                     Browse Jobs
                   </Link>
@@ -817,11 +818,11 @@ export default function JobSeekerDashboard() {
               ) : (
                 <div className="space-y-4">
                   {savedJobs.map((job: any) => (
-                    <div key={job.id} className="border border-gray-200 p-6 rounded-lg flex justify-between items-center">
+                    <div key={job.id} className="border border-gray-200 dark:border-gray-600 p-6 rounded-lg flex justify-between items-center">
                       <div className="flex-1">
-                        <div className="font-semibold text-lg mb-2">{job.title}</div>
-                        <div className="text-gray-600 mb-2">{job.company}</div>
-                        <div className="text-sm text-gray-500">
+                        <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">{job.title}</div>
+                        <div className="text-gray-600 dark:text-gray-300 mb-2">{job.company}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {job.region} • {job.hourlyRate} • Saved on {job.savedDate}
                         </div>
                       </div>
@@ -849,13 +850,13 @@ export default function JobSeekerDashboard() {
           {/* Applied Jobs Tab */}
           {activeTab === 'applied' && (
             <div>
-              <h2 className="text-xl font-bold mb-6">Applied Jobs</h2>
+              <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">Applied Jobs</h2>
               
               {appliedJobs.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-4xl mb-4">📝</div>
-                  <h3 className="text-lg font-semibold mb-2">No applications yet</h3>
-                  <p className="text-gray-600 mb-4">Start applying to jobs to track your applications here</p>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No applications yet</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">Start applying to jobs to track your applications here</p>
                   <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg">
                     Find Jobs to Apply
                   </Link>
@@ -863,30 +864,30 @@ export default function JobSeekerDashboard() {
               ) : (
                 <div className="space-y-4">
                   {appliedJobs.map((job: any) => (
-                    <div key={job.id} className="border border-gray-200 p-6 rounded-lg">
+                    <div key={job.id} className="border border-gray-200 dark:border-gray-600 p-6 rounded-lg">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <div className="font-semibold text-lg mb-2">{job.title}</div>
-                          <div className="text-gray-600 mb-2">{job.company}</div>
-                          <div className="text-sm text-gray-500">
+                          <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">{job.title}</div>
+                          <div className="text-gray-600 dark:text-gray-300 mb-2">{job.company}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {job.region} • {job.hourlyRate} • Applied on {job.appliedDate}
                           </div>
                         </div>
                         <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                           job.applicationStatus === 'Under Review' 
-                            ? 'bg-yellow-100 text-yellow-800' 
+                            ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' 
                             : job.applicationStatus === 'Shortlisted'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                             : job.applicationStatus === 'Interview Scheduled'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
                             : job.applicationStatus === 'Not Selected'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                         }`}>
                           {job.applicationStatus}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
                         Application Status: <strong>{job.applicationStatus}</strong>
                       </div>
                     </div>
@@ -900,7 +901,7 @@ export default function JobSeekerDashboard() {
           {activeTab === 'alerts' && (
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Job Alerts</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Job Alerts</h2>
                 <button
                   onClick={() => setShowAlertModal(true)}
                   className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
@@ -912,8 +913,8 @@ export default function JobSeekerDashboard() {
               {jobAlerts.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-4xl mb-4">🔔</div>
-                  <h3 className="text-lg font-semibold mb-2">No job alerts set up</h3>
-                  <p className="text-gray-600 mb-4">Create job alerts to get notified when new matching jobs are posted</p>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No job alerts set up</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">Create job alerts to get notified when new matching jobs are posted</p>
                   <button
                     onClick={() => setShowAlertModal(true)}
                     className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg"
@@ -924,19 +925,19 @@ export default function JobSeekerDashboard() {
               ) : (
                 <div className="space-y-4">
                   {jobAlerts.map((alert: any) => (
-                    <div key={alert.id} className="border border-gray-200 p-6 rounded-lg">
+                    <div key={alert.id} className="border border-gray-200 dark:border-gray-600 p-6 rounded-lg">
                       <div className="flex justify-between items-start mb-4">
                         <div className="flex-1">
-                          <div className="font-semibold text-lg mb-2">{alert.name}</div>
-                          <div className="text-gray-600 mb-2">
+                          <div className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">{alert.name}</div>
+                          <div className="text-gray-600 dark:text-gray-300 mb-2">
                             Keywords: {alert.keywords || 'None'} • {alert.region || 'All regions'} • {alert.frequency} alerts
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             Created: {alert.created} • {alert.matchesCount} matches • {alert.totalSent} alerts sent
                           </div>
                         </div>
                         <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          alert.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          alert.active ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                         }`}>
                           {alert.active ? 'Active' : 'Paused'}
                         </div>
@@ -969,58 +970,58 @@ export default function JobSeekerDashboard() {
           {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div>
-              <h2 className="text-xl font-bold mb-6">My Profile</h2>
+              <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">My Profile</h2>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Personal Information</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
                       <input
                         type="text"
                         value={profile.firstName}
                         onChange={(e) => updateProfile('firstName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="Your first name"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
                       <input
                         type="text"
                         value={profile.lastName}
                         onChange={(e) => updateProfile('lastName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="Your last name"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                       <input
                         type="email"
                         value={profile.email}
                         disabled
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-300"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
                       <input
                         type="tel"
                         value={profile.phone}
                         onChange={(e) => updateProfile('phone', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="(555) 123-4567"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
                       <input
                         type="text"
                         value={profile.location}
                         onChange={(e) => updateProfile('location', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="City, State"
                       />
                     </div>
@@ -1028,14 +1029,14 @@ export default function JobSeekerDashboard() {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Professional Information</h3>
+                  <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Professional Information</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Experience Level</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Experience Level</label>
                       <select
                         value={profile.experienceLevel}
                         onChange={(e) => updateProfile('experienceLevel', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       >
                         <option value="">Select Experience Level</option>
                         <option value="0-5 years">0-5 years</option>
@@ -1046,22 +1047,22 @@ export default function JobSeekerDashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Specialization</label>
                       <input
                         type="text"
                         value={profile.specialization}
                         onChange={(e) => updateProfile('specialization', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="e.g., Nuclear Engineering, Drilling Operations"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Resume *</label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Resume *</label>
+                      <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
                         {profile.resumeUploaded ? (
                           <div>
                             <div className="text-2xl mb-2">📄</div>
-                            <div className="mb-4 text-green-600 font-medium">
+                            <div className="mb-4 text-green-600 dark:text-green-400 font-medium">
                               {profile.resumeFileName || 'Resume uploaded successfully'}
                             </div>
                             <div className="mb-4">
@@ -1076,12 +1077,12 @@ export default function JobSeekerDashboard() {
                                 />
                               </label>
                             </div>
-                            <div className="text-xs text-gray-500">PDF, DOC, or DOCX • Max 5MB</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, or DOCX • Max 5MB</div>
                           </div>
                         ) : (
                           <div>
                             <div className="text-2xl mb-2">📤</div>
-                            <div className="mb-4 text-red-600 font-medium">Resume required for job applications</div>
+                            <div className="mb-4 text-red-600 dark:text-red-400 font-medium">Resume required for job applications</div>
                             <div className="mb-4">
                               <label className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg cursor-pointer inline-block">
                                 {isUploading ? 'Uploading...' : 'Choose Resume File'}
@@ -1094,7 +1095,7 @@ export default function JobSeekerDashboard() {
                                 />
                               </label>
                             </div>
-                            <div className="text-xs text-gray-500">PDF, DOC, or DOCX • Max 5MB</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">PDF, DOC, or DOCX • Max 5MB</div>
                           </div>
                         )}
                       </div>
@@ -1118,12 +1119,12 @@ export default function JobSeekerDashboard() {
         {/* Job Alert Modal */}
         {showAlertModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg w-full max-w-md">
-              <div className="flex justify-between items-center p-6 border-b">
-                <h2 className="text-xl font-semibold">Create Job Alert</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md">
+              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-600">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create Job Alert</h2>
                 <button
                   onClick={() => setShowAlertModal(false)}
-                  className="text-gray-400 hover:text-gray-600 text-2xl"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
                 >
                   ×
                 </button>
@@ -1131,35 +1132,35 @@ export default function JobSeekerDashboard() {
               
               <form onSubmit={createJobAlert} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Alert Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Alert Name *</label>
                   <input
                     type="text"
                     value={newAlert.name}
                     onChange={(e) => setNewAlert((prev: any) => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Senior Engineering Roles"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Keywords</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Keywords</label>
                   <input
                     type="text"
                     value={newAlert.keywords}
                     onChange={(e) => setNewAlert((prev: any) => ({ ...prev, keywords: e.target.value }))}
                     placeholder="engineer, drilling, offshore"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
                     <select
                       value={newAlert.region}
                       onChange={(e) => setNewAlert((prev: any) => ({ ...prev, region: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="">Any Region</option>
                       <option value="northeast">Northeast US</option>
@@ -1171,12 +1172,12 @@ export default function JobSeekerDashboard() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Frequency *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Frequency *</label>
                     <select
                       value={newAlert.frequency}
                       onChange={(e) => setNewAlert((prev: any) => ({ ...prev, frequency: e.target.value }))}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
@@ -1189,7 +1190,7 @@ export default function JobSeekerDashboard() {
                   <button
                     type="button"
                     onClick={() => setShowAlertModal(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
                   >
                     Cancel
                   </button>
@@ -1208,27 +1209,30 @@ export default function JobSeekerDashboard() {
         {/* OAuth Resume Prompt Modal */}
         {showLinkedInResumePrompt && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 max-w-md mx-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md mx-4">
               <div className="text-center">
                 <div className="text-4xl mb-4">📄</div>
-                <h3 className="text-xl font-bold mb-3">Welcome! 🎉</h3>
-                <p className="text-gray-600 mb-6">
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Welcome! 🎉</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
                   We've auto-filled your profile with your account data! Complete your setup by uploading your resume. 
                   This will help employers find you and enable you to apply for jobs with one click!
                 </p>
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setShowLinkedInResumePrompt(false)
-                      setActiveTab('profile')
-                    }}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
-                  >
+                  <label className="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium cursor-pointer text-center">
                     Upload Resume
-                  </button>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                      setShowLinkedInResumePrompt(false)
+                        handleResumeUpload(e)
+                      }}
+                      className="hidden"
+                    />
+                  </label>
                   <button
                     onClick={() => setShowLinkedInResumePrompt(false)}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium"
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-medium"
                   >
                     Skip for Now
                   </button>
