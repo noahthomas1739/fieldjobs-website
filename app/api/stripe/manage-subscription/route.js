@@ -983,10 +983,16 @@ function getPlanDetails(planType) {
 function mapPriceIdToPlanType(priceId) {
   if (!priceId) return 'starter'
   const mapping = {
+    // Legacy plans
     [process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '']: 'starter',
     [process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '']: 'growth',
     [process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '']: 'professional',
+    // Enterprise - both monthly and yearly
     [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '']: 'enterprise',
+    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || '']: 'enterprise',
+    // Unlimited - both monthly and yearly
+    [process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '']: 'unlimited',
+    [process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID || '']: 'unlimited',
   }
   return mapping[priceId] || 'starter'
 }

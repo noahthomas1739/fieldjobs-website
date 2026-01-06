@@ -22,10 +22,16 @@ function getPlanLimits(planType) {
 // Price ID to plan mapping
 function getPlanTypeFromPriceId(priceId) {
   const priceMapping = {
+    // Legacy plans
     [process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID]: 'starter',
     [process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID]: 'growth', 
     [process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID]: 'professional',
-    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID]: 'enterprise'
+    // Enterprise - both monthly and yearly
+    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID]: 'enterprise',
+    [process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID]: 'enterprise',
+    // Unlimited - both monthly and yearly
+    [process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID]: 'unlimited',
+    [process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID]: 'unlimited'
   }
   
   return priceMapping[priceId] || 'starter'

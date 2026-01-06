@@ -379,7 +379,7 @@ function EmployerDashboardContent() {
     return null
   }
 
-  const handleSubscriptionPurchase = async (planType: string) => {
+  const handleSubscriptionPurchase = async (planType: string, billingInterval: 'monthly' | 'yearly' = 'yearly') => {
     if (!user?.id) return
     
     try {
@@ -405,6 +405,7 @@ function EmployerDashboardContent() {
         body: JSON.stringify({
           priceId: priceId,
           planType: planType,
+          billingInterval: billingInterval,
           userId: user.id
         }),
       })
@@ -3010,7 +3011,7 @@ function EmployerDashboardContent() {
                 <button
                   onClick={() => {
                     setShowAnnualSavingsModal(false)
-                    handleSubscriptionPurchase(selectedPlanForModal.plan)
+                    handleSubscriptionPurchase(selectedPlanForModal.plan, 'yearly')
                   }}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-lg"
                 >
@@ -3019,8 +3020,7 @@ function EmployerDashboardContent() {
                 <button
                   onClick={() => {
                     setShowAnnualSavingsModal(false)
-                    // TODO: Add monthly plan purchase logic
-                    alert('Monthly billing coming soon! For now, please select the annual plan.')
+                    handleSubscriptionPurchase(selectedPlanForModal.plan, 'monthly')
                   }}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium"
                 >

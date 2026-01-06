@@ -31,8 +31,8 @@ export async function POST(request) {
     })
     
     console.log('Parsing request body...')
-    const { priceId, planType, userId } = await request.json()
-    console.log('Request data:', { priceId, planType, userId })
+    const { priceId, planType, billingInterval = 'yearly', userId } = await request.json()
+    console.log('Request data:', { priceId, planType, billingInterval, userId })
 
     if (!userId || !planType) {
       console.log('Missing fields:', { userId: !!userId, planType: !!planType })
@@ -42,21 +42,28 @@ export async function POST(request) {
     // If no priceId provided, try to get from environment variables
     let actualPriceId = priceId
     if (!actualPriceId) {
-      console.log('No priceId provided, checking environment variables for plan:', planType)
+      console.log('No priceId provided, checking environment variables for plan:', planType, 'interval:', billingInterval)
       
-      // Try to get Price ID from environment variables first
+      // Price ID map with monthly and yearly options
       const priceIdMap = {
-        'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
-        'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID,
-        'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
-        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
-        'unlimited': process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID
+        'enterprise': {
+          'monthly': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID,
+          'yearly': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
+        },
+        'unlimited': {
+          'monthly': process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID,
+          'yearly': process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID
+        },
+        // Legacy plans (monthly only)
+        'starter': { 'monthly': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID, 'yearly': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID },
+        'growth': { 'monthly': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID, 'yearly': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID },
+        'professional': { 'monthly': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID, 'yearly': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID }
       }
       
-      actualPriceId = priceIdMap[planType]
+      actualPriceId = priceIdMap[planType]?.[billingInterval]
       
       if (actualPriceId) {
-        console.log('✅ Using Price ID from environment:', actualPriceId)
+        console.log('✅ Using Price ID from environment:', actualPriceId, 'for', billingInterval, 'billing')
       } else {
         console.log('⚠️ No Price ID found, will use dynamic pricing')
         actualPriceId = null // Signal to use price_data
@@ -259,16 +266,23 @@ export async function POST(request) {
     if (actualPriceId) {
       lineItem = { price: actualPriceId, quantity: 1 }
     } else {
-      // Use dynamic pricing (annual billing)
+      // Use dynamic pricing based on billing interval
       const planPricing = {
-        'starter': { amount: 19900, name: 'Starter Plan (Annual)', description: '3 active jobs, basic features', interval: 'year' },
-        'growth': { amount: 29900, name: 'Growth Plan (Annual)', description: '6 active jobs, 5 resume search credits', interval: 'year' },
-        'professional': { amount: 59900, name: 'Professional Plan (Annual)', description: '15 active jobs, 25 resume search credits', interval: 'year' },
-        'enterprise': { amount: 224600, name: 'Enterprise Plan (Annual)', description: '20 job postings, 25 resume search credits', interval: 'year' },
-        'unlimited': { amount: 355300, name: 'Unlimited Plan (Annual)', description: 'Unlimited job postings, 100 resume search credits', interval: 'year' }
+        'enterprise': {
+          'monthly': { amount: 20800, name: 'Enterprise Plan (Monthly)', description: '20 job postings, 25 resume search credits', interval: 'month' },
+          'yearly': { amount: 224600, name: 'Enterprise Plan (Annual)', description: '20 job postings, 25 resume search credits - Save $250!', interval: 'year' }
+        },
+        'unlimited': {
+          'monthly': { amount: 32900, name: 'Unlimited Plan (Monthly)', description: 'Unlimited job postings, 100 resume search credits', interval: 'month' },
+          'yearly': { amount: 355300, name: 'Unlimited Plan (Annual)', description: 'Unlimited job postings, 100 resume search credits - Save $395!', interval: 'year' }
+        },
+        // Legacy plans (kept for backwards compatibility)
+        'starter': { 'monthly': { amount: 19900, name: 'Starter Plan', description: '3 active jobs', interval: 'month' }, 'yearly': { amount: 19900, name: 'Starter Plan', description: '3 active jobs', interval: 'month' } },
+        'growth': { 'monthly': { amount: 29900, name: 'Growth Plan', description: '6 active jobs', interval: 'month' }, 'yearly': { amount: 29900, name: 'Growth Plan', description: '6 active jobs', interval: 'month' } },
+        'professional': { 'monthly': { amount: 59900, name: 'Professional Plan', description: '15 active jobs', interval: 'month' }, 'yearly': { amount: 59900, name: 'Professional Plan', description: '15 active jobs', interval: 'month' } }
       }
       
-      const pricing = planPricing[planType]
+      const pricing = planPricing[planType]?.[billingInterval]
       if (!pricing) {
         return NextResponse.json({ error: `Invalid plan type: ${planType}` }, { status: 400 })
       }
