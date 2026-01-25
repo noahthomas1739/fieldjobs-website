@@ -66,7 +66,7 @@ export async function POST(request) {
     console.log('✅ User is eligible for free job')
 
     const expirationDate = new Date()
-    expirationDate.setDate(expirationDate.getDate() + 30)
+    expirationDate.setDate(expirationDate.getDate() + 90)
     console.log('📅 Expiration date:', expirationDate.toISOString())
 
     // Helper function to get valid job type
@@ -247,7 +247,7 @@ export async function POST(request) {
       success: true,
       job: finalJob,
       expiresAt: expirationDate.toISOString(),
-      message: 'Congratulations! Your first job is now posted FREE for 30 days!'
+      message: 'Congratulations! Your first job is now posted FREE for 90 days!'
     })
 
   } catch (error) {

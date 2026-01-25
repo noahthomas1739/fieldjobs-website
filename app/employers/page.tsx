@@ -260,9 +260,9 @@ export default function EmployersPage() {
           borderRadius: '8px'
         }}>
           {!user ? (
-            <>🎁 Employers: Post Your First Job Free - 30 days of visibility, no credit card required</>
+            <>🎁 Employers: Post Your First Job FREE for 90 Days - No credit card required!</>
           ) : freeJobEligible ? (
-            <>🎁 Post Your First Job Free - 30 days of visibility at no cost</>
+            <>🎁 You're eligible! Post Your First Job FREE for 90 Days</>
           ) : null}
           
           <button
