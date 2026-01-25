@@ -716,7 +716,7 @@ export default function HomePage() {
           fontSize: '0.9rem',
           fontWeight: '500'
         }}>
-          🎁 Post Your First Job Free - 30 days of visibility at no cost
+          🎁 Post Your First Job FREE for 90 Days - No cost to you!
           <button
             onClick={handleEmployerBannerClick}
             style={{
@@ -764,7 +764,7 @@ export default function HomePage() {
           fontSize: '0.9rem',
           fontWeight: '500'
         }}>
-          🎁 Employers: Post Your First Job Free - 30 days of visibility, no credit card required
+          🎁 Employers: Post Your First Job Free - 90 days of visibility, no credit card required
           <button
             onClick={handleEmployerBannerClick}
             style={{
