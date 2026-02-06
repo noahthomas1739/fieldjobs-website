@@ -354,6 +354,7 @@ setFormData({
                   <option value="petrochem">Petro-Chem/Fossil/Offshore (SIC 2911)</option>
                   <option value="alt-energy">Alternative Energy (SIC 4911)</option>
                   <option value="electric-td">Electric T&D (SIC 4911)</option>
+                  <option value="ai-data-centers">AI Data Centers (SIC 7374)</option>
                   <option value="construction">Construction (SIC 1541)</option>
                   <option value="homeland">Homeland/DoD/Fed Gov (SIC 9711)</option>
                   <option value="shipyard">Shipyard/Marine (SIC 3731)</option>
@@ -381,6 +382,7 @@ setFormData({
                   <option value="petrochem">Petro-Chem/Fossil/Offshore (SIC 2911)</option>
                   <option value="alt-energy">Alternative Energy (SIC 4911)</option>
                   <option value="electric-td">Electric T&D (SIC 4911)</option>
+                  <option value="ai-data-centers">AI Data Centers (SIC 7374)</option>
                   <option value="construction">Construction (SIC 1541)</option>
                   <option value="homeland">Homeland/DoD/Fed Gov (SIC 9711)</option>
                   <option value="shipyard">Shipyard/Marine (SIC 3731)</option>

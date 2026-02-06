@@ -929,6 +929,7 @@ export default function HomePage() {
               { key: 'aerospace', label: 'Aerospace', icon: '🚀' },
               { key: 'defense', label: 'Defense', icon: '🛡️' },
               { key: 'electric-td', label: 'Electric T&D', icon: '⚡' },
+              { key: 'ai-data-centers', label: 'AI Data Centers', icon: '🤖' },
               { key: 'pulp-paper', label: 'Pulp & Paper', icon: '📄' },
               { key: 'manufacturing', label: 'Manufacturing', icon: '🏭' },
               { key: 'mining', label: 'Mining', icon: '⛏️' }
@@ -1602,9 +1603,18 @@ export default function HomePage() {
                   >
                     <option value="">Any Industry</option>
                     <option value="nuclear">Nuclear Power</option>
-                    <option value="petrochem">Petro-Chem</option>
-                    <option value="alt-energy">Alt Energy</option>
-                    <option value="power-generation">Power Generation</option>
+                    <option value="power-generation">Power Gen (Fossil)</option>
+                    <option value="ogc">OG&C</option>
+                    <option value="offshore">Offshore</option>
+                    <option value="renewable">Renewable</option>
+                    <option value="construction">Construction</option>
+                    <option value="aerospace">Aerospace</option>
+                    <option value="defense">Defense</option>
+                    <option value="electric-td">Electric T&D</option>
+                    <option value="ai-data-centers">AI Data Centers</option>
+                    <option value="pulp-paper">Pulp & Paper</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="mining">Mining</option>
                   </select>
                 </div>
                 

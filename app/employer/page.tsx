@@ -2511,6 +2511,7 @@ function EmployerDashboardContent() {
                       <option value="aerospace">Aerospace</option>
                       <option value="defense">Defense</option>
                       <option value="electric-td">Electric T&D</option>
+                      <option value="ai-data-centers">AI Data Centers</option>
                       <option value="pulp-paper">Pulp & Paper</option>
                       <option value="manufacturing">Manufacturing</option>
                       <option value="mining">Mining</option>
@@ -2720,6 +2721,7 @@ function EmployerDashboardContent() {
                       <option value="aerospace">Aerospace</option>
                       <option value="defense">Defense</option>
                       <option value="electric-td">Electric T&D</option>
+                      <option value="ai-data-centers">AI Data Centers</option>
                       <option value="pulp-paper">Pulp & Paper</option>
                       <option value="manufacturing">Manufacturing</option>
                       <option value="mining">Mining</option>
