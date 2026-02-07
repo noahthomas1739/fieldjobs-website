@@ -13,7 +13,7 @@ export default function Footer() {
               className="h-8 w-auto"
             />
             <p className="text-gray-300 text-sm">
-              Connecting skilled professionals with technical careers across energy, construction, and industrial sectors.
+              Connecting skilled professionals with technical careers across energy, construction, AI data centers, and industrial sectors.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">📧</a>

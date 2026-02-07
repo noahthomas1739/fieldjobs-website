@@ -12,13 +12,15 @@ export const metadata: Metadata = {
     default: 'FieldJobs - Technical Careers in Energy, Construction & Industrial',
     template: '%s | FieldJobs'
   },
-  description: 'Find technical careers in energy, construction, nuclear, and industrial sectors. Connect skilled professionals with top employers in field-based technical roles.',
+  description: 'Find technical careers in energy, construction, nuclear, AI data centers, and industrial sectors. Connect skilled professionals with top employers in field-based technical roles.',
   keywords: [
     'technical jobs',
     'field jobs', 
     'energy careers',
     'construction jobs',
     'nuclear jobs',
+    'AI data center jobs',
+    'data center careers',
     'industrial careers',
     'technical professionals',
     'skilled trades',
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://field-jobs.co',
     title: 'FieldJobs - Technical Careers in Energy, Construction & Industrial',
-    description: 'Find technical careers in energy, construction, nuclear, and industrial sectors. Connect skilled professionals with top employers.',
+    description: 'Find technical careers in energy, construction, nuclear, AI data centers, and industrial sectors. Connect skilled professionals with top employers.',
     siteName: 'FieldJobs',
     images: [
       {
@@ -56,7 +58,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'FieldJobs - Technical Careers in Energy, Construction & Industrial',
-    description: 'Find technical careers in energy, construction, nuclear, and industrial sectors.',
+    description: 'Find technical careers in energy, construction, nuclear, AI data centers, and industrial sectors.',
     images: ['/og-image.jpg'],
     creator: '@fieldjobs',
   },
