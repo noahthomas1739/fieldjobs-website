@@ -52,17 +52,17 @@ const config = {
     apiKey: process.env.RESEND_API_KEY,
   },
 
-  // Target Industries
+  // Target Industries - TRAVEL/FIELD FOCUSED KEYWORDS
   industries: [
-    { key: 'nuclear', name: 'Nuclear Power', keywords: ['nuclear', 'power plant', 'radiation', 'reactor'] },
-    { key: 'oil-gas', name: 'Oil & Gas', keywords: ['oil', 'gas', 'petroleum', 'drilling', 'pipeline'] },
-    { key: 'renewable', name: 'Renewable Energy', keywords: ['solar', 'wind', 'renewable', 'clean energy'] },
-    { key: 'construction', name: 'Construction', keywords: ['construction', 'contractor', 'builder', 'infrastructure'] },
-    { key: 'aerospace', name: 'Aerospace', keywords: ['aerospace', 'aviation', 'aircraft', 'defense'] },
-    { key: 'manufacturing', name: 'Manufacturing', keywords: ['manufacturing', 'fabrication', 'industrial'] },
-    { key: 'mining', name: 'Mining', keywords: ['mining', 'mineral', 'excavation'] },
-    { key: 'utilities', name: 'Utilities', keywords: ['utility', 'electric', 'transmission', 'substation'] },
-    { key: 'ai-datacenter', name: 'AI Data Centers', keywords: ['data center', 'datacenter', 'AI infrastructure', 'GPU'] },
+    { key: 'nuclear', name: 'Nuclear Power', keywords: ['traveling nuclear technician', 'nuclear outage', 'radiation protection technician', 'nuclear contractor'] },
+    { key: 'oil-gas', name: 'Oil & Gas', keywords: ['traveling pipeline welder', 'oilfield technician', 'drilling rig', 'pipeline construction'] },
+    { key: 'renewable', name: 'Renewable Energy', keywords: ['traveling solar installer', 'wind turbine technician travel', 'solar EPC', 'wind farm construction'] },
+    { key: 'construction', name: 'Construction', keywords: ['traveling welder', 'traveling pipefitter', 'industrial electrician travel', 'road crew construction'] },
+    { key: 'aerospace', name: 'Aerospace', keywords: ['traveling aircraft mechanic', 'aviation maintenance technician', 'aerospace contractor'] },
+    { key: 'manufacturing', name: 'Manufacturing', keywords: ['traveling millwright', 'industrial mechanic travel', 'plant shutdown contractor'] },
+    { key: 'mining', name: 'Mining', keywords: ['traveling heavy equipment operator', 'mining contractor', 'mine electrician'] },
+    { key: 'utilities', name: 'Utilities', keywords: ['traveling lineman', 'transmission line worker', 'substation technician travel'] },
+    { key: 'ai-datacenter', name: 'AI Data Centers', keywords: ['data center technician travel', 'data center construction', 'critical facility technician'] },
   ],
 
   // Email Settings

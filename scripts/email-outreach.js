@@ -103,47 +103,147 @@ const emailSchedule = {
 // ==========================================
 
 /**
- * Build HTML email with professional signature
+ * Build professional enterprise-style HTML email
  */
 function buildHtmlEmail(body, lead) {
   // Replace placeholders
   let content = body
     .replace(/{company}/g, lead.company_name)
     .replace(/{industry}/g, lead.industry || 'your')
+    .replace(/\n\n/g, '</p><p>')
     .replace(/\n/g, '<br>');
   
+  // Don't add <p> tags if content doesn't have them
+  if (!content.includes('</p>')) {
+    content = `<p>${content}</p>`;
+  }
+
   return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Field-Jobs</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #1a1a1a;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="margin-bottom: 30px;">
-      ${content}
-    </div>
-    
-    <table cellpadding="0" cellspacing="0" border="0">
-      <tr>
-        <td style="vertical-align: top;">
-          <div style="font-weight: 600; font-size: 15px; color: #1a1a1a; margin-bottom: 2px;">Noah Thomas</div>
-          <div style="font-size: 13px; color: #4b5563; margin-bottom: 6px;">Founder, Field-Jobs</div>
-          <div style="font-size: 13px;">
-            <a href="https://field-job.com?utm_source=email&utm_medium=outreach" style="color: #2563eb; text-decoration: none; font-weight: 500;">🌐 field-job.com</a>
-          </div>
-          <div style="font-size: 12px; color: #6b7280; margin-top: 6px; font-style: italic;">
-            4,000+ traveling workers ready for your next project
-          </div>
-        </td>
-      </tr>
-    </table>
-    
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #9ca3af;">
-      Field-Jobs | <a href="https://field-job.com" style="color: #6b7280;">field-job.com</a>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  
+  <!-- Preheader text (hidden) -->
+  <div style="display: none; max-height: 0; overflow: hidden;">
+    Field-Jobs - Connecting you with traveling skilled workers who want road work.
   </div>
+  
+  <!-- Email Container -->
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+    <tr>
+      <td style="padding: 30px 20px;">
+        
+        <!-- Main Card -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          
+          <!-- Header with Logo -->
+          <tr>
+            <td style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #f1f5f9;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td>
+                    <img src="https://field-job.com/fieldjobs-logo.svg" alt="Field-Jobs" width="150" style="display: block; max-width: 150px; height: auto;" />
+                  </td>
+                  <td style="text-align: right; font-size: 12px; color: #94a3b8;">
+                    Technical Workforce Solutions
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Email Body -->
+          <tr>
+            <td style="padding: 32px 40px; font-size: 15px; line-height: 1.7; color: #374151;">
+              ${content}
+              
+              <!-- CTA Button -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 28px 0;">
+                <tr>
+                  <td style="border-radius: 8px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
+                    <a href="https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px;">
+                      Post Your First Job Free →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Signature Section -->
+          <tr>
+            <td style="padding: 0 40px 32px 40px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-top: 1px solid #f1f5f9; padding-top: 24px;">
+                <tr>
+                  <td width="60" style="vertical-align: top; padding-right: 16px;">
+                    <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                      <span style="font-size: 24px; color: white; font-weight: bold; line-height: 52px; text-align: center; display: block; width: 52px;">N</span>
+                    </div>
+                  </td>
+                  <td style="vertical-align: top;">
+                    <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 2px;">Noah Thomas</div>
+                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">Founder & CEO</div>
+                    <div style="font-size: 13px;">
+                      <a href="https://field-job.com" style="color: #f97316; text-decoration: none; font-weight: 500;">field-job.com</a>
+                      <span style="color: #d1d5db; margin: 0 8px;">|</span>
+                      <a href="mailto:noah.thomas@field-jobs.co" style="color: #6b7280; text-decoration: none;">noah.thomas@field-jobs.co</a>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Social Proof Banner -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 16px 40px; border-radius: 0 0 12px 12px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="text-align: center; font-size: 13px; color: #92400e;">
+                    <strong>4,000+ traveling workers</strong> actively seeking project-based work
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+        </table>
+        
+        <!-- Footer -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 24px auto 0 auto;">
+          <tr>
+            <td style="text-align: center; font-size: 11px; color: #9ca3af; line-height: 1.6;">
+              <p style="margin: 0 0 8px 0;">
+                Field-Jobs LLC | Austin, TX
+              </p>
+              <p style="margin: 0;">
+                <a href="https://field-job.com" style="color: #9ca3af; text-decoration: underline;">Visit Website</a>
+                <span style="margin: 0 8px;">•</span>
+                <a href="https://field-job.com/privacy" style="color: #9ca3af; text-decoration: underline;">Privacy Policy</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+  
 </body>
 </html>`;
 }

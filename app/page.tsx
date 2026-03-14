@@ -493,6 +493,12 @@ export default function HomePage() {
   }
 
   const applyToJob = (job: any) => {
+    // For external/aggregated jobs, redirect to the source
+    if (job.isExternal && job.externalUrl) {
+      window.open(job.externalUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+    
     if (!user?.id) {
       setShowAuthModal(true)
       return
@@ -1343,9 +1349,24 @@ export default function HomePage() {
                   <div style={{ 
                     fontSize: '1rem', 
                         color: '#6b7280',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
                   }}>
                     {job.company}
+                    {job.isExternal && (
+                      <span style={{
+                        fontSize: '0.7rem',
+                        background: '#e0e7ff',
+                        color: '#4338ca',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontWeight: '500'
+                      }}>
+                        via {job.source}
+                      </span>
+                    )}
                   </div>
                     </div>
                     <div style={{ 
@@ -1433,8 +1454,14 @@ export default function HomePage() {
                         transition: 'all 0.2s ease'
                       }}
                     >
-                      {appliedJobs.includes(job.id) ? 'Applied' : 'Apply Now'}
+                      {appliedJobs.includes(job.id) 
+                        ? 'Applied' 
+                        : job.isExternal 
+                          ? `Apply on ${job.source || 'Source'} →` 
+                          : 'Apply Now'}
                     </button>
+                    {/* Only show Save for non-external jobs */}
+                    {!job.isExternal && (
                     <button
                         onClick={(e) => {
                           e.stopPropagation()
@@ -1454,6 +1481,7 @@ export default function HomePage() {
                     >
                       {savedJobs.includes(job.id) ? 'Saved' : 'Save Job'}
                     </button>
+                    )}
                     </div>
                     <div style={{ 
                       color: '#6b7280',

@@ -151,6 +151,25 @@ export async function GET(request) {
       }
     })
 
+    // Helper function to strip HTML tags from descriptions
+    const stripHtml = (html) => {
+      if (!html) return ''
+      return html
+        .replace(/<[^>]*>/g, ' ')  // Remove HTML tags
+        .replace(/&nbsp;/g, ' ')   // Replace &nbsp;
+        .replace(/&amp;/g, '&')    // Replace &amp;
+        .replace(/&lt;/g, '<')     // Replace &lt;
+        .replace(/&gt;/g, '>')     // Replace &gt;
+        .replace(/&quot;/g, '"')   // Replace &quot;
+        .replace(/&#39;/g, "'")    // Replace &#39;
+        .replace(/â€™/g, "'")      // Fix smart quotes
+        .replace(/â€"/g, "-")      // Fix em dash
+        .replace(/â€œ/g, '"')      // Fix smart quotes
+        .replace(/â€/g, '"')       // Fix smart quotes
+        .replace(/\s+/g, ' ')      // Collapse whitespace
+        .trim()
+    }
+
     // Transform aggregated jobs to match the same format
     const transformedAggregatedJobs = aggregatedJobs.map(job => ({
       id: job.id,
@@ -159,7 +178,7 @@ export async function GET(request) {
       region: job.location,
       hourlyRate: job.salary_min ? `$${Math.round(job.salary_min / 2080)}/hr` : null, // Convert annual to hourly estimate
       hourly_rate: job.salary_min ? Math.round(job.salary_min / 2080) : null,
-      description: job.description,
+      description: stripHtml(job.description),
       requirements: '',
       benefits: '',
       contactEmail: null,
