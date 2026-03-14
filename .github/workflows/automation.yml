@@ -1,0 +1,131 @@
+# ==========================================
+# FIELD JOBS - AUTOMATED WORKFLOWS
+# ==========================================
+
+name: Field Jobs Automation
+
+on:
+  schedule:
+    # Job Aggregator: Runs every 6 hours
+    - cron: '0 */6 * * *'
+    # Lead Generator: Runs every Monday at 8 AM EST
+    - cron: '0 13 * * 1'
+    # Email Outreach: Runs 3x daily (9am, 1pm, 5pm EST)
+    - cron: '0 14,18,22 * * *'
+  
+  # Allow manual triggers
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Script to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - job-aggregator
+          - lead-generator
+          - email-outreach
+
+env:
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+  CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+  RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+  APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
+  SNOV_CLIENT_ID: ${{ secrets.SNOV_CLIENT_ID }}
+  SNOV_CLIENT_SECRET: ${{ secrets.SNOV_CLIENT_SECRET }}
+  SKRAPP_API_KEY: ${{ secrets.SKRAPP_API_KEY }}
+  HUNTER_API_KEY: ${{ secrets.HUNTER_API_KEY }}
+  ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+  ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
+  JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
+
+jobs:
+  # ==========================================
+  # JOB AGGREGATOR
+  # ==========================================
+  job-aggregator:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' && github.event.schedule == '0 */6 * * *' ||
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.script == 'all' || github.event.inputs.script == 'job-aggregator')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Job Aggregator
+        run: node scripts/job-aggregator.js
+      
+      - name: Report results
+        if: always()
+        run: echo "Job aggregator completed"
+
+  # ==========================================
+  # LEAD GENERATOR
+  # ==========================================
+  lead-generator:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' && github.event.schedule == '0 13 * * 1' ||
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.script == 'all' || github.event.inputs.script == 'lead-generator')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Lead Generator
+        run: node scripts/lead-generator.js
+      
+      - name: Report results
+        if: always()
+        run: echo "Lead generator completed"
+
+  # ==========================================
+  # EMAIL OUTREACH
+  # ==========================================
+  email-outreach:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' && contains('0 14,18,22 * * *', github.event.schedule) ||
+      github.event_name == 'workflow_dispatch' && (github.event.inputs.script == 'all' || github.event.inputs.script == 'email-outreach')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run Email Outreach
+        run: node scripts/email-outreach.js
+      
+      - name: Report results
+        if: always()
+        run: echo "Email outreach completed"
+
