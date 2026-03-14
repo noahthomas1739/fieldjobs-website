@@ -77,6 +77,21 @@ export async function GET(request) {
       return Response.json({ error: 'Database error: ' + error.message }, { status: 500 })
     }
 
+    // For public listings, also fetch aggregated jobs from external sources
+    let aggregatedJobs = []
+    if (!userId) {
+      const { data: extJobs, error: extError } = await supabase
+        .from('aggregated_jobs')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+      
+      if (!extError && extJobs) {
+        aggregatedJobs = extJobs
+      }
+    }
+
     // Transform the data to match homepage format
     const now = new Date()
     const transformedJobs = jobs.map(job => {
@@ -136,11 +151,58 @@ export async function GET(request) {
       }
     })
 
+    // Transform aggregated jobs to match the same format
+    const transformedAggregatedJobs = aggregatedJobs.map(job => ({
+      id: job.id,
+      title: job.title,
+      company: job.company_name,
+      region: job.location,
+      hourlyRate: job.salary_min ? `$${Math.round(job.salary_min / 2080)}/hr` : null, // Convert annual to hourly estimate
+      hourly_rate: job.salary_min ? Math.round(job.salary_min / 2080) : null,
+      description: job.description,
+      requirements: '',
+      benefits: '',
+      contactEmail: null,
+      contact_email: null,
+      contactPhone: null,
+      contact_phone: null,
+      jobType: job.employment_type || 'full_time',
+      primaryIndustry: job.industry,
+      type: job.industry,
+      industry: job.industry,
+      classification: 'intermediate',
+      discipline: 'general',
+      duration: '',
+      start_date: null,
+      startDate: null,
+      postedDays: Math.floor((now - new Date(job.created_at)) / (1000 * 60 * 60 * 24)),
+      badges: [],
+      status: 'active',
+      expiresAt: job.expires_at,
+      createdAt: job.created_at,
+      created_at: job.created_at,
+      location: job.location,
+      views: 0,
+      employer_id: null,
+      isFeatured: false,
+      isUrgent: false,
+      // Mark as external job with apply link
+      isExternal: true,
+      externalUrl: job.external_url,
+      source: job.source
+    }))
+
+    // Combine employer jobs and aggregated jobs
+    const allJobs = [...transformedJobs, ...transformedAggregatedJobs]
+    
+    // Sort by most recent first
+    allJobs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
     return Response.json({ 
-      jobs: transformedJobs,
+      jobs: allJobs,
       success: true, // Add for dashboard compatibility
-      total: transformedJobs.length,
-      count: transformedJobs.length // Add for dashboard compatibility
+      total: allJobs.length,
+      count: allJobs.length // Add for dashboard compatibility
     })
 
   } catch (error) {
