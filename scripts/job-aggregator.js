@@ -177,13 +177,17 @@ async function saveJobsToDatabase(jobs) {
       }
       
       // Format job for our schema
+      // Convert salary to integer (database expects INTEGER, not DECIMAL)
+      const salaryMin = job.salary_min ? Math.round(Number(job.salary_min)) : null;
+      const salaryMax = job.salary_max ? Math.round(Number(job.salary_max)) : null;
+      
       const jobRecord = {
         title: job.title?.substring(0, 200) || 'Untitled',
         company_name: job.company?.substring(0, 100) || 'Unknown Company',
         location: job.location?.substring(0, 200) || 'United States',
         description: job.description?.substring(0, 5000) || '',
-        salary_min: job.salary_min || null,
-        salary_max: job.salary_max || null,
+        salary_min: salaryMin,
+        salary_max: salaryMax,
         external_url: job.url,
         external_id: job.external_id,
         source: job.source,
