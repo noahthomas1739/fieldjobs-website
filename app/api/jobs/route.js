@@ -151,7 +151,7 @@ export async function GET(request) {
       }
     })
 
-    // Helper function to strip HTML tags from descriptions
+    // Helper function to strip HTML tags and fix encoding issues
     const stripHtml = (html) => {
       if (!html) return ''
       return html
@@ -162,10 +162,38 @@ export async function GET(request) {
         .replace(/&gt;/g, '>')     // Replace &gt;
         .replace(/&quot;/g, '"')   // Replace &quot;
         .replace(/&#39;/g, "'")    // Replace &#39;
-        .replace(/â€™/g, "'")      // Fix smart quotes
-        .replace(/â€"/g, "-")      // Fix em dash
-        .replace(/â€œ/g, '"')      // Fix smart quotes
-        .replace(/â€/g, '"')       // Fix smart quotes
+        .replace(/&rsquo;/g, "'")  // Replace &rsquo;
+        .replace(/&lsquo;/g, "'")  // Replace &lsquo;
+        .replace(/&rdquo;/g, '"')  // Replace &rdquo;
+        .replace(/&ldquo;/g, '"')  // Replace &ldquo;
+        .replace(/&mdash;/g, '-')  // Replace &mdash;
+        .replace(/&ndash;/g, '-')  // Replace &ndash;
+        .replace(/&bull;/g, '•')   // Replace &bull;
+        // Fix UTF-8 encoding issues (mojibake)
+        .replace(/â€™/g, "'")      // Right single quote
+        .replace(/â€˜/g, "'")      // Left single quote  
+        .replace(/â€œ/g, '"')      // Left double quote
+        .replace(/â€/g, '"')       // Right double quote
+        .replace(/â€"/g, '—')      // Em dash
+        .replace(/â€"/g, '–')      // En dash
+        .replace(/â€¢/g, '•')      // Bullet
+        .replace(/â€¦/g, '...')    // Ellipsis
+        .replace(/Ã©/g, 'é')       // é
+        .replace(/Ã¨/g, 'è')       // è
+        .replace(/Ã¯/g, 'ï')       // ï
+        .replace(/Ã´/g, 'ô')       // ô
+        .replace(/Ã¼/g, 'ü')       // ü
+        .replace(/Ã±/g, 'ñ')       // ñ
+        // Clean up any remaining weird characters
+        .replace(/[^\x00-\x7F]/g, (char) => {
+          // Keep common punctuation and letters, replace others with space
+          const code = char.charCodeAt(0)
+          if (code >= 0x2018 && code <= 0x201F) return '"' // Smart quotes
+          if (code === 0x2013 || code === 0x2014) return '-' // Dashes
+          if (code === 0x2026) return '...' // Ellipsis
+          if (code === 0x2022) return '•' // Bullet
+          return char // Keep other unicode chars (accented letters, etc.)
+        })
         .replace(/\s+/g, ' ')      // Collapse whitespace
         .trim()
     }

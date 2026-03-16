@@ -120,7 +120,34 @@ CREATE TABLE IF NOT EXISTS email_service_usage (
 );
 
 -- ==========================================
--- 5. AUTOMATION RUNS LOG
+-- 5. EXTERNAL JOB INTERESTS TABLE
+-- Captures job seeker interest in aggregated jobs
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS external_job_interests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  external_job_id UUID NOT NULL, -- References aggregated_jobs.id
+  user_id UUID NOT NULL,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  email VARCHAR(200) NOT NULL,
+  phone VARCHAR(50),
+  classification VARCHAR(100),
+  job_title VARCHAR(200),
+  company VARCHAR(200),
+  external_url TEXT,
+  source VARCHAR(50), -- 'adzuna', 'jsearch', 'remoteok'
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  CONSTRAINT external_job_interests_unique UNIQUE (external_job_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_external_interests_user ON external_job_interests(user_id);
+CREATE INDEX IF NOT EXISTS idx_external_interests_job ON external_job_interests(external_job_id);
+CREATE INDEX IF NOT EXISTS idx_external_interests_created ON external_job_interests(created_at DESC);
+
+-- ==========================================
+-- 6. AUTOMATION RUNS LOG
 -- Tracks when scripts ran and results
 -- ==========================================
 
@@ -147,6 +174,7 @@ ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_service_usage ENABLE ROW LEVEL SECURITY;
 ALTER TABLE automation_runs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE external_job_interests ENABLE ROW LEVEL SECURITY;
 
 -- Allow service role full access (for automation scripts)
 CREATE POLICY "Service role has full access to aggregated_jobs"
@@ -171,6 +199,19 @@ CREATE POLICY "Service role has full access to email_service_usage"
 
 CREATE POLICY "Service role has full access to automation_runs"
   ON automation_runs FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE POLICY "Users can insert own external job interests"
+  ON external_job_interests FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own external job interests"
+  ON external_job_interests FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Service role has full access to external_job_interests"
+  ON external_job_interests FOR ALL
   USING (true)
   WITH CHECK (true);
 

@@ -493,12 +493,6 @@ export default function HomePage() {
   }
 
   const applyToJob = (job: any) => {
-    // For external/aggregated jobs, redirect to the source
-    if (job.isExternal && job.externalUrl) {
-      window.open(job.externalUrl, '_blank', 'noopener,noreferrer')
-      return
-    }
-    
     if (!user?.id) {
       setShowAuthModal(true)
       return
@@ -509,6 +503,8 @@ export default function HomePage() {
       return
     }
     
+    // For both internal and external jobs, show the application modal
+    // External jobs will redirect after capturing info
     setSelectedJob(job)
     setApplicationForm({
       firstName: '',
@@ -539,28 +535,58 @@ export default function HomePage() {
           email: applicationForm.email,
           phone: applicationForm.phone,
           classification: applicationForm.classification,
+          // Pass external job info
+          isExternal: selectedJob.isExternal || false,
+          externalUrl: selectedJob.externalUrl || null,
+          externalSource: selectedJob.source || null,
+          jobTitle: selectedJob.title,
+          company: selectedJob.company,
         }),
       })
       
       if (response.ok) {
         setAppliedJobs((prev: any) => [...prev, selectedJob.id])
-        alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
-        setShowApplicationModal(false)
-        setSelectedJob(null)
-        setApplicationForm({
-          firstName: '',
-          lastName: '',
-          email: '',
-          phone: '',
-          classification: '',
-        })
+        
+        // For external jobs, redirect to the original posting after capturing data
+        if (selectedJob.isExternal && selectedJob.externalUrl) {
+          setShowApplicationModal(false)
+          setSelectedJob(null)
+          setApplicationForm({
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            classification: '',
+          })
+          // Show message and redirect
+          alert('✅ Your interest has been recorded! You will now be redirected to complete your application on the company\'s website.')
+          window.open(selectedJob.externalUrl, '_blank', 'noopener,noreferrer')
+        } else {
+          alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
+          setShowApplicationModal(false)
+          setSelectedJob(null)
+          setApplicationForm({
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            classification: '',
+          })
+        }
       } else {
         const error = await response.json()
         
         // Handle duplicate application error specifically
         if (response.status === 409) {
-          alert('❌ You have already applied to this job! Check your dashboard to see your application status.')
-          setAppliedJobs((prev: any) => [...prev, selectedJob.id])  // Add to local state
+          // For external jobs, still allow redirect even if already applied
+          if (selectedJob.isExternal && selectedJob.externalUrl) {
+            setShowApplicationModal(false)
+            alert('You\'ve already expressed interest in this role. Redirecting to complete your application...')
+            window.open(selectedJob.externalUrl, '_blank', 'noopener,noreferrer')
+          } else {
+            alert('❌ You have already applied to this job! Check your dashboard to see your application status.')
+          }
+          setAppliedJobs((prev: any) => [...prev, selectedJob.id])
           setShowApplicationModal(false)
           setSelectedJob(null)
         } else {

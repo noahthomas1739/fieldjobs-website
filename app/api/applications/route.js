@@ -169,16 +169,103 @@ export async function POST(request) {
   try {
     console.log('📝 Creating new application')
     
-    const { jobId, userId, firstName, lastName, email, phone, classification } = await request.json()
+    const { 
+      jobId, userId, firstName, lastName, email, phone, classification,
+      // External job fields
+      isExternal, externalUrl, externalSource, jobTitle, company 
+    } = await request.json()
 
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ 
       cookies: () => cookieStore 
     })
 
-    if (!jobId || !userId || !firstName || !lastName || !email || !phone) {
+    if (!userId || !firstName || !lastName || !email || !phone) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
+
+    // Handle EXTERNAL job applications differently
+    if (isExternal) {
+      console.log('📝 Processing external job application')
+      
+      // Check if already expressed interest in this external job
+      const { data: existingInterest, error: checkExtError } = await supabase
+        .from('external_job_interests')
+        .select('id')
+        .eq('external_job_id', jobId)
+        .eq('user_id', userId)
+        .single()
+
+      if (checkExtError && checkExtError.code !== 'PGRST116') {
+        // Table might not exist yet, continue anyway
+        console.log('Note: external_job_interests table may not exist')
+      }
+
+      if (existingInterest) {
+        return NextResponse.json(
+          { error: 'You have already expressed interest in this job' },
+          { status: 409 }
+        )
+      }
+
+      // Try to store the interest (table may not exist)
+      try {
+        await supabase
+          .from('external_job_interests')
+          .insert({
+            external_job_id: jobId,
+            user_id: userId,
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            phone: phone,
+            classification: classification || '',
+            job_title: jobTitle,
+            company: company,
+            external_url: externalUrl,
+            source: externalSource,
+            created_at: new Date().toISOString()
+          })
+        console.log('✅ External job interest saved')
+      } catch (extErr) {
+        console.log('Note: Could not save to external_job_interests (table may not exist)')
+      }
+
+      // Send confirmation email to the job seeker
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://field-job.com'
+        await fetch(`${baseUrl}/api/send-application-emails`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            isExternal: true,
+            applicantEmail: email,
+            applicantName: `${firstName} ${lastName}`,
+            jobTitle: jobTitle,
+            company: company,
+            externalUrl: externalUrl,
+            source: externalSource
+          })
+        })
+        console.log('📧 External job interest confirmation sent')
+      } catch (emailErr) {
+        console.error('📧 Failed to send external job confirmation:', emailErr)
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Interest recorded! You will now be redirected to complete your application.',
+        isExternal: true
+      })
+    }
+
+    // STANDARD internal job application flow
+    if (!jobId) {
+      return NextResponse.json(
+        { error: 'Job ID required for internal jobs' },
         { status: 400 }
       )
     }
