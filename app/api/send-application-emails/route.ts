@@ -12,21 +12,21 @@ const { extractRecruiterEmail } = require('../../../lib/extractRecruiterEmail')
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const {
-      applicationId,
-      isExternal,
-      aggregatedJobId,
-      applicantEmail,
-      applicantName,
-      applicantPhone,
-      classification,
-      jobTitle: externalJobTitle,
-      company: externalCompany,
-      externalUrl,
-      externalSource
-    } = body
+    const { applicationId, isExternal } = body
 
     if (isExternal) {
+      const {
+        aggregatedJobId,
+        applicantEmail,
+        applicantName,
+        applicantPhone,
+        classification,
+        jobTitle: externalJobTitle,
+        company: externalCompany,
+        externalUrl,
+        externalSource,
+      } = body
+
       if (!applicantName || !externalJobTitle || !aggregatedJobId) {
         return NextResponse.json(
           { error: 'Missing external application details' },
