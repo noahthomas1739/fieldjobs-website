@@ -52,17 +52,113 @@ const config = {
     apiKey: process.env.RESEND_API_KEY,
   },
 
-  // Target Industries - TRAVEL/FIELD FOCUSED KEYWORDS
+  // Target industries — keywords aligned to engineering / field tech resume pool
   industries: [
-    { key: 'nuclear', name: 'Nuclear Power', keywords: ['traveling nuclear technician', 'nuclear outage', 'radiation protection technician', 'nuclear contractor'] },
-    { key: 'oil-gas', name: 'Oil & Gas', keywords: ['traveling pipeline welder', 'oilfield technician', 'drilling rig', 'pipeline construction'] },
-    { key: 'renewable', name: 'Renewable Energy', keywords: ['traveling solar installer', 'wind turbine technician travel', 'solar EPC', 'wind farm construction'] },
-    { key: 'construction', name: 'Construction', keywords: ['traveling welder', 'traveling pipefitter', 'industrial electrician travel', 'road crew construction'] },
-    { key: 'aerospace', name: 'Aerospace', keywords: ['traveling aircraft mechanic', 'aviation maintenance technician', 'aerospace contractor'] },
-    { key: 'manufacturing', name: 'Manufacturing', keywords: ['traveling millwright', 'industrial mechanic travel', 'plant shutdown contractor'] },
-    { key: 'mining', name: 'Mining', keywords: ['traveling heavy equipment operator', 'mining contractor', 'mine electrician'] },
-    { key: 'utilities', name: 'Utilities', keywords: ['traveling lineman', 'transmission line worker', 'substation technician travel'] },
-    { key: 'ai-datacenter', name: 'AI Data Centers', keywords: ['data center technician travel', 'data center construction', 'critical facility technician'] },
+    {
+      key: 'nuclear-outage',
+      name: 'Nuclear & outage',
+      keywords: [
+        'nuclear outage engineer',
+        'nuclear welding engineer',
+        'radiation protection technician nuclear',
+        'nuclear refueling outage',
+        'nuclear construction QA',
+      ],
+    },
+    {
+      key: 'civil-structural',
+      name: 'Civil & structural (industrial)',
+      keywords: [
+        'structural engineer power plant',
+        'civil engineer industrial construction',
+        'seismic structural engineer',
+        'structural design engineer energy',
+        'CADD structural designer nuclear',
+      ],
+    },
+    {
+      key: 'welding-qa-ndt',
+      name: 'Welding, QA & NDT',
+      keywords: [
+        'welding engineer',
+        'CWI welding inspector',
+        'NDT technician ASNT',
+        'QA QC inspector construction',
+        'welding program engineer',
+      ],
+    },
+    {
+      key: 'ie-electrical',
+      name: 'Instrumentation & electrical',
+      keywords: [
+        'instrumentation electrical technician power plant',
+        'I&E technician',
+        'electrical instrumentation technician',
+        'control systems technician power generation',
+        'industrial electrician power plant',
+      ],
+    },
+    {
+      key: 'field-pm',
+      name: 'Field engineer & project management',
+      keywords: [
+        'field engineer industrial construction',
+        'construction project manager energy',
+        'site superintendent power plant',
+        'construction manager nuclear',
+        'EPC project engineer',
+      ],
+    },
+    {
+      key: 'oil-gas',
+      name: 'Oil & gas',
+      keywords: [
+        'pipeline construction engineer',
+        'oil gas field engineer',
+        'petrochemical turnaround planner',
+        'refinery maintenance engineer',
+      ],
+    },
+    {
+      key: 'renewable',
+      name: 'Renewable energy',
+      keywords: [
+        'wind turbine technician field',
+        'solar construction superintendent',
+        'utility scale solar EPC',
+        'battery storage construction engineer',
+      ],
+    },
+    {
+      key: 'utilities-td',
+      name: 'Utilities T&D',
+      keywords: [
+        'transmission line construction',
+        'substation technician',
+        'traveling lineman utility',
+        'utility substation construction',
+      ],
+    },
+    {
+      key: 'manufacturing',
+      name: 'Industrial manufacturing',
+      keywords: [
+        'plant maintenance engineer',
+        'industrial millwright',
+        'factory shutdown manager',
+        'process engineer manufacturing',
+      ],
+    },
+    {
+      key: 'aerospace-mro',
+      name: 'Aerospace & MRO',
+      keywords: [
+        'aircraft maintenance technician',
+        'aviation MRO engineer',
+        'aerospace manufacturing engineer',
+        'airframe powerplant technician',
+      ],
+    },
   ],
 
   // Email Settings

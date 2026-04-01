@@ -503,8 +503,7 @@ export default function HomePage() {
       return
     }
     
-    // For both internal and external jobs, show the application modal
-    // External jobs will redirect after capturing info
+    // For both internal and aggregated jobs, apply directly on FieldJobs
     setSelectedJob(job)
     setApplicationForm({
       firstName: '',
@@ -547,8 +546,8 @@ export default function HomePage() {
       if (response.ok) {
         setAppliedJobs((prev: any) => [...prev, selectedJob.id])
         
-        // For external jobs, redirect to the original posting after capturing data
-        if (selectedJob.isExternal && selectedJob.externalUrl) {
+        // Aggregated jobs now stay on-site (no outbound redirect)
+        if (selectedJob.isExternal) {
           setShowApplicationModal(false)
           setSelectedJob(null)
           setApplicationForm({
@@ -558,9 +557,7 @@ export default function HomePage() {
             phone: '',
             classification: '',
           })
-          // Show message and redirect
-          alert('✅ Your interest has been recorded! You will now be redirected to complete your application on the company\'s website.')
-          window.open(selectedJob.externalUrl, '_blank', 'noopener,noreferrer')
+          alert('🎉 Application submitted successfully! We\'ve sent your application through FieldJobs and notified the hiring side.')
         } else {
           alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
           setShowApplicationModal(false)
@@ -578,11 +575,10 @@ export default function HomePage() {
         
         // Handle duplicate application error specifically
         if (response.status === 409) {
-          // For external jobs, still allow redirect even if already applied
-          if (selectedJob.isExternal && selectedJob.externalUrl) {
+          // For aggregated jobs, keep candidate on-site
+          if (selectedJob.isExternal) {
             setShowApplicationModal(false)
-            alert('You\'ve already expressed interest in this role. Redirecting to complete your application...')
-            window.open(selectedJob.externalUrl, '_blank', 'noopener,noreferrer')
+            alert('❌ You have already applied to this job. Check your dashboard for status updates.')
           } else {
             alert('❌ You have already applied to this job! Check your dashboard to see your application status.')
           }
@@ -1390,7 +1386,7 @@ export default function HomePage() {
                         borderRadius: '4px',
                         fontWeight: '500'
                       }}>
-                        via {job.source}
+                        sourced from {job.source}
                       </span>
                     )}
                   </div>
@@ -1482,9 +1478,7 @@ export default function HomePage() {
                     >
                       {appliedJobs.includes(job.id) 
                         ? 'Applied' 
-                        : job.isExternal 
-                          ? `Apply on ${job.source || 'Source'} →` 
-                          : 'Apply Now'}
+                        : 'Apply Now'}
                     </button>
                     {/* Only show Save for non-external jobs */}
                     {!job.isExternal && (

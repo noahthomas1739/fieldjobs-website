@@ -8,7 +8,63 @@ import { sendEmail } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
-    const { applicationId } = await request.json()
+    const body = await request.json()
+    const {
+      applicationId,
+      isExternal,
+      applicantEmail,
+      applicantName,
+      jobTitle: externalJobTitle,
+      company: externalCompany,
+      externalSource
+    } = body
+
+    if (isExternal) {
+      const fallbackRecipient = process.env.EXTERNAL_APPLICATION_ALERT_EMAIL || process.env.APPLICATION_ALERT_EMAIL || 'support@field-jobs.co'
+      const configured = process.env.EXTERNAL_APPLICATION_ALERT_EMAILS || process.env.APPLICATION_ALERT_EMAILS || fallbackRecipient
+      const recipients = configured.split(',').map(email => email.trim()).filter(Boolean)
+
+      if (!applicantName || !externalJobTitle) {
+        return NextResponse.json({ error: 'Missing external application details' }, { status: 400 })
+      }
+
+      const alertHtml = await render(
+        NewApplicationAlertEmail({
+          employerName: 'Hiring Team',
+          applicantName,
+          jobTitle: `${externalJobTitle}${externalCompany ? ` (${externalCompany})` : ''}`,
+          appliedDate: new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/employer`
+        })
+      )
+
+      if (process.env.Resend_API_KEY && recipients.length > 0) {
+        await sendEmail({
+          to: recipients,
+          from: 'noreply@field-jobs.co',
+          subject: `New Aggregated Application: ${externalJobTitle}`,
+          html: alertHtml,
+        })
+      }
+
+      console.log('📧 External application alert sent', {
+        applicantEmail,
+        applicantName,
+        externalJobTitle,
+        externalCompany,
+        externalSource,
+        recipients
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'External application alert sent'
+      })
+    }
 
     if (!applicationId) {
       return NextResponse.json({ error: 'Application ID required' }, { status: 400 })

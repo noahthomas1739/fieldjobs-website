@@ -257,7 +257,7 @@ export async function POST(request) {
 
       return NextResponse.json({
         success: true,
-        message: 'Interest recorded! You will now be redirected to complete your application.',
+        message: 'Application submitted successfully through FieldJobs.',
         isExternal: true
       })
     }

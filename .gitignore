@@ -76,6 +76,7 @@ public
 # Temporary folders
 tmp/
 temp/
+.tmp-tech-resumes/
 
 # Editor directories and files
 .vscode/*

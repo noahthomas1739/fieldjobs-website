@@ -57,10 +57,11 @@ npm run automation:all
 ## Script Details
 
 ### Job Aggregator (`job-aggregator.js`)
-- Pulls jobs from Adzuna, JSearch, and RemoteOK
-- Filters for target industries
+- Pulls jobs from Adzuna and JSearch
+- Filters for target industries and candidate-fit relevance
 - Stores in `aggregated_jobs` table
 - **Schedule**: Every 6 hours
+- Logs each run in `automation_runs` with quality metrics (`filtered_out_off_target`, `filtered_out_rate`)
 
 ### Lead Generator (`lead-generator.js`)
 - Uses Claude to find relevant companies

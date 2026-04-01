@@ -10,6 +10,80 @@ const { createClient } = require('@supabase/supabase-js');
 // Initialize Supabase with service role key
 const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
 
+// Relevance guardrails derived from candidate resume pool:
+// favor field/industrial engineering roles and suppress desk/commercial roles.
+const POSITIVE_ROLE_REGEX = /\b(engineer|technician|inspector|welder|welding|millwright|electrician|lineman|superintendent|foreman|project\s+manager|construction\s+manager|qa|qc|ndt|radiation|outage|refuel|substation|pipeline|turbine|maintenance|field)\b/i;
+const NEGATIVE_ROLE_REGEX = /\b(sales|account\s+executive|inside\s+sales|business\s+development|marketing|customer\s+success|product\s+manager|scrum|proposal\s+writer|technical\s+writer|trader|recruiter)\b/i;
+
+function isRelevantAggregatedJob(job) {
+  const text = `${job.title || ''} ${job.description || ''}`;
+  const hasPositiveSignal = POSITIVE_ROLE_REGEX.test(text);
+  const hasNegativeSignal = NEGATIVE_ROLE_REGEX.test(text);
+  return hasPositiveSignal && !hasNegativeSignal;
+}
+
+async function createRunLog() {
+  const { data, error } = await supabase
+    .from('automation_runs')
+    .insert({
+      script_name: 'job-aggregator',
+      status: 'running',
+      started_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.warn('⚠️ Failed to create automation run log:', error.message);
+    return null;
+  }
+
+  return data?.id || null;
+}
+
+async function completeRunLog(runId, status, payload = {}) {
+  if (!runId) return;
+
+  const { error } = await supabase
+    .from('automation_runs')
+    .update({
+      status,
+      completed_at: new Date().toISOString(),
+      results: payload.results || null,
+      error_message: payload.error_message || null,
+    })
+    .eq('id', runId);
+
+  if (error) {
+    console.warn('⚠️ Failed to update automation run log:', error.message);
+  }
+}
+
+async function auditActiveAlignment(limit = 500) {
+  const { data, error } = await supabase
+    .from('aggregated_jobs')
+    .select('title, description')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.warn('⚠️ Alignment audit failed:', error.message);
+    return { checked: 0, negative_matches: 0, rate: 0 };
+  }
+
+  const checked = data?.length || 0;
+  const negativeMatches = (data || []).filter(job =>
+    NEGATIVE_ROLE_REGEX.test(`${job.title || ''} ${job.description || ''}`)
+  ).length;
+
+  return {
+    checked,
+    negative_matches: negativeMatches,
+    rate: checked ? Number((negativeMatches / checked).toFixed(4)) : 0,
+  };
+}
+
 // ==========================================
 // JOB SOURCES
 // ==========================================
@@ -73,7 +147,7 @@ async function fetchJSearchJobs(industry) {
 
   const jobs = [];
   
-  for (const keyword of industry.keywords.slice(0, 2)) { // Limit to conserve API calls
+  for (const keyword of industry.keywords.slice(0, 4)) { // balance coverage vs API limits
     try {
       const url = `https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(keyword + ' jobs USA')}&num_pages=1`;
       
@@ -115,38 +189,6 @@ async function fetchJSearchJobs(industry) {
   return jobs;
 }
 
-/**
- * Fetch jobs from RemoteOK (Free, no API key needed)
- * Note: Only remote jobs, may not fit all industries
- */
-async function fetchRemoteOKJobs() {
-  try {
-    const response = await fetch('https://remoteok.com/api?tag=engineering');
-    const data = await response.json();
-    
-    // Skip first item (it's metadata)
-    const jobs = data.slice(1).map(job => ({
-      source: 'remoteok',
-      external_id: `remoteok_${job.id}`,
-      title: job.position,
-      company: job.company,
-      location: 'Remote',
-      description: job.description,
-      salary_min: job.salary_min,
-      salary_max: job.salary_max,
-      url: job.url,
-      industry: 'general',
-      posted_date: new Date(job.date).toISOString(),
-      tags: job.tags,
-    }));
-    
-    return jobs.slice(0, 20); // Limit
-  } catch (error) {
-    console.error('Error fetching RemoteOK jobs:', error.message);
-    return [];
-  }
-}
-
 // ==========================================
 // DATABASE OPERATIONS
 // ==========================================
@@ -161,9 +203,15 @@ async function saveJobsToDatabase(jobs) {
   let saved = 0;
   let duplicates = 0;
   let errors = 0;
+  let filteredOut = 0;
   
   for (const job of jobs) {
     try {
+      if (!isRelevantAggregatedJob(job)) {
+        filteredOut++;
+        continue;
+      }
+
       // Check if job already exists
       const { data: existing } = await supabase
         .from('aggregated_jobs')
@@ -220,9 +268,10 @@ async function saveJobsToDatabase(jobs) {
   
   console.log(`✅ Saved: ${saved}`);
   console.log(`⏭️ Duplicates skipped: ${duplicates}`);
+  console.log(`🧹 Filtered out (off-target): ${filteredOut}`);
   if (errors > 0) console.log(`❌ Errors: ${errors}`);
   
-  return { saved, duplicates, errors };
+  return { saved, duplicates, errors, filteredOut };
 }
 
 // ==========================================
@@ -232,41 +281,62 @@ async function saveJobsToDatabase(jobs) {
 async function runJobAggregator() {
   console.log('🚀 Starting Job Aggregator...\n');
   console.log('=' .repeat(50));
+
+  const runId = await createRunLog();
   
   const allJobs = [];
   
-  // Fetch from each source for each industry
-  for (const industry of config.industries) {
-    console.log(`\n📂 Fetching jobs for: ${industry.name}`);
+  try {
+    // Fetch from each source for each industry
+    for (const industry of config.industries) {
+      console.log(`\n📂 Fetching jobs for: ${industry.name}`);
+      
+      // Adzuna
+      const adzunaJobs = await fetchAdzunaJobs(industry);
+      console.log(`  Adzuna: ${adzunaJobs.length} jobs`);
+      allJobs.push(...adzunaJobs);
+      
+      // JSearch
+      const jsearchJobs = await fetchJSearchJobs(industry);
+      console.log(`  JSearch: ${jsearchJobs.length} jobs`);
+      allJobs.push(...jsearchJobs);
+    }
     
-    // Adzuna
-    const adzunaJobs = await fetchAdzunaJobs(industry);
-    console.log(`  Adzuna: ${adzunaJobs.length} jobs`);
-    allJobs.push(...adzunaJobs);
+    console.log('\n' + '='.repeat(50));
+    console.log(`📊 Total jobs fetched: ${allJobs.length}`);
     
-    // JSearch
-    const jsearchJobs = await fetchJSearchJobs(industry);
-    console.log(`  JSearch: ${jsearchJobs.length} jobs`);
-    allJobs.push(...jsearchJobs);
+    // Save to database
+    const results = await saveJobsToDatabase(allJobs);
+
+    const quality = {
+      fetched: allJobs.length,
+      saved: results.saved,
+      duplicates: results.duplicates,
+      filtered_out_off_target: results.filteredOut || 0,
+      filtered_out_rate: allJobs.length ? Number(((results.filteredOut || 0) / allJobs.length).toFixed(4)) : 0,
+    };
+    const activeAlignment = await auditActiveAlignment(500);
+    console.log(`📈 Quality check: filtered ${quality.filtered_out_off_target}/${quality.fetched} (${(quality.filtered_out_rate * 100).toFixed(1)}%)`);
+    console.log(`🛡️ Active alignment audit: ${activeAlignment.negative_matches}/${activeAlignment.checked} negative-pattern matches`);
+
+    await completeRunLog(runId, 'completed', {
+      results: {
+        ...results,
+        quality,
+        active_alignment_audit: activeAlignment,
+        industry_count: config.industries.length,
+      },
+    });
+    
+    console.log('\n' + '='.repeat(50));
+    console.log('🏁 Job Aggregator Complete!');
+    console.log(`Total new jobs added: ${results.saved}`);
+    
+    return results;
+  } catch (error) {
+    await completeRunLog(runId, 'failed', { error_message: error.message });
+    throw error;
   }
-  
-  // RemoteOK (general)
-  console.log(`\n📂 Fetching remote jobs...`);
-  const remoteJobs = await fetchRemoteOKJobs();
-  console.log(`  RemoteOK: ${remoteJobs.length} jobs`);
-  allJobs.push(...remoteJobs);
-  
-  console.log('\n' + '='.repeat(50));
-  console.log(`📊 Total jobs fetched: ${allJobs.length}`);
-  
-  // Save to database
-  const results = await saveJobsToDatabase(allJobs);
-  
-  console.log('\n' + '='.repeat(50));
-  console.log('🏁 Job Aggregator Complete!');
-  console.log(`Total new jobs added: ${results.saved}`);
-  
-  return results;
 }
 
 // Helper function
