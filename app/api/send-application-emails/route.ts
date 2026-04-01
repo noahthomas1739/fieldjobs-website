@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { render } from '@react-email/render'
 import ApplicationConfirmationEmail from '@/emails/ApplicationConfirmation'
 import NewApplicationAlertEmail from '@/emails/NewApplicationAlert'
+import { extractRecruiterEmail } from '@/lib/extractRecruiterEmail'
 import { sendEmail } from '@/lib/email'
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { extractRecruiterEmail } = require('../../../lib/extractRecruiterEmail')
 
 export async function POST(request: Request) {
   try {
@@ -34,7 +33,6 @@ export async function POST(request: Request) {
         )
       }
 
-      const { createClient } = require('@supabase/supabase-js')
       const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -123,7 +121,6 @@ export async function POST(request: Request) {
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     
     // Use service role to bypass RLS for email API
-    const { createClient } = require('@supabase/supabase-js')
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
