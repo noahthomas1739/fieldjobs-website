@@ -544,6 +544,7 @@ export default function HomePage() {
       })
       
       if (response.ok) {
+        const data = await response.json().catch(() => ({}))
         setAppliedJobs((prev: any) => [...prev, selectedJob.id])
         
         // Aggregated jobs now stay on-site (no outbound redirect)
@@ -557,7 +558,11 @@ export default function HomePage() {
             phone: '',
             classification: '',
           })
-          alert('🎉 Application submitted successfully! We\'ve sent your application through FieldJobs and notified the hiring side.')
+          const msg =
+            typeof data.message === 'string'
+              ? data.message
+              : '🎉 Application submitted on FieldJobs.'
+          alert(data.employerNotified ? `🎉 ${msg}` : `ℹ️ ${msg}`)
         } else {
           alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
           setShowApplicationModal(false)

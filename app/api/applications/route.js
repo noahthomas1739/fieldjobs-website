@@ -234,30 +234,38 @@ export async function POST(request) {
         console.log('Note: Could not save to external_job_interests (table may not exist)')
       }
 
-      // Send confirmation email to the job seeker
+      let employerNotified = false
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://field-job.com'
-        await fetch(`${baseUrl}/api/send-application-emails`, {
+        const emailRes = await fetch(`${baseUrl}/api/send-application-emails`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             isExternal: true,
+            aggregatedJobId: jobId,
             applicantEmail: email,
             applicantName: `${firstName} ${lastName}`,
+            applicantPhone: phone,
+            classification: classification || '',
             jobTitle: jobTitle,
             company: company,
             externalUrl: externalUrl,
             source: externalSource
           })
         })
-        console.log('📧 External job interest confirmation sent')
+        const emailJson = await emailRes.json().catch(() => ({}))
+        employerNotified = !!emailJson.employerNotified
+        console.log('📧 External employer alert result', emailJson)
       } catch (emailErr) {
         console.error('📧 Failed to send external job confirmation:', emailErr)
       }
 
       return NextResponse.json({
         success: true,
-        message: 'Application submitted successfully through FieldJobs.',
+        employerNotified,
+        message: employerNotified
+          ? 'Application submitted. The employer was notified at the contact on file for this listing.'
+          : 'Application saved on FieldJobs. This listing did not include a recruiting email we could verify, so the employer was not emailed automatically.',
         isExternal: true
       })
     }

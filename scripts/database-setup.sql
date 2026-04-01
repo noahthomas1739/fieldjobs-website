@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS aggregated_jobs (
   company_name VARCHAR(100) NOT NULL,
   location VARCHAR(200),
   description TEXT,
+  contact_email VARCHAR(200),
   salary_min INTEGER,
   salary_max INTEGER,
   external_url TEXT,

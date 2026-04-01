@@ -6,6 +6,7 @@
 
 const config = require('./config');
 const { createClient } = require('@supabase/supabase-js');
+const { extractRecruiterEmail } = require('../lib/extractRecruiterEmail');
 
 // Initialize Supabase with service role key
 const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
@@ -229,11 +230,14 @@ async function saveJobsToDatabase(jobs) {
       const salaryMin = job.salary_min ? Math.round(Number(job.salary_min)) : null;
       const salaryMax = job.salary_max ? Math.round(Number(job.salary_max)) : null;
       
+      const contactEmail = extractRecruiterEmail(job.description) || null;
+
       const jobRecord = {
         title: job.title?.substring(0, 200) || 'Untitled',
         company_name: job.company?.substring(0, 100) || 'Unknown Company',
         location: job.location?.substring(0, 200) || 'United States',
         description: job.description?.substring(0, 5000) || '',
+        contact_email: contactEmail ? contactEmail.substring(0, 200) : null,
         salary_min: salaryMin,
         salary_max: salaryMax,
         external_url: job.url,

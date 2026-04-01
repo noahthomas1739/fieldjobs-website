@@ -17,7 +17,13 @@ interface NewApplicationAlertEmailProps {
   applicantName: string
   jobTitle: string
   appliedDate: string
-  dashboardUrl?: string
+  dashboardUrl?: string /** internal employer dashboard */
+  /** Aggregated / sourced listing: include applicant contact & original posting */
+  isAggregated?: boolean
+  applicantEmail?: string
+  applicantPhone?: string
+  classification?: string
+  originalPostingUrl?: string
 }
 
 export const NewApplicationAlertEmail = ({
@@ -26,6 +32,11 @@ export const NewApplicationAlertEmail = ({
   jobTitle,
   appliedDate,
   dashboardUrl = 'https://field-jobs.co/employer',
+  isAggregated = false,
+  applicantEmail,
+  applicantPhone,
+  classification,
+  originalPostingUrl,
 }: NewApplicationAlertEmailProps) => (
   <Html>
     <Head />
@@ -57,6 +68,21 @@ export const NewApplicationAlertEmail = ({
             <Text style={infoText}>
               <strong>Applicant:</strong> {applicantName}
             </Text>
+            {isAggregated && applicantEmail ? (
+              <Text style={infoText}>
+                <strong>Email:</strong> {applicantEmail}
+              </Text>
+            ) : null}
+            {isAggregated && applicantPhone ? (
+              <Text style={infoText}>
+                <strong>Phone:</strong> {applicantPhone}
+              </Text>
+            ) : null}
+            {isAggregated && classification ? (
+              <Text style={infoText}>
+                <strong>Experience:</strong> {classification}
+              </Text>
+            ) : null}
             <Text style={infoText}>
               <strong>Applied:</strong> {appliedDate}
             </Text>
@@ -65,14 +91,24 @@ export const NewApplicationAlertEmail = ({
             </Text>
           </Section>
           
-          <Section style={buttonContainer}>
-            <Link href={dashboardUrl} style={button}>
-              View Application
-            </Link>
-          </Section>
+          {isAggregated && originalPostingUrl ? (
+            <Section style={buttonContainer}>
+              <Link href={originalPostingUrl} style={button}>
+                Original job posting
+              </Link>
+            </Section>
+          ) : !isAggregated ? (
+            <Section style={buttonContainer}>
+              <Link href={dashboardUrl} style={button}>
+                View Application
+              </Link>
+            </Section>
+          ) : null}
           
           <Text style={text}>
-            Review the application and resume in your employer dashboard.
+            {isAggregated
+              ? 'This candidate applied through FieldJobs. Reply to them directly using the contact details above. Their resume may be attached when they respond to your reply.'
+              : 'Review the application and resume in your employer dashboard.'}
           </Text>
         </Section>
         

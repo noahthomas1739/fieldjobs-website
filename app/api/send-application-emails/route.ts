@@ -6,63 +6,110 @@ import ApplicationConfirmationEmail from '@/emails/ApplicationConfirmation'
 import NewApplicationAlertEmail from '@/emails/NewApplicationAlert'
 import { sendEmail } from '@/lib/email'
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { extractRecruiterEmail } = require('../../../lib/extractRecruiterEmail')
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     const {
       applicationId,
       isExternal,
+      aggregatedJobId,
       applicantEmail,
       applicantName,
+      applicantPhone,
+      classification,
       jobTitle: externalJobTitle,
       company: externalCompany,
+      externalUrl,
       externalSource
     } = body
 
     if (isExternal) {
-      const fallbackRecipient = process.env.EXTERNAL_APPLICATION_ALERT_EMAIL || process.env.APPLICATION_ALERT_EMAIL || 'support@field-jobs.co'
-      const configured = process.env.EXTERNAL_APPLICATION_ALERT_EMAILS || process.env.APPLICATION_ALERT_EMAILS || fallbackRecipient
-      const recipients = configured.split(',').map(email => email.trim()).filter(Boolean)
-
-      if (!applicantName || !externalJobTitle) {
-        return NextResponse.json({ error: 'Missing external application details' }, { status: 400 })
+      if (!applicantName || !externalJobTitle || !aggregatedJobId) {
+        return NextResponse.json(
+          { error: 'Missing external application details' },
+          { status: 400 }
+        )
       }
 
+      const { createClient } = require('@supabase/supabase-js')
+      const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+
+      const { data: aggJob, error: aggErr } = await supabaseAdmin
+        .from('aggregated_jobs')
+        .select('id, title, company_name, description, contact_email, external_url')
+        .eq('id', aggregatedJobId)
+        .single()
+
+      if (aggErr || !aggJob) {
+        console.error('📧 aggregated_jobs lookup failed', aggErr)
+        return NextResponse.json({ error: 'Job listing not found' }, { status: 404 })
+      }
+
+      const employerEmail =
+        (aggJob.contact_email && String(aggJob.contact_email).trim()) ||
+        extractRecruiterEmail(aggJob.description || '')
+
+      if (!employerEmail) {
+        console.warn('📧 No recruiting email on listing; employer not notified', {
+          aggregatedJobId,
+          externalJobTitle,
+        })
+        return NextResponse.json({
+          success: false,
+          employerNotified: false,
+          message:
+            'Application saved; this listing did not include a reachable recruiting email. The candidate may use contact details in the job description.',
+        })
+      }
+
+      const companyLabel = externalCompany || aggJob.company_name || 'there'
       const alertHtml = await render(
         NewApplicationAlertEmail({
-          employerName: 'Hiring Team',
+          employerName: companyLabel,
           applicantName,
-          jobTitle: `${externalJobTitle}${externalCompany ? ` (${externalCompany})` : ''}`,
+          jobTitle: externalJobTitle,
           appliedDate: new Date().toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           }),
-          dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://field-jobs.co'}/employer`
+          isAggregated: true,
+          applicantEmail,
+          applicantPhone,
+          classification,
+          originalPostingUrl: externalUrl || aggJob.external_url || undefined,
         })
       )
 
-      if (process.env.Resend_API_KEY && recipients.length > 0) {
+      if (process.env.Resend_API_KEY) {
         await sendEmail({
-          to: recipients,
+          to: employerEmail,
           from: 'noreply@field-jobs.co',
-          subject: `New Aggregated Application: ${externalJobTitle}`,
+          replyTo: applicantEmail || undefined,
+          subject: `FieldJobs application: ${externalJobTitle}`,
           html: alertHtml,
         })
       }
 
-      console.log('📧 External application alert sent', {
+      console.log('📧 External application alert sent to employer', {
+        employerEmail,
         applicantEmail,
         applicantName,
         externalJobTitle,
         externalCompany,
         externalSource,
-        recipients
       })
 
       return NextResponse.json({
         success: true,
-        message: 'External application alert sent'
+        employerNotified: true,
+        message: 'Employer recruiting contact notified',
       })
     }
 
