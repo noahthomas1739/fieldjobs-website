@@ -145,7 +145,7 @@ export async function POST(request) {
     })
 
     console.log('Created addon session:', session.id)
-    return NextResponse.json({ sessionId: session.id })
+    return NextResponse.json({ sessionId: session.id, url: session.url })
     
   } catch (error) {
     console.error('Error in addon purchase API:', error)

@@ -449,24 +449,26 @@ function EmployerDashboardContent() {
       if (data.sessionId) {
         console.log('Redirecting to Stripe checkout:', data.sessionId)
         try {
-          const { getStripe } = await import('@/lib/stripe')
+          const { getStripe } = await import('@/lib/stripe-client')
           const stripe = await getStripe()
-          
-          if (!stripe) {
-            throw new Error('Stripe failed to load')
-          }
-          
-          const result = await stripe.redirectToCheckout({ sessionId: data.sessionId })
-          
-          if (result.error) {
-            console.error('Stripe redirect error:', result.error)
-            alert('Stripe redirect failed: ' + result.error.message)
+          if (stripe) {
+            const result = await stripe.redirectToCheckout({
+              sessionId: data.sessionId,
+            })
+            if (result?.error) {
+              console.error('Stripe redirect error:', result.error)
+              alert('Stripe redirect failed: ' + result.error.message)
+            }
+          } else if (data.url) {
+            window.location.href = data.url
+          } else {
+            alert(
+              'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY on the server, or contact support.'
+            )
           }
         } catch (stripeError) {
           console.error('Stripe loading/redirect error:', stripeError)
-          // Fallback: redirect directly to the URL
           if (data.url) {
-            console.log('Falling back to direct URL redirect:', data.url)
             window.location.href = data.url
           } else {
             alert('Could not load Stripe. Please try again or contact support.')
@@ -502,11 +504,29 @@ function EmployerDashboardContent() {
       })
       
       const data = await response.json()
-      
+
+      if (!response.ok) {
+        alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
+        return
+      }
+
       if (data.sessionId) {
-        const { getStripe } = await import('@/lib/stripe')
+        const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
       } else {
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }
@@ -540,9 +560,22 @@ function EmployerDashboardContent() {
       const data = await response.json()
       
       if (data.sessionId) {
-        const { getStripe } = await import('@/lib/stripe')
+        const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
       } else {
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }
@@ -584,9 +617,22 @@ function EmployerDashboardContent() {
       
       if (data.sessionId) {
         console.log('✅ CLIENT: Got session ID, redirecting to Stripe')
-        const { getStripe } = await import('@/lib/stripe')
+        const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
       } else {
         console.log('❌ CLIENT: No session ID in response')
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))

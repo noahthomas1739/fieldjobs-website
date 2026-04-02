@@ -108,9 +108,22 @@ export default function EmployersPage() {
       const data = await response.json()
       
       if (data.sessionId) {
-        const { getStripe } = await import('@/lib/stripe')
+        const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
       } else {
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }
@@ -175,10 +188,22 @@ export default function EmployersPage() {
       const data = await response.json()
 
       if (data.sessionId) {
-        // Redirect to Stripe Checkout
-        const { getStripe } = await import('@/lib/stripe')
+        const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
       } else {
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }
@@ -232,9 +257,22 @@ export default function EmployersPage() {
       const data = await response.json()
 
       if (data.sessionId) {
-        const { getStripe } = await import('@/lib/stripe')
+        const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
-        await stripe.redirectToCheckout({ sessionId: data.sessionId })
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
       } else {
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }

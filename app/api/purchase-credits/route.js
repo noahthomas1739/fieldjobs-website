@@ -111,7 +111,7 @@ export async function POST(request) {
     })
 
     console.log('✅ Created resume credits session:', session.id)
-    return NextResponse.json({ sessionId: session.id })
+    return NextResponse.json({ sessionId: session.id, url: session.url })
 
   } catch (error) {
     console.error('❌ Purchase credits server error:', error)

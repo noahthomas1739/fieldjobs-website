@@ -134,9 +134,10 @@ export async function POST(request) {
     console.log('✅ Session metadata attached:', session.metadata)
     console.log('🎯 === JOB FEATURE PURCHASE API COMPLETED ===')
     
-    return Response.json({ 
+    return Response.json({
       sessionId: session.id,
-      success: true 
+      url: session.url,
+      success: true,
     })
     
   } catch (error) {

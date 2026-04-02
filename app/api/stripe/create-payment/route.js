@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { stripe } from '@/lib/stripe-server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
@@ -48,7 +48,11 @@ export async function POST(request) {
       metadata: { user_id: user.id, job_title: jobData.title, payment_type: 'single_job' }
     })
 
-    return NextResponse.json({ sessionId: session.id, jobData })
+    return NextResponse.json({
+      sessionId: session.id,
+      url: session.url,
+      jobData,
+    })
   } catch (error) {
     console.error('Error creating payment:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
