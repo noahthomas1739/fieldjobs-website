@@ -4,6 +4,9 @@
 
 name: Field Jobs Automation
 
+# One scheduled run = one cron firing. Only the job whose `if` matches that cron runs;
+# the other jobs show as "Skipped" — e.g. */6 runs only job-aggregator, not email-outreach.
+
 on:
   schedule:
     # Job Aggregator: Runs every 6 hours
@@ -58,7 +61,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
@@ -121,7 +124,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       
       - name: Install dependencies
