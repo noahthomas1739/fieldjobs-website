@@ -8,9 +8,25 @@ const config = require('./config');
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
 
-// Initialize clients
-const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
-const resend = new Resend(config.resend.apiKey);
+let supabaseClient;
+let resendClient;
+
+function getSupabase() {
+  if (!supabaseClient) {
+    supabaseClient = createClient(config.supabase.url, config.supabase.serviceKey);
+  }
+  return supabaseClient;
+}
+
+function getResend() {
+  if (!resendClient) {
+    if (!config.resend.apiKey) {
+      throw new Error('RESEND_API_KEY is not set');
+    }
+    resendClient = new Resend(config.resend.apiKey);
+  }
+  return resendClient;
+}
 
 // ==========================================
 // EMAIL TEMPLATES
@@ -19,73 +35,58 @@ const resend = new Resend(config.resend.apiKey);
 const emailTemplates = {
   1: {
     subject: 'Traveling workers ready for {industry} projects',
-    body: `Hey,
+    body: `Hello,
 
-Field-Jobs connects companies with skilled workers who actually want to travel for work.
+Field-Jobs connects employers with skilled workers who actively want to travel for project-based work.
 
-We have 4,000+ tradespeople - welders, pipefitters, electricians, mechanics - specifically looking for project-based, traveling roles.
+We have 4,000+ active tradespeople—welders, pipefitters, electricians, mechanics—and live job listings on the platform, so the candidate pool stays engaged.
 
-Quick question: How long does it typically take {company} to fill a traveling position?
+May I ask how long it typically takes {company} to fill a traveling role?
 
-Check us out: https://field-job.com/employers
-
-Noah Thomas
-Founder, Field-Jobs`,
+When you have a moment: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
   },
   2: {
     subject: 'Your first job post is free',
-    body: `Hey,
+    body: `Hello,
 
-Simple offer: Post your first job on Field-Jobs completely free.
+A straightforward offer: your first job post on Field-Jobs is free.
 
-See the candidate quality yourself. If it works, keep posting. If not, you spent nothing.
+You reach active candidates who want traveling work, alongside other employers’ live listings. If the quality fits your bar, keep posting; if not, you are not out anything.
 
-Our platform attracts workers who want to travel - that's why they signed up.
+Workers join Field-Jobs because they want road work—we built the marketplace around that.
 
-Post free: https://field-job.com/employers
-
-Noah Thomas
-Founder, Field-Jobs`,
+Post at no cost: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
   },
   3: {
     subject: 'Skip the "will you travel?" conversation',
-    body: `Hey,
+    body: `Hello,
 
-On Indeed, half your screening calls are explaining per diem to people who've never left their hometown.
+On general job boards, a lot of screening time goes to candidates who are not serious about travel or per-diem work.
 
-On Field-Jobs, everyone already wants road work. That's why they signed up.
+On Field-Jobs, candidates opt in for road work. The site also carries live roles from other employers, so workers see an active marketplace—not an empty feed.
 
-Try it free: https://field-job.com/employers
-
-Noah Thomas
-Founder, Field-Jobs`,
+See employer tools here: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
   },
   4: {
     subject: 'Time-to-fill is killing margins',
-    body: `Hey,
+    body: `Hello,
 
-Every day a role sits empty costs you:
-• Billable hours lost
-• Client relationships strained  
-• Margin evaporating
+Every day a role sits open carries cost:
+• Billable hours
+• Client relationships
+• Margin
 
-Faster fills = more margin captured.
+Faster fills help across the board. Field-Jobs already has active candidates and live job posts—adding your role builds on that momentum.
 
-Post free: https://field-job.com/employers
-
-Noah Thomas
-Founder, Field-Jobs`,
+Post your first job free: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
   },
   5: {
-    subject: 'Last note from me',
-    body: `Hey,
+    subject: 'Closing the loop',
+    body: `Hello,
 
-Workers who want to travel. Your first post is free. Zero risk.
+This is my last note in this series: traveling-focused candidates, live listings on the platform, and your first post is still free—no obligation.
 
-https://field-job.com/employers
-
-Noah Thomas
-Founder, Field-Jobs`,
+If timing was not right before, you can pick it up anytime here: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
   },
 };
 
@@ -102,30 +103,56 @@ const emailSchedule = {
 // EMAIL SENDING
 // ==========================================
 
+const EMPLOYERS_UTM =
+  'https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email';
+const EMPLOYERS_UTM_XML = EMPLOYERS_UTM.replace(/&/g, '&amp;');
+
+function applyLeadPlaceholders(text, lead) {
+  return text
+    .replace(/{company}/g, lead.company_name)
+    .replace(/{industry}/g, lead.industry || 'your');
+}
+
+function buildPlainTextBody(body, lead) {
+  const main = applyLeadPlaceholders(body, lead).trim();
+  return `${main}
+
+—
+Noah Thomas
+Founder & CEO, Field-Jobs
+https://field-job.com
+noah.thomas@field-jobs.co`;
+}
+
 /**
- * Build professional enterprise-style HTML email
+ * Branded HTML email (Field-Jobs orange + slate; table layout for client compatibility)
  */
 function buildHtmlEmail(body, lead) {
-  // Replace placeholders
-  let content = body
-    .replace(/{company}/g, lead.company_name)
-    .replace(/{industry}/g, lead.industry || 'your')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br>');
-  
-  // Don't add <p> tags if content doesn't have them
-  if (!content.includes('</p>')) {
-    content = `<p>${content}</p>`;
-  }
+  let raw = applyLeadPlaceholders(body, lead);
+  raw = raw.replace(
+    new RegExp(EMPLOYERS_UTM.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+    `<a href="${EMPLOYERS_UTM}" target="_blank" style="color:#ea580c;font-weight:600;text-decoration:underline;">field-job.com/employers</a>`
+  );
 
-  return `
-<!DOCTYPE html>
-<html lang="en">
+  const blocks = raw.split(/\n\n/).map((block) => block.replace(/\n/g, '<br>'));
+  const content = blocks
+    .map(
+      (inner, i) =>
+        `<p style="margin:0 0 ${i === blocks.length - 1 ? '0' : '16px'} 0;">${inner}</p>`
+    )
+    .join('');
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
   <title>Field-Jobs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <!--[if mso]>
   <noscript>
     <xml>
@@ -136,114 +163,112 @@ function buildHtmlEmail(body, lead) {
   </noscript>
   <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  
-  <!-- Preheader text (hidden) -->
-  <div style="display: none; max-height: 0; overflow: hidden;">
-    Field-Jobs - Connecting you with traveling skilled workers who want road work.
+<body style="margin:0;padding:0;background-color:#f1f5f9;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+    Field-Jobs — marketplace for traveling skilled trades. Active candidates and live employer listings.
   </div>
-  
-  <!-- Email Container -->
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f1f5f9;">
     <tr>
-      <td style="padding: 30px 20px;">
-        
-        <!-- Main Card -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          
-          <!-- Header with Logo -->
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;background-color:#ffffff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
           <tr>
-            <td style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #f1f5f9;">
+            <td style="height:4px;line-height:4px;font-size:4px;background-color:#ea580c;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding:28px 40px 20px 40px;border-bottom:1px solid #e2e8f0;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
-                  <td>
-                    <img src="https://field-job.com/fieldjobs-logo.svg" alt="Field-Jobs" width="150" style="display: block; max-width: 150px; height: auto;" />
-                  </td>
-                  <td style="text-align: right; font-size: 12px; color: #94a3b8;">
-                    Technical Workforce Solutions
+                  <td style="vertical-align:middle;">
+                    <img src="https://field-job.com/fieldjobs-logo.svg" alt="Field-Jobs" width="160" style="display:block;max-width:160px;height:auto;border:0;" />
+                    <p style="margin:12px 0 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;color:#ea580c;text-transform:uppercase;">
+                      Marketplace for traveling skilled trades
+                    </p>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-          
-          <!-- Email Body -->
           <tr>
-            <td style="padding: 32px 40px; font-size: 15px; line-height: 1.7; color: #374151;">
+            <td style="padding:28px 40px 8px 40px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:16px;line-height:1.65;color:#334155;">
               ${content}
-              
-              <!-- CTA Button -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 28px 0;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0 8px 0;">
                 <tr>
-                  <td style="border-radius: 8px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
-                    <a href="https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px;">
-                      Post Your First Job Free →
+                  <td align="left" style="border-radius:8px;background-color:#ea580c;">
+                    <!--[if mso]>
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${EMPLOYERS_UTM_XML}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="12%" strokecolor="#ea580c" fillcolor="#ea580c">
+                      <w:anchorlock/>
+                      <center style="color:#ffffff;font-family:sans-serif;font-size:15px;font-weight:600;">Post your first job free</center>
+                    </v:roundrect>
+                    <![endif]-->
+                    <!--[if !mso]><!-->
+                    <a href="${EMPLOYERS_UTM}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;background-color:#ea580c;">
+                      Post your first job free →
                     </a>
+                    <!--<![endif]-->
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-          
-          <!-- Signature Section -->
           <tr>
-            <td style="padding: 0 40px 32px 40px;">
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-top: 1px solid #f1f5f9; padding-top: 24px;">
+            <td style="padding:0 40px 28px 40px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-top:1px solid #e2e8f0;">
                 <tr>
-                  <td width="60" style="vertical-align: top; padding-right: 16px;">
-                    <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                      <span style="font-size: 24px; color: white; font-weight: bold; line-height: 52px; text-align: center; display: block; width: 52px;">N</span>
-                    </div>
-                  </td>
-                  <td style="vertical-align: top;">
-                    <div style="font-weight: 600; font-size: 15px; color: #111827; margin-bottom: 2px;">Noah Thomas</div>
-                    <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">Founder & CEO</div>
-                    <div style="font-size: 13px;">
-                      <a href="https://field-job.com" style="color: #f97316; text-decoration: none; font-weight: 500;">field-job.com</a>
-                      <span style="color: #d1d5db; margin: 0 8px;">|</span>
-                      <a href="mailto:noah.thomas@field-jobs.co" style="color: #6b7280; text-decoration: none;">noah.thomas@field-jobs.co</a>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-          <!-- Social Proof Banner -->
-          <tr>
-            <td style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 16px 40px; border-radius: 0 0 12px 12px;">
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr>
-                  <td style="text-align: center; font-size: 13px; color: #92400e;">
-                    <strong>4,000+ traveling workers</strong> actively seeking project-based work
+                  <td style="padding-top:24px;">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td width="56" valign="top" style="padding-right:16px;">
+                          <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td align="center" valign="middle" width="52" height="52" style="width:52px;height:52px;background-color:#ea580c;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;color:#ffffff;line-height:52px;text-align:center;">
+                                N
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                        <td valign="top" style="font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                          <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#0f172a;">Noah Thomas</p>
+                          <p style="margin:0 0 10px 0;font-size:13px;color:#64748b;">Founder &amp; CEO, Field-Jobs</p>
+                          <p style="margin:0;font-size:13px;line-height:1.5;">
+                            <a href="https://field-job.com" style="color:#ea580c;font-weight:600;text-decoration:none;">field-job.com</a>
+                            <span style="color:#cbd5e1;">&nbsp;·&nbsp;</span>
+                            <a href="mailto:noah.thomas@field-jobs.co" style="color:#64748b;text-decoration:none;">noah.thomas@field-jobs.co</a>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-          
-        </table>
-        
-        <!-- Footer -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 24px auto 0 auto;">
           <tr>
-            <td style="text-align: center; font-size: 11px; color: #9ca3af; line-height: 1.6;">
-              <p style="margin: 0 0 8px 0;">
-                Field-Jobs LLC | Austin, TX
-              </p>
-              <p style="margin: 0;">
-                <a href="https://field-job.com" style="color: #9ca3af; text-decoration: underline;">Visit Website</a>
-                <span style="margin: 0 8px;">•</span>
-                <a href="https://field-job.com/privacy" style="color: #9ca3af; text-decoration: underline;">Privacy Policy</a>
+            <td style="padding:18px 40px;background-color:#fff7ed;border-top:1px solid #fed7aa;">
+              <p style="margin:0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.55;color:#9a3412;text-align:center;">
+                <strong style="color:#c2410c;">4,000+ active candidates</strong> seeking traveling work
+                <span style="color:#fdba74;">&nbsp;·&nbsp;</span>
+                <strong style="color:#c2410c;">Live job listings</strong> from employers on Field-Jobs
               </p>
             </td>
           </tr>
         </table>
-        
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width:600px;margin-top:20px;">
+          <tr>
+            <td style="text-align:center;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;line-height:1.6;color:#94a3b8;">
+              <p style="margin:0 0 6px 0;">
+                <span style="color:#64748b;font-weight:600;">Field-Jobs</span> LLC · Austin, TX
+              </p>
+              <p style="margin:0;">
+                <a href="https://field-job.com" style="color:#ea580c;text-decoration:underline;">field-job.com</a>
+                <span style="color:#cbd5e1;">&nbsp;·&nbsp;</span>
+                <a href="https://field-job.com/privacy" style="color:#94a3b8;text-decoration:underline;">Privacy</a>
+              </p>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
   </table>
-  
 </body>
 </html>`;
 }
@@ -254,21 +279,17 @@ function buildHtmlEmail(body, lead) {
 async function sendEmail(lead, emailNumber) {
   const template = emailTemplates[emailNumber];
   
-  const subject = template.subject
-    .replace(/{company}/g, lead.company_name)
-    .replace(/{industry}/g, lead.industry || 'your');
-  
+  const subject = applyLeadPlaceholders(template.subject, lead);
+
   const htmlBody = buildHtmlEmail(template.body, lead);
-  
+
   try {
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from: `${config.email.fromName} <${config.email.fromEmail}>`,
       to: lead.contact_email,
       subject: subject,
       html: htmlBody,
-      text: template.body
-        .replace(/{company}/g, lead.company_name)
-        .replace(/{industry}/g, lead.industry || 'your'),
+      text: buildPlainTextBody(template.body, lead),
       reply_to: config.email.replyTo,
     });
     
@@ -293,12 +314,12 @@ async function sendEmail(lead, emailNumber) {
  * Get leads ready for their next email
  */
 async function getLeadsForOutreach() {
-  const { data: leads, error } = await supabase
+  const { data: leads, error } = await getSupabase()
     .from('leads')
     .select('*')
     .eq('status', 'active')
     .eq('email_verified', true)
-    .is('unsubscribed', null)
+    .or('unsubscribed.is.null,unsubscribed.eq.false')
     .order('created_at', { ascending: true });
   
   if (error) {
@@ -313,11 +334,12 @@ async function getLeadsForOutreach() {
  * Get new leads that haven't received any emails yet
  */
 async function getNewLeads() {
-  const { data: leads, error } = await supabase
+  const { data: leads, error } = await getSupabase()
     .from('leads')
     .select('*')
     .eq('status', 'new')
     .eq('email_verified', true)
+    .or('unsubscribed.is.null,unsubscribed.eq.false')
     .order('created_at', { ascending: true });
   
   if (error) {
@@ -334,7 +356,7 @@ async function getNewLeads() {
 async function updateLeadEmailStatus(leadId, emailNumber) {
   const updateField = `email_${emailNumber}_sent`;
   
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from('leads')
     .update({
       [updateField]: new Date().toISOString(),
@@ -355,7 +377,7 @@ async function getTodaysEmailCount() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  const { count } = await supabase
+  const { count } = await getSupabase()
     .from('email_log')
     .select('*', { count: 'exact', head: true })
     .gte('sent_at', today.toISOString());
@@ -367,7 +389,7 @@ async function getTodaysEmailCount() {
  * Log email sent
  */
 async function logEmailSent(leadId, emailNumber, recipientEmail) {
-  await supabase
+  await getSupabase()
     .from('email_log')
     .insert({
       lead_id: leadId,
@@ -474,6 +496,38 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/** Sample lead for placeholder preview (company / industry only). */
+const SAMPLE_PREVIEW_LEAD = {
+  company_name: 'Acme Industrial Services',
+  industry: 'industrial construction',
+  contact_email: 'preview@example.com',
+};
+
+/**
+ * Send all 5 templates to one inbox for QA. Does not read or write Supabase.
+ */
+async function sendTemplatePreviews(toEmail) {
+  const lead = { ...SAMPLE_PREVIEW_LEAD, contact_email: toEmail };
+  for (let n = 1; n <= 5; n++) {
+    const template = emailTemplates[n];
+    const subject = `[Template preview ${n}/5] ${applyLeadPlaceholders(template.subject, lead)}`;
+    const result = await getResend().emails.send({
+      from: `${config.email.fromName} <${config.email.fromEmail}>`,
+      to: toEmail,
+      subject,
+      html: buildHtmlEmail(template.body, lead),
+      text: buildPlainTextBody(template.body, lead),
+      reply_to: config.email.replyTo,
+    });
+    if (result.error) {
+      throw new Error(`Email ${n}: ${result.error.message}`);
+    }
+    console.log(`Sent preview ${n}/5 → ${toEmail}`);
+    await sleep(800);
+  }
+  return { sent: 5 };
+}
+
 // Run if called directly
 if (require.main === module) {
   runEmailOutreach()
@@ -484,5 +538,5 @@ if (require.main === module) {
     });
 }
 
-module.exports = { runEmailOutreach };
+module.exports = { runEmailOutreach, sendTemplatePreviews };
 

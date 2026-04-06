@@ -105,13 +105,18 @@ jobs:
   # ==========================================
   email-outreach:
     runs-on: ubuntu-latest
+    # Match outreach cron even if GitHub's schedule string varies slightly (strict == was skipping the job).
     if: |
-      github.event_name == 'schedule' && contains('0 14,18,22 * * *', github.event.schedule) ||
+      github.event_name == 'schedule' && contains(github.event.schedule, '14,18,22') ||
       github.event_name == 'workflow_dispatch' && (github.event.inputs.script == 'all' || github.event.inputs.script == 'email-outreach')
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Debug schedule context
+        if: github.event_name == 'schedule'
+        run: 'echo "github.event.schedule=${{ github.event.schedule }}"'
       
       - name: Setup Node.js
         uses: actions/setup-node@v4

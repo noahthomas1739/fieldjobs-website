@@ -436,31 +436,26 @@ async function runLeadGenerator() {
   
   // Check service quotas
   const usage = await getServiceUsage();
-  console.log('\n📊 Email Service Usage This Month:');
-  console.log(`  Apollo: ${usage.apollo || 0}/50`);
+  // Only Snov + Hunter are wired into findVerifiedEmail(); quota math must match or we never exit early correctly.
+  console.log('\n📊 Email finder usage (this month):');
   console.log(`  Snov: ${usage.snov || 0}/50`);
-  console.log(`  Skrapp: ${usage.skrapp || 0}/150`);
   console.log(`  Hunter: ${usage.hunter || 0}/25`);
   
-  const totalRemaining = (50 - (usage.apollo || 0)) + 
-                         (50 - (usage.snov || 0)) + 
-                         (150 - (usage.skrapp || 0)) + 
-                         (25 - (usage.hunter || 0));
+  const totalRemaining =
+    (50 - (usage.snov || 0)) + (25 - (usage.hunter || 0));
   
-  console.log(`  Total remaining: ${totalRemaining}`);
+  console.log(`  Combined lookups remaining (Snov+Hunter): ${totalRemaining}`);
   
   if (totalRemaining <= 0) {
-    console.log('\n⚠️ All email service quotas exhausted for this month!');
+    console.log('\n⚠️ Snov and Hunter quotas exhausted for this month — no new leads until reset.');
     return { saved: 0, skipped: 0 };
   }
   
   let totalSaved = 0;
   let totalSkipped = 0;
   
-  // Process each industry
+  // Process each industry (per-company finder re-checks Snov/Hunter quotas)
   for (const industry of config.industries) {
-    if (totalRemaining - totalSaved <= 0) break;
-    
     console.log('\n' + '='.repeat(50));
     console.log(`📂 Processing: ${industry.name}`);
     
