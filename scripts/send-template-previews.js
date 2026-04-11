@@ -5,6 +5,9 @@
  * Or:    PREVIEW_TO_EMAIL=you@example.com node scripts/send-template-previews.js
  *
  * Requires RESEND_API_KEY in .env.local (same as production outreach).
+ *
+ * HTML only (no send): node scripts/render-employer-outreach-html.js
+ * Copy lives in: scripts/outreach-employer-templates.js
  */
 const path = require('path');
 const { execSync } = require('child_process');

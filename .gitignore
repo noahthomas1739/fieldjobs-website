@@ -73,6 +73,9 @@ public
 .out
 .storybook-out
 
+# Local HTML previews (node scripts/render-employer-outreach-html.js)
+scripts/preview-html/
+
 # Temporary folders
 tmp/
 temp/

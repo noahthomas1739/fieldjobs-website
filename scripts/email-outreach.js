@@ -4,9 +4,16 @@
 // Run: node scripts/email-outreach.js
 // ==========================================
 
+const fs = require('fs');
+const path = require('path');
 const config = require('./config');
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
+const {
+  EMPLOYERS_UTM,
+  emailTemplates,
+  emailSchedule,
+} = require('./outreach-employer-templates');
 
 let supabaseClient;
 let resendClient;
@@ -28,83 +35,12 @@ function getResend() {
   return resendClient;
 }
 
-// ==========================================
-// EMAIL TEMPLATES
-// ==========================================
-
-const emailTemplates = {
-  1: {
-    subject: 'Traveling workers ready for {industry} projects',
-    body: `Hello,
-
-Field-Jobs connects employers with skilled workers who actively want to travel for project-based work.
-
-We have 4,000+ active tradespeople—welders, pipefitters, electricians, mechanics—and live job listings on the platform, so the candidate pool stays engaged.
-
-May I ask how long it typically takes {company} to fill a traveling role?
-
-When you have a moment: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
-  },
-  2: {
-    subject: 'Your first job post is free',
-    body: `Hello,
-
-A straightforward offer: your first job post on Field-Jobs is free.
-
-You reach active candidates who want traveling work, alongside other employers’ live listings. If the quality fits your bar, keep posting; if not, you are not out anything.
-
-Workers join Field-Jobs because they want road work—we built the marketplace around that.
-
-Post at no cost: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
-  },
-  3: {
-    subject: 'Skip the "will you travel?" conversation',
-    body: `Hello,
-
-On general job boards, a lot of screening time goes to candidates who are not serious about travel or per-diem work.
-
-On Field-Jobs, candidates opt in for road work. The site also carries live roles from other employers, so workers see an active marketplace—not an empty feed.
-
-See employer tools here: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
-  },
-  4: {
-    subject: 'Time-to-fill is killing margins',
-    body: `Hello,
-
-Every day a role sits open carries cost:
-• Billable hours
-• Client relationships
-• Margin
-
-Faster fills help across the board. Field-Jobs already has active candidates and live job posts—adding your role builds on that momentum.
-
-Post your first job free: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
-  },
-  5: {
-    subject: 'Closing the loop',
-    body: `Hello,
-
-This is my last note in this series: traveling-focused candidates, live listings on the platform, and your first post is still free—no obligation.
-
-If timing was not right before, you can pick it up anytime here: https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`,
-  },
-};
-
-// Email schedule (days since last email)
-const emailSchedule = {
-  1: 0,   // Send immediately for new leads
-  2: 3,   // 3 days after email 1
-  3: 7,   // 7 days after email 1
-  4: 14,  // 14 days after email 1
-  5: 21,  // 21 days after email 1
-};
+// Templates + cadence: scripts/outreach-employer-templates.js
 
 // ==========================================
 // EMAIL SENDING
 // ==========================================
 
-const EMPLOYERS_UTM =
-  'https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email';
 const EMPLOYERS_UTM_XML = EMPLOYERS_UTM.replace(/&/g, '&amp;');
 
 function applyLeadPlaceholders(text, lead) {
@@ -503,6 +439,21 @@ const SAMPLE_PREVIEW_LEAD = {
   contact_email: 'preview@example.com',
 };
 
+/** Write employer-outreach-1.html … 5.html for browser preview (no Resend). */
+function writeEmployerOutreachHtmlPreviews(outDir) {
+  const lead = { ...SAMPLE_PREVIEW_LEAD };
+  fs.mkdirSync(outDir, { recursive: true });
+  for (let n = 1; n <= 5; n++) {
+    const html = buildHtmlEmail(emailTemplates[n].body, lead);
+    fs.writeFileSync(
+      path.join(outDir, `employer-outreach-${n}.html`),
+      html,
+      'utf8'
+    );
+  }
+  return outDir;
+}
+
 /**
  * Send all 5 templates to one inbox for QA. Does not read or write Supabase.
  */
@@ -538,5 +489,9 @@ if (require.main === module) {
     });
 }
 
-module.exports = { runEmailOutreach, sendTemplatePreviews };
+module.exports = {
+  runEmailOutreach,
+  sendTemplatePreviews,
+  writeEmployerOutreachHtmlPreviews,
+};
 
