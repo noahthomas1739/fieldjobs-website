@@ -29,6 +29,19 @@ on:
           - job-aggregator
           - lead-generator
           - email-outreach
+          - job-seeker-digest
+      digest_limit:
+        description: 'Job seeker digest — max recipients (only for job-seeker-digest)'
+        required: false
+        default: '50'
+      digest_mode:
+        description: 'Job seeker digest — dry-run logs only; send delivers mail'
+        required: false
+        default: 'dry-run'
+        type: choice
+        options:
+          - dry-run
+          - send
 
 env:
   NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -136,4 +149,36 @@ jobs:
       - name: Report results
         if: always()
         run: echo "Email outreach completed"
+
+  # ==========================================
+  # JOB SEEKER DIGEST (manual only — pilot; use dry-run first)
+  # ==========================================
+  job-seeker-digest:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.script == 'job-seeker-digest'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run job seeker digest
+        run: |
+          if [ "${{ github.event.inputs.digest_mode }}" = "send" ]; then
+            node scripts/job-seeker-digest.js --send --limit=${{ github.event.inputs.digest_limit }}
+          else
+            node scripts/job-seeker-digest.js --dry-run --limit=${{ github.event.inputs.digest_limit }}
+          fi
+
+      - name: Report results
+        if: always()
+        run: echo "Job seeker digest step finished"
 

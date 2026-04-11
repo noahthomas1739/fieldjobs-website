@@ -169,6 +169,11 @@ const config = {
     dailyLimit: 100, // Start conservative, increase as domain warms up
   },
 
+  // Job seeker digest (scripts/job-seeker-digest.js) — pilot caps via CLI --limit
+  jobSeekerDigest: {
+    defaultLimit: 50,
+  },
+
   // Rate Limits
   rateLimits: {
     emailsPerDay: 100,
