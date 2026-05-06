@@ -12,6 +12,43 @@ const Anthropic = require('@anthropic-ai/sdk');
 const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
 const anthropic = new Anthropic({ apiKey: config.claude.apiKey });
 
+async function createRunLog() {
+  const { data, error } = await supabase
+    .from('automation_runs')
+    .insert({
+      script_name: 'lead-generator',
+      status: 'running',
+      started_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.warn('⚠️ Failed to create automation run log:', error.message);
+    return null;
+  }
+
+  return data?.id || null;
+}
+
+async function completeRunLog(runId, status, payload = {}) {
+  if (!runId) return;
+
+  const { error } = await supabase
+    .from('automation_runs')
+    .update({
+      status,
+      completed_at: new Date().toISOString(),
+      results: payload.results || null,
+      error_message: payload.error_message || null,
+    })
+    .eq('id', runId);
+
+  if (error) {
+    console.warn('⚠️ Failed to update automation run log:', error.message);
+  }
+}
+
 // ==========================================
 // EMAIL FINDING SERVICES (FREE TIERS)
 // Total: ~100 verified emails/month for FREE
@@ -427,84 +464,94 @@ async function logServiceUsage(service) {
 // ==========================================
 
 async function runLeadGenerator() {
+  const runId = await createRunLog();
   console.log('🚀 Starting Lead Generator...\n');
   console.log('='.repeat(50));
-  
-  // Get existing leads to avoid duplicates
-  const existingDomains = await getExistingLeads();
-  console.log(`📋 Existing leads: ${existingDomains.size}`);
-  
-  // Check service quotas
-  const usage = await getServiceUsage();
-  // Only Snov + Hunter are wired into findVerifiedEmail(); quota math must match or we never exit early correctly.
-  console.log('\n📊 Email finder usage (this month):');
-  console.log(`  Snov: ${usage.snov || 0}/50`);
-  console.log(`  Hunter: ${usage.hunter || 0}/25`);
-  
-  const totalRemaining =
-    (50 - (usage.snov || 0)) + (25 - (usage.hunter || 0));
-  
-  console.log(`  Combined lookups remaining (Snov+Hunter): ${totalRemaining}`);
-  
-  if (totalRemaining <= 0) {
-    console.log('\n⚠️ Snov and Hunter quotas exhausted for this month — no new leads until reset.');
-    return { saved: 0, skipped: 0 };
-  }
-  
-  let totalSaved = 0;
-  let totalSkipped = 0;
-  
-  // Process each industry (per-company finder re-checks Snov/Hunter quotas)
-  for (const industry of config.industries) {
-    console.log('\n' + '='.repeat(50));
-    console.log(`📂 Processing: ${industry.name}`);
+
+  try {
+    // Get existing leads to avoid duplicates
+    const existingDomains = await getExistingLeads();
+    console.log(`📋 Existing leads: ${existingDomains.size}`);
     
-    // Get companies from Claude
-    const companies = await findCompaniesWithClaude(industry);
+    // Check service quotas
+    const usage = await getServiceUsage();
+    // Only Snov + Hunter are wired into findVerifiedEmail(); quota math must match or we never exit early correctly.
+    console.log('\n📊 Email finder usage (this month):');
+    console.log(`  Snov: ${usage.snov || 0}/50`);
+    console.log(`  Hunter: ${usage.hunter || 0}/25`);
     
-    for (const company of companies) {
-      // Skip if we already have this domain
-      if (existingDomains.has(company.domain)) {
-        console.log(`  ⏭️ Skipping ${company.domain} (already exists)`);
-        totalSkipped++;
-        continue;
-      }
-      
-      // Find verified email
-      const emailResult = await findVerifiedEmail(company.domain, company.company);
-      
-      if (emailResult?.email && emailResult.verified) {
-        // Save the lead
-        const saved = await saveLead({
-          company: company.company,
-          domain: company.domain,
-          location: company.location,
-          industry: industry.key,
-          email: emailResult.email,
-          contactName: emailResult.name,
-          title: emailResult.title,
-          emailSource: emailResult.source,
-          verified: emailResult.verified,
-        });
-        
-        if (saved) {
-          totalSaved++;
-          existingDomains.add(company.domain);
-          console.log(`  💾 Saved lead: ${company.company}`);
-        }
-      }
-      
-      // Rate limiting
-      await sleep(1000);
+    const totalRemaining =
+      (50 - (usage.snov || 0)) + (25 - (usage.hunter || 0));
+    
+    console.log(`  Combined lookups remaining (Snov+Hunter): ${totalRemaining}`);
+    
+    if (totalRemaining <= 0) {
+      console.log('\n⚠️ Snov and Hunter quotas exhausted for this month — no new leads until reset.');
+      const results = { saved: 0, skipped: 0, total_remaining: totalRemaining };
+      await completeRunLog(runId, 'completed', { results });
+      return results;
     }
+    
+    let totalSaved = 0;
+    let totalSkipped = 0;
+    
+    // Process each industry (per-company finder re-checks Snov/Hunter quotas)
+    for (const industry of config.industries) {
+      console.log('\n' + '='.repeat(50));
+      console.log(`📂 Processing: ${industry.name}`);
+      
+      // Get companies from Claude
+      const companies = await findCompaniesWithClaude(industry);
+      
+      for (const company of companies) {
+        // Skip if we already have this domain
+        if (existingDomains.has(company.domain)) {
+          console.log(`  ⏭️ Skipping ${company.domain} (already exists)`);
+          totalSkipped++;
+          continue;
+        }
+        
+        // Find verified email
+        const emailResult = await findVerifiedEmail(company.domain, company.company);
+        
+        if (emailResult?.email && emailResult.verified) {
+          // Save the lead
+          const saved = await saveLead({
+            company: company.company,
+            domain: company.domain,
+            location: company.location,
+            industry: industry.key,
+            email: emailResult.email,
+            contactName: emailResult.name,
+            title: emailResult.title,
+            emailSource: emailResult.source,
+            verified: emailResult.verified,
+          });
+          
+          if (saved) {
+            totalSaved++;
+            existingDomains.add(company.domain);
+            console.log(`  💾 Saved lead: ${company.company}`);
+          }
+        }
+        
+        // Rate limiting
+        await sleep(1000);
+      }
+    }
+    
+    console.log('\n' + '='.repeat(50));
+    console.log('🏁 Lead Generator Complete!');
+    console.log(`✅ New leads saved: ${totalSaved}`);
+    console.log(`⏭️ Skipped (duplicates): ${totalSkipped}`);
+    
+    const results = { saved: totalSaved, skipped: totalSkipped };
+    await completeRunLog(runId, 'completed', { results });
+    return results;
+  } catch (error) {
+    await completeRunLog(runId, 'failed', { error_message: error.message });
+    throw error;
   }
-  
-  console.log('\n' + '='.repeat(50));
-  console.log('🏁 Lead Generator Complete!');
-  console.log(`✅ New leads saved: ${totalSaved}`);
-  console.log(`⏭️ Skipped (duplicates): ${totalSkipped}`);
-  
-  return { saved: totalSaved, skipped: totalSkipped };
 }
 
 // Helper function

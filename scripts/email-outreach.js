@@ -35,6 +35,43 @@ function getResend() {
   return resendClient;
 }
 
+async function createRunLog() {
+  const { data, error } = await getSupabase()
+    .from('automation_runs')
+    .insert({
+      script_name: 'email-outreach',
+      status: 'running',
+      started_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.warn('⚠️ Failed to create automation run log:', error.message);
+    return null;
+  }
+
+  return data?.id || null;
+}
+
+async function completeRunLog(runId, status, payload = {}) {
+  if (!runId) return;
+
+  const { error } = await getSupabase()
+    .from('automation_runs')
+    .update({
+      status,
+      completed_at: new Date().toISOString(),
+      results: payload.results || null,
+      error_message: payload.error_message || null,
+    })
+    .eq('id', runId);
+
+  if (error) {
+    console.warn('⚠️ Failed to update automation run log:', error.message);
+  }
+}
+
 // Templates + cadence: scripts/outreach-employer-templates.js
 
 // ==========================================
@@ -340,91 +377,101 @@ async function logEmailSent(leadId, emailNumber, recipientEmail) {
 // ==========================================
 
 async function runEmailOutreach() {
+  const runId = await createRunLog();
   console.log('📧 Starting Email Outreach...\n');
   console.log('='.repeat(50));
-  
-  // Check daily limit
-  const sentToday = await getTodaysEmailCount();
-  const remaining = config.email.dailyLimit - sentToday;
-  
-  console.log(`📊 Daily email status: ${sentToday}/${config.email.dailyLimit} sent`);
-  console.log(`📊 Remaining today: ${remaining}`);
-  
-  if (remaining <= 0) {
-    console.log('\n⚠️ Daily email limit reached. Try again tomorrow.');
-    return { sent: 0 };
-  }
-  
-  let totalSent = 0;
-  
-  // PART 1: Send Email 1 to new leads
-  console.log('\n--- Processing New Leads (Email 1) ---');
-  const newLeads = await getNewLeads();
-  console.log(`Found ${newLeads.length} new leads`);
-  
-  for (const lead of newLeads) {
-    if (totalSent >= remaining) break;
+
+  try {
+    // Check daily limit
+    const sentToday = await getTodaysEmailCount();
+    const remaining = config.email.dailyLimit - sentToday;
     
-    const success = await sendEmail(lead, 1);
-    if (success) {
-      await updateLeadEmailStatus(lead.id, 1);
-      await logEmailSent(lead.id, 1, lead.contact_email);
-      totalSent++;
+    console.log(`📊 Daily email status: ${sentToday}/${config.email.dailyLimit} sent`);
+    console.log(`📊 Remaining today: ${remaining}`);
+    
+    if (remaining <= 0) {
+      console.log('\n⚠️ Daily email limit reached. Try again tomorrow.');
+      const results = { sent: 0, daily_limit: config.email.dailyLimit, sent_today: sentToday };
+      await completeRunLog(runId, 'completed', { results });
+      return { sent: 0 };
     }
     
-    // Random delay between 5-15 seconds for natural sending pattern
-    const delay = 5000 + Math.random() * 10000;
-    await sleep(delay);
-  }
-  
-  // PART 2: Send follow-up emails to active leads
-  console.log('\n--- Processing Follow-up Emails ---');
-  const activeLeads = await getLeadsForOutreach();
-  console.log(`Found ${activeLeads.length} active leads`);
-  
-  for (const lead of activeLeads) {
-    if (totalSent >= remaining) break;
+    let totalSent = 0;
     
-    const lastEmailNumber = lead.last_email_number || 0;
-    const nextEmailNumber = lastEmailNumber + 1;
+    // PART 1: Send Email 1 to new leads
+    console.log('\n--- Processing New Leads (Email 1) ---');
+    const newLeads = await getNewLeads();
+    console.log(`Found ${newLeads.length} new leads`);
     
-    // Check if there's a next email in sequence
-    if (nextEmailNumber > 5) {
-      console.log(`  ⏭️ ${lead.contact_email} - Sequence complete`);
-      continue;
-    }
-    
-    // Check if enough time has passed
-    const lastEmailField = `email_${lastEmailNumber}_sent`;
-    const lastEmailDate = lead[lastEmailField];
-    
-    if (lastEmailDate) {
-      const daysSince = Math.floor((Date.now() - new Date(lastEmailDate)) / (1000 * 60 * 60 * 24));
-      const requiredDays = emailSchedule[nextEmailNumber] - emailSchedule[lastEmailNumber];
+    for (const lead of newLeads) {
+      if (totalSent >= remaining) break;
       
-      if (daysSince < requiredDays) {
-        continue; // Not time yet
+      const success = await sendEmail(lead, 1);
+      if (success) {
+        await updateLeadEmailStatus(lead.id, 1);
+        await logEmailSent(lead.id, 1, lead.contact_email);
+        totalSent++;
       }
+      
+      // Random delay between 5-15 seconds for natural sending pattern
+      const delay = 5000 + Math.random() * 10000;
+      await sleep(delay);
     }
     
-    // Send the next email
-    const success = await sendEmail(lead, nextEmailNumber);
-    if (success) {
-      await updateLeadEmailStatus(lead.id, nextEmailNumber);
-      await logEmailSent(lead.id, nextEmailNumber, lead.contact_email);
-      totalSent++;
+    // PART 2: Send follow-up emails to active leads
+    console.log('\n--- Processing Follow-up Emails ---');
+    const activeLeads = await getLeadsForOutreach();
+    console.log(`Found ${activeLeads.length} active leads`);
+    
+    for (const lead of activeLeads) {
+      if (totalSent >= remaining) break;
+      
+      const lastEmailNumber = lead.last_email_number || 0;
+      const nextEmailNumber = lastEmailNumber + 1;
+      
+      // Check if there's a next email in sequence
+      if (nextEmailNumber > 5) {
+        console.log(`  ⏭️ ${lead.contact_email} - Sequence complete`);
+        continue;
+      }
+      
+      // Check if enough time has passed
+      const lastEmailField = `email_${lastEmailNumber}_sent`;
+      const lastEmailDate = lead[lastEmailField];
+      
+      if (lastEmailDate) {
+        const daysSince = Math.floor((Date.now() - new Date(lastEmailDate)) / (1000 * 60 * 60 * 24));
+        const requiredDays = emailSchedule[nextEmailNumber] - emailSchedule[lastEmailNumber];
+        
+        if (daysSince < requiredDays) {
+          continue; // Not time yet
+        }
+      }
+      
+      // Send the next email
+      const success = await sendEmail(lead, nextEmailNumber);
+      if (success) {
+        await updateLeadEmailStatus(lead.id, nextEmailNumber);
+        await logEmailSent(lead.id, nextEmailNumber, lead.contact_email);
+        totalSent++;
+      }
+      
+      // Random delay
+      const delay = 5000 + Math.random() * 10000;
+      await sleep(delay);
     }
     
-    // Random delay
-    const delay = 5000 + Math.random() * 10000;
-    await sleep(delay);
+    console.log('\n' + '='.repeat(50));
+    console.log('🏁 Email Outreach Complete!');
+    console.log(`✅ Total emails sent: ${totalSent}`);
+    
+    const results = { sent: totalSent, daily_limit: config.email.dailyLimit, sent_today: sentToday };
+    await completeRunLog(runId, 'completed', { results });
+    return { sent: totalSent };
+  } catch (error) {
+    await completeRunLog(runId, 'failed', { error_message: error.message });
+    throw error;
   }
-  
-  console.log('\n' + '='.repeat(50));
-  console.log('🏁 Email Outreach Complete!');
-  console.log(`✅ Total emails sent: ${totalSent}`);
-  
-  return { sent: totalSent };
 }
 
 // Helper function
