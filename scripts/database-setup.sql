@@ -100,7 +100,11 @@ CREATE TABLE IF NOT EXISTS email_log (
   
   -- For analytics
   opened_at TIMESTAMPTZ,
-  clicked_at TIMESTAMPTZ
+  clicked_at TIMESTAMPTZ,
+
+  -- Tracked CTA: token in /api/email-click?t=… then redirect to redirect_url
+  click_token TEXT,
+  redirect_url TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_email_log_sent_at ON email_log(sent_at DESC);
@@ -257,6 +261,14 @@ SELECT
   COUNT(CASE WHEN is_active THEN 1 END) as active_jobs
 FROM aggregated_jobs
 GROUP BY source;
+
+-- ==========================================
+-- MIGRATIONS (existing databases)
+-- ==========================================
+
+ALTER TABLE email_log ADD COLUMN IF NOT EXISTS click_token TEXT;
+ALTER TABLE email_log ADD COLUMN IF NOT EXISTS redirect_url TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_email_log_click_token ON email_log(click_token) WHERE click_token IS NOT NULL;
 
 -- ==========================================
 -- DONE!

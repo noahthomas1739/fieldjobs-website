@@ -161,11 +161,13 @@ const config = {
     },
   ],
 
-  // Email Settings
+  // Email Settings — links/images in outreach must use linkBase (same root as Resend sending domain)
   email: {
-    fromEmail: 'noah.thomas@field-jobs.co',
+    fromEmail: process.env.OUTREACH_FROM_EMAIL || 'noah.thomas@field-jobs.co',
     fromName: 'Noah Thomas',
     replyTo: 'noah.thomas@field-jobs.co',
+    /** Public site URL for CTA, logo, footer links (field-jobs.co, not field-job.com). */
+    linkBase: process.env.OUTREACH_LINK_BASE || 'https://field-jobs.co',
     dailyLimit: 100, // Start conservative, increase as domain warms up
   },
 

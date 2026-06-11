@@ -4,12 +4,13 @@
  * Edit subjects/bodies here. Placeholders: {company}, {industry}
  * UTM link must match EMPLOYERS_UTM below (used for HTML linkification + CTA).
  *
- * Preview real sends:  node scripts/send-template-previews.js you@email.com
- * Preview HTML files: node scripts/render-employer-outreach-html.js
  */
 
+const config = require('./config');
+const linkBase = config.email.linkBase.replace(/\/$/, '');
+
 const EMPLOYERS_UTM =
-  'https://field-job.com/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email';
+  `${linkBase}/employers?utm_source=email&utm_medium=outreach&utm_campaign=cold_email`;
 
 const emailTemplates = {
   1: {

@@ -4,8 +4,7 @@
 // Run: node scripts/email-outreach.js
 // ==========================================
 
-const fs = require('fs');
-const path = require('path');
+const crypto = require('crypto');
 const config = require('./config');
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
@@ -78,33 +77,40 @@ async function completeRunLog(runId, status, payload = {}) {
 // EMAIL SENDING
 // ==========================================
 
-const EMPLOYERS_UTM_XML = EMPLOYERS_UTM.replace(/&/g, '&amp;');
-
 function applyLeadPlaceholders(text, lead) {
   return text
     .replace(/{company}/g, lead.company_name)
     .replace(/{industry}/g, lead.industry || 'your');
 }
 
-function buildPlainTextBody(body, lead) {
-  const main = applyLeadPlaceholders(body, lead).trim();
+function buildPlainTextBody(body, lead, employersHref = null) {
+  let main = applyLeadPlaceholders(body, lead).trim();
+  if (employersHref) {
+    const escaped = EMPLOYERS_UTM.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    main = main.replace(new RegExp(escaped, 'g'), employersHref);
+  }
   return `${main}
 
 —
 Noah Thomas
 Founder & CEO, Field-Jobs
-https://field-job.com
+${config.email.linkBase.replace(/\/$/, '')}
 noah.thomas@field-jobs.co`;
 }
 
 /**
  * Branded HTML email (Field-Jobs orange + slate; table layout for client compatibility)
+ * @param {object} [options]
+ * @param {string} [options.employersTrackingUrl] — replaces EMPLOYERS_UTM in body + CTA (e.g. /api/email-click?t=…)
  */
-function buildHtmlEmail(body, lead) {
+function buildHtmlEmail(body, lead, options = {}) {
+  const employersHref = options.employersTrackingUrl || EMPLOYERS_UTM;
+  const employersHrefXml = employersHref.replace(/&/g, '&amp;');
+
   let raw = applyLeadPlaceholders(body, lead);
   raw = raw.replace(
     new RegExp(EMPLOYERS_UTM.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
-    `<a href="${EMPLOYERS_UTM}" target="_blank" style="color:#ea580c;font-weight:600;text-decoration:underline;">field-job.com/employers</a>`
+    `<a href="${employersHref}" target="_blank" style="color:#ea580c;font-weight:600;text-decoration:underline;">field-job.com/employers</a>`
   );
 
   const blocks = raw.split(/\n\n/).map((block) => block.replace(/\n/g, '<br>'));
@@ -152,7 +158,7 @@ function buildHtmlEmail(body, lead) {
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td style="vertical-align:middle;">
-                    <img src="https://field-job.com/fieldjobs-logo.svg" alt="Field-Jobs" width="160" style="display:block;max-width:160px;height:auto;border:0;" />
+                    <img src="${config.email.linkBase.replace(/\/$/, '')}/fieldjobs-logo.svg" alt="Field-Jobs" width="160" style="display:block;max-width:160px;height:auto;border:0;" />
                     <p style="margin:12px 0 0 0;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.04em;color:#ea580c;text-transform:uppercase;">
                       Marketplace for traveling skilled trades
                     </p>
@@ -168,13 +174,13 @@ function buildHtmlEmail(body, lead) {
                 <tr>
                   <td align="left" style="border-radius:8px;background-color:#ea580c;">
                     <!--[if mso]>
-                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${EMPLOYERS_UTM_XML}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="12%" strokecolor="#ea580c" fillcolor="#ea580c">
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${employersHrefXml}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="12%" strokecolor="#ea580c" fillcolor="#ea580c">
                       <w:anchorlock/>
                       <center style="color:#ffffff;font-family:sans-serif;font-size:15px;font-weight:600;">Post your first job free</center>
                     </v:roundrect>
                     <![endif]-->
                     <!--[if !mso]><!-->
-                    <a href="${EMPLOYERS_UTM}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;background-color:#ea580c;">
+                    <a href="${employersHref}" target="_blank" style="display:inline-block;padding:14px 28px;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;background-color:#ea580c;">
                       Post your first job free →
                     </a>
                     <!--<![endif]-->
@@ -203,7 +209,7 @@ function buildHtmlEmail(body, lead) {
                           <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#0f172a;">Noah Thomas</p>
                           <p style="margin:0 0 10px 0;font-size:13px;color:#64748b;">Founder &amp; CEO, Field-Jobs</p>
                           <p style="margin:0;font-size:13px;line-height:1.5;">
-                            <a href="https://field-job.com" style="color:#ea580c;font-weight:600;text-decoration:none;">field-job.com</a>
+                            <a href="${config.email.linkBase.replace(/\/$/, '')}" style="color:#ea580c;font-weight:600;text-decoration:none;">field-jobs.co</a>
                             <span style="color:#cbd5e1;">&nbsp;·&nbsp;</span>
                             <a href="mailto:noah.thomas@field-jobs.co" style="color:#64748b;text-decoration:none;">noah.thomas@field-jobs.co</a>
                           </p>
@@ -232,9 +238,9 @@ function buildHtmlEmail(body, lead) {
                 <span style="color:#64748b;font-weight:600;">Field-Jobs</span> LLC · Austin, TX
               </p>
               <p style="margin:0;">
-                <a href="https://field-job.com" style="color:#ea580c;text-decoration:underline;">field-job.com</a>
+                <a href="${config.email.linkBase.replace(/\/$/, '')}" style="color:#ea580c;text-decoration:underline;">field-jobs.co</a>
                 <span style="color:#cbd5e1;">&nbsp;·&nbsp;</span>
-                <a href="https://field-job.com/privacy" style="color:#94a3b8;text-decoration:underline;">Privacy</a>
+                <a href="${config.email.linkBase.replace(/\/$/, '')}/privacy" style="color:#94a3b8;text-decoration:underline;">Privacy</a>
               </p>
             </td>
           </tr>
@@ -249,12 +255,21 @@ function buildHtmlEmail(body, lead) {
 /**
  * Send email via Resend
  */
+function getAppBaseUrl() {
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://field-job.com';
+  return String(base).replace(/\/$/, '');
+}
+
 async function sendEmail(lead, emailNumber) {
   const template = emailTemplates[emailNumber];
   
   const subject = applyLeadPlaceholders(template.subject, lead);
 
-  const htmlBody = buildHtmlEmail(template.body, lead);
+  const clickToken = crypto.randomUUID();
+  const trackingUrl = `${getAppBaseUrl()}/api/email-click?t=${encodeURIComponent(clickToken)}`;
+  const htmlBody = buildHtmlEmail(template.body, lead, {
+    employersTrackingUrl: trackingUrl,
+  });
 
   try {
     const result = await getResend().emails.send({
@@ -262,20 +277,20 @@ async function sendEmail(lead, emailNumber) {
       to: lead.contact_email,
       subject: subject,
       html: htmlBody,
-      text: buildPlainTextBody(template.body, lead),
+      text: buildPlainTextBody(template.body, lead, trackingUrl),
       reply_to: config.email.replyTo,
     });
     
     if (result.error) {
       console.error(`  ❌ Error sending to ${lead.contact_email}:`, result.error.message);
-      return false;
+      return { ok: false };
     }
     
     console.log(`  ✅ Sent email ${emailNumber} to ${lead.contact_email}`);
-    return true;
+    return { ok: true, clickToken, redirectUrl: EMPLOYERS_UTM };
   } catch (error) {
     console.error(`  ❌ Error sending to ${lead.contact_email}:`, error.message);
-    return false;
+    return { ok: false };
   }
 }
 
@@ -361,15 +376,20 @@ async function getTodaysEmailCount() {
 /**
  * Log email sent
  */
-async function logEmailSent(leadId, emailNumber, recipientEmail) {
-  await getSupabase()
-    .from('email_log')
-    .insert({
-      lead_id: leadId,
-      email_number: emailNumber,
-      recipient_email: recipientEmail,
-      sent_at: new Date().toISOString(),
-    });
+async function logEmailSent(leadId, emailNumber, recipientEmail, meta = {}) {
+  const row = {
+    lead_id: leadId,
+    email_number: emailNumber,
+    recipient_email: recipientEmail,
+    sent_at: new Date().toISOString(),
+  };
+  if (meta.clickToken) row.click_token = meta.clickToken;
+  if (meta.redirectUrl) row.redirect_url = meta.redirectUrl;
+
+  const { error } = await getSupabase().from('email_log').insert(row);
+  if (error) {
+    console.error('  ⚠️ logEmailSent:', error.message);
+  }
 }
 
 // ==========================================
@@ -406,10 +426,13 @@ async function runEmailOutreach() {
     for (const lead of newLeads) {
       if (totalSent >= remaining) break;
       
-      const success = await sendEmail(lead, 1);
-      if (success) {
+      const sendResult = await sendEmail(lead, 1);
+      if (sendResult.ok) {
         await updateLeadEmailStatus(lead.id, 1);
-        await logEmailSent(lead.id, 1, lead.contact_email);
+        await logEmailSent(lead.id, 1, lead.contact_email, {
+          clickToken: sendResult.clickToken,
+          redirectUrl: sendResult.redirectUrl,
+        });
         totalSent++;
       }
       
@@ -449,10 +472,13 @@ async function runEmailOutreach() {
       }
       
       // Send the next email
-      const success = await sendEmail(lead, nextEmailNumber);
-      if (success) {
+      const sendResult = await sendEmail(lead, nextEmailNumber);
+      if (sendResult.ok) {
         await updateLeadEmailStatus(lead.id, nextEmailNumber);
-        await logEmailSent(lead.id, nextEmailNumber, lead.contact_email);
+        await logEmailSent(lead.id, nextEmailNumber, lead.contact_email, {
+          clickToken: sendResult.clickToken,
+          redirectUrl: sendResult.redirectUrl,
+        });
         totalSent++;
       }
       
@@ -479,53 +505,6 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/** Sample lead for placeholder preview (company / industry only). */
-const SAMPLE_PREVIEW_LEAD = {
-  company_name: 'Acme Industrial Services',
-  industry: 'industrial construction',
-  contact_email: 'preview@example.com',
-};
-
-/** Write employer-outreach-1.html … 5.html for browser preview (no Resend). */
-function writeEmployerOutreachHtmlPreviews(outDir) {
-  const lead = { ...SAMPLE_PREVIEW_LEAD };
-  fs.mkdirSync(outDir, { recursive: true });
-  for (let n = 1; n <= 5; n++) {
-    const html = buildHtmlEmail(emailTemplates[n].body, lead);
-    fs.writeFileSync(
-      path.join(outDir, `employer-outreach-${n}.html`),
-      html,
-      'utf8'
-    );
-  }
-  return outDir;
-}
-
-/**
- * Send all 5 templates to one inbox for QA. Does not read or write Supabase.
- */
-async function sendTemplatePreviews(toEmail) {
-  const lead = { ...SAMPLE_PREVIEW_LEAD, contact_email: toEmail };
-  for (let n = 1; n <= 5; n++) {
-    const template = emailTemplates[n];
-    const subject = `[Template preview ${n}/5] ${applyLeadPlaceholders(template.subject, lead)}`;
-    const result = await getResend().emails.send({
-      from: `${config.email.fromName} <${config.email.fromEmail}>`,
-      to: toEmail,
-      subject,
-      html: buildHtmlEmail(template.body, lead),
-      text: buildPlainTextBody(template.body, lead),
-      reply_to: config.email.replyTo,
-    });
-    if (result.error) {
-      throw new Error(`Email ${n}: ${result.error.message}`);
-    }
-    console.log(`Sent preview ${n}/5 → ${toEmail}`);
-    await sleep(800);
-  }
-  return { sent: 5 };
-}
-
 // Run if called directly
 if (require.main === module) {
   runEmailOutreach()
@@ -536,9 +515,5 @@ if (require.main === module) {
     });
 }
 
-module.exports = {
-  runEmailOutreach,
-  sendTemplatePreviews,
-  writeEmployerOutreachHtmlPreviews,
-};
+module.exports = { runEmailOutreach };
 
