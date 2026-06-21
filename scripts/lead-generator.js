@@ -583,11 +583,22 @@ Return ONLY the JSON array.`;
 // ==========================================
 
 async function getExistingLeads() {
-  const { data } = await supabase
-    .from('leads')
-    .select('company_domain');
-  
-  return new Set((data || []).map(l => l.company_domain));
+  // Fetch both successful leads AND previously-tried domains in parallel
+  const [leadsRes, triedRes] = await Promise.all([
+    supabase.from('leads').select('company_domain'),
+    supabase.from('tried_domains').select('domain'),
+  ]);
+
+  const domains = new Set();
+  for (const row of leadsRes.data || []) domains.add(row.company_domain);
+  for (const row of triedRes.data || [])  domains.add(row.domain);
+  return domains;
+}
+
+async function saveTriedDomain(domain, reason = 'no_email_found') {
+  await supabase
+    .from('tried_domains')
+    .upsert({ domain, reason }, { onConflict: 'domain', ignoreDuplicates: true });
 }
 
 async function saveLead(lead) {
@@ -781,7 +792,6 @@ async function runLeadGenerator() {
         const emailResult = await findVerifiedEmail(company.domain, company.company);
         
         if (emailResult?.email && emailResult.verified) {
-          // Save the lead
           const saved = await saveLead({
             company: company.company,
             domain: company.domain,
@@ -799,6 +809,11 @@ async function runLeadGenerator() {
             existingDomains.add(company.domain);
             console.log(`  💾 Saved lead: ${company.company}`);
           }
+        } else {
+          // Mark domain as tried so we don't re-process it next run
+          await saveTriedDomain(company.domain, 'no_email_found');
+          existingDomains.add(company.domain);
+          console.log(`  📝 Marked ${company.domain} as tried (no verified email found)`);
         }
         
         // Rate limiting

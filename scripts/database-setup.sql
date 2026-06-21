@@ -84,6 +84,21 @@ CREATE INDEX IF NOT EXISTS idx_leads_industry ON leads(industry);
 CREATE INDEX IF NOT EXISTS idx_leads_email_verified ON leads(email_verified);
 
 -- ==========================================
+-- 2b. TRIED DOMAINS TABLE
+-- Records every domain the lead generator attempted, including ones where
+-- no email was found. Prevents wasting quota re-trying the same domains.
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS tried_domains (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  domain VARCHAR(100) NOT NULL UNIQUE,
+  reason VARCHAR(50) DEFAULT 'no_email_found', -- 'no_email_found', 'scrape_failed', 'quota_exhausted'
+  tried_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tried_domains_domain ON tried_domains(domain);
+
+-- ==========================================
 -- 3. EMAIL LOG TABLE
 -- Tracks all sent emails
 -- ==========================================

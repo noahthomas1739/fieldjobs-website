@@ -55,7 +55,6 @@ env:
   APOLLO_API_KEY: ${{ secrets.APOLLO_API_KEY }}
   SNOV_CLIENT_ID: ${{ secrets.SNOV_CLIENT_ID }}
   SNOV_CLIENT_SECRET: ${{ secrets.SNOV_CLIENT_SECRET }}
-  SKRAPP_API_KEY: ${{ secrets.SKRAPP_API_KEY }}
   HUNTER_API_KEY: ${{ secrets.HUNTER_API_KEY }}
   ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
   ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
