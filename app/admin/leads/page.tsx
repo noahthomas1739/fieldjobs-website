@@ -8,8 +8,8 @@ import { useCallback, useEffect, useState } from 'react';
 type QuotaSlot = { used: number; limit: number };
 
 type Stats = {
-  config: { hunterOk: boolean; snovOk: boolean };
-  quota: { hunter: QuotaSlot; snov: QuotaSlot; remaining: number };
+  config: { hunterOk: boolean; snovOk: boolean; apolloOk: boolean };
+  quota: { hunter: QuotaSlot; snov: QuotaSlot; apollo: QuotaSlot; remaining: number };
   leads: { total: number; newThisWeek: number; byStatus: Record<string, number> };
   recentRuns: {
     leadGenerator: Array<{
@@ -152,8 +152,9 @@ export default function AdminLeadsPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h2 className="mb-4 font-semibold text-slate-900">Email finder config</h2>
               <div className="flex flex-wrap gap-2">
-                <StatusBadge ok={stats.config.hunterOk} label="Hunter API" />
+                <StatusBadge ok={stats.config.apolloOk} label="Apollo API" />
                 <StatusBadge ok={stats.config.snovOk} label="Snov API" />
+                <StatusBadge ok={stats.config.hunterOk} label="Hunter API" />
               </div>
               {!stats.config.apolloOk && (
                 <p className="mt-3 text-sm text-amber-700">
