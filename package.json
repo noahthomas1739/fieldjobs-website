@@ -10,6 +10,7 @@
     "jobs:aggregate": "node scripts/job-aggregator.js",
     "leads:generate": "node scripts/lead-generator.js",
     "emails:send": "node scripts/email-outreach.js",
+    "leads:health": "node scripts/lead-gen-health.js",
     "automation:all": "npm run jobs:aggregate && npm run leads:generate && npm run emails:send"
   },
   "dependencies": {

@@ -163,15 +163,18 @@ export default function EmployersPage() {
         'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '',
         'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '',
         'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '',
-        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || ''
+        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '',
+        'unlimited': process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '',
       }
 
       const priceId = priceMapping[planType]
 
-      if (!priceId) {
+      if (priceId === undefined) {
+        // planType not in mapping at all — genuinely unsupported
         alert('Plan not available. Please contact support.')
         return
       }
+      // Empty string is fine — the API falls back to dynamic pricing
 
       const response = await fetch('/api/stripe/create-subscription', {
         method: 'POST',
@@ -181,7 +184,7 @@ export default function EmployersPage() {
         body: JSON.stringify({
           priceId: priceId,
           planType: planType,
-          userId: user.id  // Add userId to the request
+          userId: user.id,
         }),
       })
 
@@ -403,10 +406,9 @@ export default function EmployersPage() {
               <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">BEST VALUE</span>
             </div>
             <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
-            <div className="text-3xl font-bold text-purple-600 mb-2">$187</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">$208</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
-            <div className="text-gray-600 text-xs mb-2">billed annually at $2,246</div>
-            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save $250/yr — $2,246/yr with annual billing</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
               <li>✅ 20 job postings</li>
               <li>✅ 25 resume search credits</li>
@@ -424,10 +426,9 @@ export default function EmployersPage() {
           {/* Unlimited Plan */}
           <div className="border-2 border-indigo-500 rounded-lg p-6 bg-indigo-50 text-center flex flex-col">
             <h3 className="text-xl font-semibold mb-4">Unlimited</h3>
-            <div className="text-3xl font-bold text-indigo-600 mb-2">$296</div>
+            <div className="text-3xl font-bold text-indigo-600 mb-2">$329</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
-            <div className="text-gray-600 text-xs mb-2">billed annually at $3,553</div>
-            <div className="text-green-600 text-xs font-semibold mb-4">Save 10% with annual billing!</div>
+            <div className="text-green-600 text-xs font-semibold mb-4">Save $395/yr — $3,553/yr with annual billing</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
               <li>✅ Unlimited job postings</li>
               <li>✅ 100 resume search credits</li>

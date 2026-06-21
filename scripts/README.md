@@ -36,7 +36,12 @@ SNOV_CLIENT_SECRET=       # Your Snov Secret key
 ADZUNA_APP_ID=            # https://developer.adzuna.com (250 free/month)
 ADZUNA_API_KEY=
 JSEARCH_API_KEY=          # https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch (200 free/month)
+
+# Admin dashboard (/admin/leads) — comma-separated emails allowed to view ops stats
+LEAD_GEN_ADMIN_EMAILS=noah.thomas@field-jobs.co
 ```
+
+Also add `SNOV_CLIENT_ID`, `SNOV_CLIENT_SECRET`, `HUNTER_API_KEY`, and `LEAD_GEN_ADMIN_EMAILS` to **GitHub Actions secrets** and **Vercel** environment variables.
 
 ### 4. Run Scripts Manually
 
@@ -49,6 +54,9 @@ npm run leads:generate
 
 # Send outreach emails
 npm run emails:send
+
+# Check lead gen pipeline health
+npm run leads:health
 
 # Run all scripts
 npm run automation:all
@@ -64,10 +72,18 @@ npm run automation:all
 - Logs each run in `automation_runs` with quality metrics (`filtered_out_off_target`, `filtered_out_rate`)
 
 ### Lead Generator (`lead-generator.js`)
-- Uses Claude to find relevant companies
-- Verifies emails using Apollo, Snov, Skrapp, Hunter (rotates to maximize free tier)
+- Uses Claude to find relevant companies (excludes existing domains in prompt)
+- Rotates 2 industries per week to conserve API quota
+- Verifies emails using Snov + Hunter (rotates to maximize free tier)
 - Only saves leads with **verified** emails
-- **Schedule**: Mondays at 8 AM
+- Warns loudly if Snov credentials are missing (25/mo cap without it)
+- **Schedule**: Mondays at 8 AM EST
+
+### Lead Gen Health (`lead-gen-health.js`)
+- Reports quota usage, lead counts, and recent `automation_runs`
+- **Schedule**: Tuesdays at 9 AM EST (after Monday lead gen)
+- Fails scheduled runs when the pipeline is unhealthy (opens a GitHub issue)
+- **Admin UI**: `/admin/leads` (requires `LEAD_GEN_ADMIN_EMAILS` env var)
 
 ### Email Outreach (`email-outreach.js`)
 - Sends 5-email cadence to verified leads
@@ -112,7 +128,10 @@ You can also trigger scripts manually from GitHub Actions → Field Jobs Automat
 
 ### "No leads generated"
 - Check if email service quotas are exhausted (`email_service_usage` table)
-- Verify API keys are correct in `.env.local`
+- Verify API keys are correct in `.env.local` and **GitHub Actions secrets**
+- Ensure **Snov** is configured (`SNOV_CLIENT_ID`, `SNOV_CLIENT_SECRET`) — without it you cap at 25/mo
+- Run `npm run leads:health` or visit `/admin/leads` (set `LEAD_GEN_ADMIN_EMAILS` in Vercel)
+- Check GitHub Issues labeled `lead-gen` for automated alerts
 
 ### "Emails bouncing"
 - Only verified emails should be in the `leads` table

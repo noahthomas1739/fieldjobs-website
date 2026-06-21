@@ -2064,9 +2064,9 @@ function EmployerDashboardContent() {
                   </div>
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Enterprise</h3>
-                    <div className="text-3xl font-bold text-purple-600 my-2">$188</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $2,246</div>
-                    <div className="text-green-600 text-xs font-semibold mt-1">Save $250 with annual billing!</div>
+                    <div className="text-3xl font-bold text-purple-600 my-2">$208</div>
+                    <div className="text-gray-600 text-xs">per month</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save $250/yr — $2,246/yr with annual billing</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm flex-grow">
                     <li>✅ 20 job postings</li>
@@ -2081,9 +2081,9 @@ function EmployerDashboardContent() {
                 <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50 flex flex-col">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Unlimited</h3>
-                    <div className="text-3xl font-bold text-indigo-600 my-2">$296</div>
-                    <div className="text-gray-600 text-xs">per month<br/>billed annually at $3,553</div>
-                    <div className="text-green-600 text-xs font-semibold mt-1">Save $395 with annual billing!</div>
+                    <div className="text-3xl font-bold text-indigo-600 my-2">$329</div>
+                    <div className="text-gray-600 text-xs">per month</div>
+                    <div className="text-green-600 text-xs font-semibold mt-1">Save $395/yr — $3,553/yr with annual billing</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm flex-grow">
                     <li>✅ Unlimited job postings</li>

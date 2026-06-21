@@ -492,8 +492,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'enterprise' ? 'border-purple-500 bg-purple-50' : 'border-purple-200 bg-purple-50'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Enterprise</div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">$167</div>
-                <div className="text-gray-600 mb-4 text-xs">per month<br/>billed annually at $1,999</div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">$208</div>
+                <div className="text-gray-600 mb-4 text-xs">per month<br/>Save $250/yr — $2,246/yr with annual billing</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ Unlimited job postings</li>
                   <li>✓ Unlimited resume credits</li>
@@ -520,8 +520,8 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'unlimited' ? 'border-indigo-500 bg-indigo-50' : 'border-indigo-200 bg-indigo-50'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Unlimited</div>
-                <div className="text-3xl font-bold text-indigo-600 mb-2">$292</div>
-                <div className="text-gray-600 mb-4 text-xs">per month<br/>billed annually at $3,499</div>
+                <div className="text-3xl font-bold text-indigo-600 mb-2">$329</div>
+                <div className="text-gray-600 mb-4 text-xs">per month<br/>Save $395/yr — $3,553/yr with annual billing</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li>✓ Unlimited job postings</li>
                   <li>✓ Unlimited resume credits</li>

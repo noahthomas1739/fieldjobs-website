@@ -321,15 +321,23 @@ async function findVerifiedEmail(companyDomain, companyName) {
 /**
  * Use Claude to find relevant companies in an industry
  * Claude returns company info, we find real emails separately
+ * @param {object} industry
+ * @param {string[]} excludeDomains — domains already in leads (lowercase)
  */
-async function findCompaniesWithClaude(industry) {
+async function findCompaniesWithClaude(industry, excludeDomains = []) {
   console.log(`\n🤖 Asking Claude for ${industry.name} companies...`);
-  
+
+  const excludeSample = excludeDomains.slice(0, 120);
+  const excludeBlock =
+    excludeSample.length > 0
+      ? `\nDO NOT include any company whose domain appears in this list (we already have them):\n${excludeSample.join(', ')}\n`
+      : '';
+
   const prompt = `You are a B2B researcher helping Field-Jobs find companies that hire traveling technical workers (welders, pipefitters, electricians, mechanics).
 
 TASK: List 20 real companies in this industry that likely hire traveling/contract workers:
 "${industry.name} - ${industry.keywords.join(', ')}"
-
+${excludeBlock}
 For each company, provide:
 1. Company name (must be a REAL company)
 2. Website domain (just the domain, e.g., "bechtel.com")
@@ -412,51 +420,100 @@ async function saveLead(lead) {
   return true;
 }
 
-async function getServiceUsage() {
+function monthStartIso() {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
-  
+  return startOfMonth.toISOString();
+}
+
+async function getServiceUsage() {
   const { data } = await supabase
     .from('email_service_usage')
     .select('service, count')
-    .gte('month', startOfMonth.toISOString());
-  
+    .gte('month', monthStartIso());
+
   const usage = {};
-  (data || []).forEach(row => {
-    usage[row.service] = row.count;
+  (data || []).forEach((row) => {
+    usage[row.service] = (usage[row.service] || 0) + row.count;
   });
-  
+
   return usage;
 }
 
 async function logServiceUsage(service) {
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-  
-  // Upsert usage count
+  const month = monthStartIso();
+
   const { data: existing } = await supabase
     .from('email_service_usage')
     .select('id, count')
     .eq('service', service)
-    .gte('month', startOfMonth.toISOString())
-    .single();
-  
+    .eq('month', month)
+    .maybeSingle();
+
   if (existing) {
     await supabase
       .from('email_service_usage')
       .update({ count: existing.count + 1 })
       .eq('id', existing.id);
   } else {
-    await supabase
-      .from('email_service_usage')
-      .insert({
-        service,
-        month: startOfMonth.toISOString(),
-        count: 1,
-      });
+    await supabase.from('email_service_usage').insert({
+      service,
+      month,
+      count: 1,
+    });
   }
+}
+
+function validateEmailServices() {
+  const hunterOk = !!config.emailServices.hunter.apiKey;
+  const snovOk = !!(
+    config.emailServices.snov.clientId && config.emailServices.snov.clientSecret
+  );
+
+  console.log('\n📡 Email finder configuration:');
+  console.log(
+    `  Hunter: ${hunterOk ? '✅ configured (25/month)' : '❌ MISSING — set HUNTER_API_KEY'}`
+  );
+  console.log(
+    `  Snov:   ${snovOk ? '✅ configured (50/month)' : '❌ MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`
+  );
+
+  if (!hunterOk && !snovOk) {
+    throw new Error(
+      'No email finder APIs configured. Set HUNTER_API_KEY and/or SNOV credentials.'
+    );
+  }
+
+  if (!snovOk) {
+    console.warn(
+      '\n⚠️  WARNING: Snov not configured — pipeline capped at ~25 new leads/month (Hunter only).'
+    );
+    console.warn(
+      '   Add SNOV_CLIENT_ID and SNOV_CLIENT_SECRET to GitHub secrets and Vercel env.\n'
+    );
+  }
+
+  return { hunterOk, snovOk };
+}
+
+/**
+ * Rotate industries weekly so each run focuses quota on fresh verticals.
+ */
+function getIndustriesForThisRun(allIndustries) {
+  if (allIndustries.length <= 2) return allIndustries;
+
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const weekNum = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
+  const perRun = 2;
+  const startIdx = (weekNum * perRun) % allIndustries.length;
+
+  const selected = [];
+  for (let i = 0; i < perRun; i++) {
+    selected.push(allIndustries[(startIdx + i) % allIndustries.length]);
+  }
+  return selected;
 }
 
 // ==========================================
@@ -469,9 +526,17 @@ async function runLeadGenerator() {
   console.log('='.repeat(50));
 
   try {
+    validateEmailServices();
+
     // Get existing leads to avoid duplicates
     const existingDomains = await getExistingLeads();
+    const excludeDomains = [...existingDomains];
     console.log(`📋 Existing leads: ${existingDomains.size}`);
+
+    const industriesThisRun = getIndustriesForThisRun(config.industries);
+    console.log(
+      `\n📅 Industries this run (${industriesThisRun.length}/${config.industries.length}): ${industriesThisRun.map((i) => i.key).join(', ')}`
+    );
     
     // Check service quotas
     const usage = await getServiceUsage();
@@ -495,13 +560,13 @@ async function runLeadGenerator() {
     let totalSaved = 0;
     let totalSkipped = 0;
     
-    // Process each industry (per-company finder re-checks Snov/Hunter quotas)
-    for (const industry of config.industries) {
+    // Process rotated industries (per-company finder re-checks Snov/Hunter quotas)
+    for (const industry of industriesThisRun) {
       console.log('\n' + '='.repeat(50));
       console.log(`📂 Processing: ${industry.name}`);
       
-      // Get companies from Claude
-      const companies = await findCompaniesWithClaude(industry);
+      // Get companies from Claude (exclude known domains in prompt)
+      const companies = await findCompaniesWithClaude(industry, excludeDomains);
       
       for (const company of companies) {
         // Skip if we already have this domain

@@ -345,11 +345,16 @@ export async function POST(request) {
 // Helper function to map Stripe price amounts to plan details
 function getPlanDetailsFromAmount(amount) {
   const planMapping = {
+    // Legacy plans
     19900: { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 },
     29900: { planType: 'growth', price: 29900, jobLimit: 6, credits: 5 },
     59900: { planType: 'professional', price: 59900, jobLimit: 15, credits: 25 },
-    225000: { planType: 'enterprise', price: 225000, jobLimit: 20, credits: 25 },
-    355050: { planType: 'unlimited', price: 355050, jobLimit: 999999, credits: 100 }
+    // Enterprise — monthly ($208) and annual ($2,246 charged as one payment)
+    20800: { planType: 'enterprise', price: 20800, jobLimit: 20, credits: 25 },
+    224600: { planType: 'enterprise', price: 224600, jobLimit: 20, credits: 25 },
+    // Unlimited — monthly ($329) and annual ($3,553 charged as one payment)
+    32900: { planType: 'unlimited', price: 32900, jobLimit: 999999, credits: 100 },
+    355300: { planType: 'unlimited', price: 355300, jobLimit: 999999, credits: 100 },
   }
   
   return planMapping[amount] || { planType: 'starter', price: 19900, jobLimit: 3, credits: 0 }
