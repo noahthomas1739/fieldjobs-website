@@ -8,7 +8,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
 
-const SKRAPP_LIMIT = config.emailServices.skrapp?.monthlyLimit || 150;
+const APOLLO_LIMIT = config.emailServices.apollo?.monthlyLimit || 50;
 const SNOV_LIMIT   = config.emailServices.snov.monthlyLimit;
 const HUNTER_LIMIT = config.emailServices.hunter.monthlyLimit;
 
@@ -75,10 +75,10 @@ async function getRecentRuns(scriptName, limit = 10) {
 }
 
 function checkConfig() {
-  const skrappOk = !!config.emailServices.skrapp?.apiKey;
+  const apolloOk = !!config.emailServices.apollo?.apiKey;
   const snovOk   = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
   const hunterOk = !!config.emailServices.hunter.apiKey;
-  return { skrappOk, snovOk, hunterOk };
+  return { apolloOk, snovOk, hunterOk };
 }
 
 function printReport({ usage, leads, runs, configStatus, issues }) {
@@ -87,18 +87,18 @@ function printReport({ usage, leads, runs, configStatus, issues }) {
   console.log('='.repeat(50));
 
   console.log('\n--- Email finder config ---');
-  console.log(`  Skrapp: ${configStatus.skrappOk ? 'configured (150/mo)' : 'MISSING — set SKRAPP_API_KEY'}`);
-  console.log(`  Snov:   ${configStatus.snovOk   ? 'configured (50/mo)'  : 'MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
-  console.log(`  Hunter: ${configStatus.hunterOk ? 'configured (25/mo)'  : 'MISSING — set HUNTER_API_KEY'}`);
+  console.log(`  Apollo: ${configStatus.apolloOk ? 'configured (50/mo)' : 'MISSING — set APOLLO_API_KEY'}`);
+  console.log(`  Snov:   ${configStatus.snovOk   ? 'configured (50/mo)' : 'MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
+  console.log(`  Hunter: ${configStatus.hunterOk ? 'configured (25/mo)' : 'MISSING — set HUNTER_API_KEY'}`);
 
   console.log('\n--- Quota usage (this month) ---');
-  const skrappUsed = usage.skrapp || 0;
+  const apolloUsed = usage.apollo || 0;
   const snovUsed   = usage.snov   || 0;
   const hunterUsed = usage.hunter || 0;
-  console.log(`  Skrapp: ${skrappUsed}/${SKRAPP_LIMIT}`);
+  console.log(`  Apollo: ${apolloUsed}/${APOLLO_LIMIT}`);
   console.log(`  Snov:   ${snovUsed}/${SNOV_LIMIT}`);
   console.log(`  Hunter: ${hunterUsed}/${HUNTER_LIMIT}`);
-  console.log(`  Combined remaining: ${Math.max(0, SKRAPP_LIMIT - skrappUsed) + Math.max(0, SNOV_LIMIT - snovUsed) + Math.max(0, HUNTER_LIMIT - hunterUsed)}/225`);
+  console.log(`  Combined remaining: ${Math.max(0, APOLLO_LIMIT - apolloUsed) + Math.max(0, SNOV_LIMIT - snovUsed) + Math.max(0, HUNTER_LIMIT - hunterUsed)}/125`);
 
   console.log('\n--- Leads ---');
   console.log(`  Total: ${leads.total}`);
@@ -136,19 +136,19 @@ async function runHealthCheck(options) {
   }
 
   const usage = await getQuotaUsage();
-  const skrappUsed = usage.skrapp || 0;
+  const apolloUsed = usage.apollo || 0;
   const snovUsed   = usage.snov   || 0;
   const hunterUsed = usage.hunter || 0;
   const totalRemaining =
-    Math.max(0, SKRAPP_LIMIT - skrappUsed) +
+    Math.max(0, APOLLO_LIMIT - apolloUsed) +
     Math.max(0, SNOV_LIMIT   - snovUsed)   +
     Math.max(0, HUNTER_LIMIT - hunterUsed);
 
   if (totalRemaining <= 0) {
-    issues.push('All email service quotas exhausted (Skrapp/Snov/Hunter)');
+    issues.push('All email service quotas exhausted (Apollo/Snov/Hunter)');
   }
-  if (!configStatus.skrappOk) {
-    issues.push('Skrapp not configured — missing 150 free lookups/month (set SKRAPP_API_KEY)');
+  if (!configStatus.apolloOk) {
+    issues.push('Apollo not configured — missing 50 free lookups/month (set APOLLO_API_KEY)');
   }
   if (!configStatus.snovOk) {
     issues.push('Snov not configured — missing 50 free lookups/month (set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET)');
@@ -216,7 +216,7 @@ async function getLeadGenStats() {
   return {
     config: configStatus,
     quota: {
-      skrapp: { used: skrappUsed, limit: SKRAPP_LIMIT },
+      apollo: { used: apolloUsed, limit: APOLLO_LIMIT },
       snov:   { used: snovUsed,   limit: SNOV_LIMIT },
       hunter: { used: hunterUsed, limit: HUNTER_LIMIT },
       remaining: totalRemaining,

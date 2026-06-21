@@ -240,48 +240,59 @@ async function verifyEmailSnov(email) {
 }
 
 /**
- * Find email using Skrapp.io (150 free/month)
- * Docs: https://skrapp.io/api
- * Uses Domain Search endpoint
+ * Find email using Apollo.io (50 free exports/month)
+ * Docs: https://apolloio.github.io/apollo-api-docs
+ * Uses People Search filtered by organization domain
  */
-async function findEmailSkrapp(companyDomain) {
-  if (!config.emailServices.skrapp?.apiKey) return null;
+async function findEmailApollo(companyDomain) {
+  if (!config.emailServices.apollo?.apiKey) return null;
 
   try {
-    const url = `https://api.skrapp.io/api/v2/find?domain=${encodeURIComponent(companyDomain)}`;
-    const response = await fetch(url, {
+    const response = await fetch('https://api.apollo.io/v1/mixed_people/search', {
+      method: 'POST',
       headers: {
-        'X-Access-Key': config.emailServices.skrapp.apiKey,
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
+      body: JSON.stringify({
+        api_key: config.emailServices.apollo.apiKey,
+        q_organization_domains: companyDomain,
+        per_page: 5,
+        // Prioritize decision-makers likely to handle hiring
+        person_titles: [
+          'HR Manager', 'Human Resources', 'Recruiter', 'Talent Acquisition',
+          'VP HR', 'Director of HR', 'People Operations',
+          'Owner', 'CEO', 'President', 'COO', 'General Manager',
+          'Operations Manager', 'Project Manager', 'Site Manager',
+        ],
+      }),
     });
 
     if (!response.ok) {
-      console.error(`Skrapp HTTP ${response.status}`);
+      console.error(`Apollo HTTP ${response.status}`);
       return null;
     }
 
     const data = await response.json();
+    const people = data.people || [];
 
-    // Skrapp returns { person: { email, firstName, lastName, position, accuracy } }
-    const person = data.person || data.email_address || data;
+    // Prefer contacts with verified emails
+    const best = people.find(p => p.email && p.verified_for_sending) ||
+                 people.find(p => p.email) ||
+                 people[0];
 
-    const email = person?.email || data?.email;
-    if (!email) return null;
-
-    const accuracy = person?.accuracy ?? data?.accuracy ?? 0;
-    const verified = accuracy >= 85;
+    if (!best?.email) return null;
 
     return {
-      email,
-      name: `${person?.firstName || ''} ${person?.lastName || ''}`.trim(),
-      title: person?.position || null,
-      source: 'skrapp',
-      verified,
-      confidence: accuracy,
+      email: best.email,
+      name: best.name || `${best.first_name || ''} ${best.last_name || ''}`.trim(),
+      title: best.title || null,
+      source: 'apollo',
+      verified: !!best.verified_for_sending,
+      confidence: best.email_status === 'verified' ? 100 : 70,
     };
   } catch (error) {
-    console.error('Skrapp error:', error.message);
+    console.error('Apollo error:', error.message);
   }
 
   return null;
@@ -289,7 +300,7 @@ async function findEmailSkrapp(companyDomain) {
 
 /**
  * Try all email finding services in rotation
- * Skrapp: 150/month, Snov: 50/month, Hunter: 25/month = 225 verified emails/month
+ * Apollo: 50/month, Snov: 50/month, Hunter: 25/month = 125 verified emails/month
  */
 async function findVerifiedEmail(companyDomain, companyName) {
   console.log(`  🔍 Finding email for ${companyDomain}...`);
@@ -297,16 +308,16 @@ async function findVerifiedEmail(companyDomain, companyName) {
   // Get usage counts from database
   const usage = await getServiceUsage();
   
-  // Available services with their monthly limits — largest quota first
+  // Available services with their monthly limits
   const services = [
-    { name: 'skrapp', fn: findEmailSkrapp, verifyFn: null, limit: 150 },
-    { name: 'snov',   fn: findEmailSnov,   verifyFn: verifyEmailSnov, limit: 50 },
+    { name: 'apollo', fn: findEmailApollo, verifyFn: null,              limit: 50 },
+    { name: 'snov',   fn: findEmailSnov,   verifyFn: verifyEmailSnov,   limit: 50 },
     { name: 'hunter', fn: findEmailHunter, verifyFn: verifyEmailHunter, limit: 25 },
   ].filter(s => (usage[s.name] || 0) < s.limit);
 
   if (services.length === 0) {
     console.log(`    ⚠️ All email finding quotas exhausted for this month`);
-    console.log(`    📊 Usage: Skrapp ${usage.skrapp || 0}/150, Snov ${usage.snov || 0}/50, Hunter ${usage.hunter || 0}/25`);
+    console.log(`    📊 Usage: Apollo ${usage.apollo || 0}/50, Snov ${usage.snov || 0}/50, Hunter ${usage.hunter || 0}/25`);
     return null;
   }
   
@@ -515,35 +526,34 @@ async function logServiceUsage(service) {
 }
 
 function validateEmailServices() {
-  const hunterOk  = !!config.emailServices.hunter.apiKey;
-  const snovOk    = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
-  const skrappOk  = !!config.emailServices.skrapp?.apiKey;
+  const apolloOk = !!config.emailServices.apollo?.apiKey;
+  const snovOk   = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
+  const hunterOk = !!config.emailServices.hunter.apiKey;
 
   console.log('\n📡 Email finder configuration:');
-  console.log(`  Skrapp: ${skrappOk ? '✅ configured (150/month)' : '❌ MISSING — set SKRAPP_API_KEY'}`);
-  console.log(`  Snov:   ${snovOk   ? '✅ configured (50/month)'  : '❌ MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
-  console.log(`  Hunter: ${hunterOk ? '✅ configured (25/month)'  : '❌ MISSING — set HUNTER_API_KEY'}`);
+  console.log(`  Apollo: ${apolloOk ? '✅ configured (50/month)' : '❌ MISSING — set APOLLO_API_KEY'}`);
+  console.log(`  Snov:   ${snovOk   ? '✅ configured (50/month)' : '❌ MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
+  console.log(`  Hunter: ${hunterOk ? '✅ configured (25/month)' : '❌ MISSING — set HUNTER_API_KEY'}`);
 
-  const totalCapacity =
-    (skrappOk ? 150 : 0) + (snovOk ? 50 : 0) + (hunterOk ? 25 : 0);
-  console.log(`  Monthly capacity: ${totalCapacity}/225 lookups available`);
+  const totalCapacity = (apolloOk ? 50 : 0) + (snovOk ? 50 : 0) + (hunterOk ? 25 : 0);
+  console.log(`  Monthly capacity: ${totalCapacity}/125 lookups available`);
 
-  if (!hunterOk && !snovOk && !skrappOk) {
+  if (!apolloOk && !snovOk && !hunterOk) {
     throw new Error(
-      'No email finder APIs configured. Set SKRAPP_API_KEY, SNOV_CLIENT_ID/SECRET, and/or HUNTER_API_KEY.'
+      'No email finder APIs configured. Set APOLLO_API_KEY, SNOV_CLIENT_ID/SECRET, and/or HUNTER_API_KEY.'
     );
   }
 
-  if (!skrappOk) {
-    console.warn('\n⚠️  WARNING: Skrapp not configured — missing 150 free lookups/month.');
-    console.warn('   Add SKRAPP_API_KEY to GitHub secrets. Get a free key at https://app.skrapp.io/api\n');
+  if (!apolloOk) {
+    console.warn('\n⚠️  WARNING: Apollo not configured — missing 50 free lookups/month.');
+    console.warn('   Add APOLLO_API_KEY to GitHub secrets. Free key at https://app.apollo.io/settings/integrations/api\n');
   }
   if (!snovOk) {
     console.warn('⚠️  WARNING: Snov not configured — missing 50 free lookups/month.');
     console.warn('   Add SNOV_CLIENT_ID and SNOV_CLIENT_SECRET to GitHub secrets.\n');
   }
 
-  return { hunterOk, snovOk, skrappOk };
+  return { apolloOk, snovOk, hunterOk };
 }
 
 /**
@@ -595,16 +605,16 @@ async function runLeadGenerator() {
     const usage = await getServiceUsage();
     // Only Snov + Hunter are wired into findVerifiedEmail(); quota math must match or we never exit early correctly.
     console.log('\n📊 Email finder usage (this month):');
-    console.log(`  Skrapp: ${usage.skrapp || 0}/150`);
-    console.log(`  Snov:   ${usage.snov || 0}/50`);
+    console.log(`  Apollo: ${usage.apollo || 0}/50`);
+    console.log(`  Snov:   ${usage.snov   || 0}/50`);
     console.log(`  Hunter: ${usage.hunter || 0}/25`);
 
     const totalRemaining =
-      (150 - (usage.skrapp || 0)) +
-      (50  - (usage.snov   || 0)) +
-      (25  - (usage.hunter || 0));
+      (50 - (usage.apollo || 0)) +
+      (50 - (usage.snov   || 0)) +
+      (25 - (usage.hunter || 0));
 
-    console.log(`  Combined lookups remaining: ${totalRemaining}/225`);
+    console.log(`  Combined lookups remaining: ${totalRemaining}/125`);
 
     if (totalRemaining <= 0) {
       console.log('\n⚠️ All email service quotas exhausted for this month — no new leads until reset.');

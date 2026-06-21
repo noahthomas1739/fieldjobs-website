@@ -155,20 +155,25 @@ export default function AdminLeadsPage() {
                 <StatusBadge ok={stats.config.hunterOk} label="Hunter API" />
                 <StatusBadge ok={stats.config.snovOk} label="Snov API" />
               </div>
+              {!stats.config.apolloOk && (
+                <p className="mt-3 text-sm text-amber-700">
+                  Apollo is not configured — add <code className="rounded bg-amber-50 px-1">APOLLO_API_KEY</code> to GitHub secrets.
+                  Free key at <a href="https://app.apollo.io/settings/integrations/api" target="_blank" rel="noreferrer" className="underline">app.apollo.io</a>.
+                </p>
+              )}
               {!stats.config.snovOk && (
                 <p className="mt-3 text-sm text-amber-700">
-                  Snov is not configured — you are capped at ~25 new leads/month via Hunter only.
-                  Add <code className="rounded bg-amber-50 px-1">SNOV_CLIENT_ID</code> and{' '}
-                  <code className="rounded bg-amber-50 px-1">SNOV_CLIENT_SECRET</code> to GitHub
-                  secrets and Vercel.
+                  Snov is not configured — add <code className="rounded bg-amber-50 px-1">SNOV_CLIENT_ID</code> and{' '}
+                  <code className="rounded bg-amber-50 px-1">SNOV_CLIENT_SECRET</code> to GitHub secrets.
+                  Free keys at <a href="https://snov.io/api" target="_blank" rel="noreferrer" className="underline">snov.io/api</a>.
                 </p>
               )}
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-slate-900">Monthly quota <span className="text-sm font-normal text-slate-400">(225 total available)</span></h2>
+              <h2 className="mb-4 font-semibold text-slate-900">Monthly quota <span className="text-sm font-normal text-slate-400">(125 total available)</span></h2>
               <div className="space-y-4">
-                <QuotaBar name="Skrapp (150/mo)" {...stats.quota.skrapp} />
+                <QuotaBar name="Apollo (50/mo)" {...stats.quota.apollo} />
                 <QuotaBar name="Snov (50/mo)" {...stats.quota.snov} />
                 <QuotaBar name="Hunter (25/mo)" {...stats.quota.hunter} />
               </div>

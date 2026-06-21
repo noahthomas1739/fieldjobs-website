@@ -14,26 +14,26 @@ const config = {
   },
 
   // Email Finding Services (FREE TIERS)
-  // Total: ~225 verified emails/month across all three services
+  // Total: ~125 verified emails/month across all three services
   emailServices: {
-    // Hunter.io - 25 free searches/month
-    // Get key at: https://hunter.io/api_keys
-    hunter: {
-      apiKey: process.env.HUNTER_API_KEY,
-      monthlyLimit: 25,
+    // Apollo.io - 50 free exports/month
+    // Get key at: https://app.apollo.io/settings/integrations/api (free plan)
+    apollo: {
+      apiKey: process.env.APOLLO_API_KEY,
+      monthlyLimit: 50,
     },
     // Snov.io - 50 free credits/month
-    // Get keys at: https://snov.io/api
+    // Get keys at: https://snov.io/api (free plan → API section)
     snov: {
       clientId: process.env.SNOV_CLIENT_ID,
       clientSecret: process.env.SNOV_CLIENT_SECRET,
       monthlyLimit: 50,
     },
-    // Skrapp.io - 150 free credits/month
-    // Get key at: https://app.skrapp.io/api
-    skrapp: {
-      apiKey: process.env.SKRAPP_API_KEY,
-      monthlyLimit: 150,
+    // Hunter.io - 25 free searches/month
+    // Get key at: https://hunter.io/api_keys
+    hunter: {
+      apiKey: process.env.HUNTER_API_KEY,
+      monthlyLimit: 25,
     },
   },
 
