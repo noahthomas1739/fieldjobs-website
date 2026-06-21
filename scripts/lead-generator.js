@@ -4,6 +4,7 @@
 // Run: node scripts/lead-generator.js
 // ==========================================
 
+const dns = require('dns').promises;
 const config = require('./config');
 const { createClient } = require('@supabase/supabase-js');
 const Anthropic = require('@anthropic-ai/sdk');
@@ -239,6 +240,122 @@ async function verifyEmailSnov(email) {
   return null;
 }
 
+// ==========================================
+// WEBSITE SCRAPING (FREE — NO QUOTA)
+// ==========================================
+
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+// Patterns that suggest a hiring/HR contact — highest value for our use case
+const HIRING_PATTERNS = ['hr', 'recruit', 'hiring', 'talent', 'careers', 'people', 'workforce'];
+// Generic but still a real mailbox — lower value but usable
+const GENERIC_PATTERNS = ['info', 'contact', 'hello', 'office', 'admin', 'general', 'inquir'];
+// Definitely skip these — automated senders, no human reads them
+const SKIP_PATTERNS = ['noreply', 'no-reply', 'donotreply', 'bounce', 'unsubscribe', 'mailer', 'postmaster', 'abuse'];
+
+function getBaseDomain(domain) {
+  const cleaned = domain.replace(/^www\./, '').toLowerCase();
+  const parts = cleaned.split('.');
+  // Return last two segments (handles .com, .net, .org, .io, etc.)
+  return parts.length > 2 ? parts.slice(-2).join('.') : cleaned;
+}
+
+function scoreEmail(localPart) {
+  const local = localPart.toLowerCase();
+  if (SKIP_PATTERNS.some(p => local.includes(p))) return -1;
+  if (HIRING_PATTERNS.some(p => local.includes(p)))  return 10; // hr@, recruiter@, etc.
+  if (GENERIC_PATTERNS.every(p => !local.includes(p))) return 6; // looks like a person's name
+  return 2; // generic contact@ / info@ — still real
+}
+
+/**
+ * Scrape company website for publicly listed contact emails.
+ * Free, unlimited — tries common contact/about/team paths.
+ * Falls back gracefully on any fetch error.
+ */
+async function scrapeEmailFromWebsite(companyDomain) {
+  const baseDomain = getBaseDomain(companyDomain);
+  const baseUrl = `https://${companyDomain}`;
+
+  const paths = [
+    '',           // homepage — often has email in footer
+    '/contact',
+    '/contact-us',
+    '/about',
+    '/about-us',
+    '/team',
+    '/our-team',
+    '/leadership',
+    '/company',
+    '/careers',
+    '/hiring',
+  ];
+
+  const candidates = new Map(); // email → score
+
+  for (const path of paths) {
+    try {
+      const res = await fetch(`${baseUrl}${path}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; business inquiry bot)' },
+        signal: AbortSignal.timeout(7000),
+        redirect: 'follow',
+      });
+
+      if (!res.ok) continue;
+
+      const html = await res.text();
+      const matches = html.match(EMAIL_REGEX) || [];
+
+      for (const email of matches) {
+        if (candidates.has(email)) continue;
+        const [local, emailDomain] = email.toLowerCase().split('@');
+        if (!emailDomain) continue;
+
+        // Only keep emails that belong to this company's domain
+        if (!emailDomain.endsWith(baseDomain)) continue;
+
+        const score = scoreEmail(local);
+        if (score < 0) continue; // skip no-reply etc.
+
+        candidates.set(email, score);
+      }
+
+      // Stop early if we already have a high-quality email
+      const best = [...candidates.values()].sort((a, b) => b - a)[0];
+      if (best >= 10) break;
+
+    } catch {
+      // Timeout, DNS failure, SSL error — just move on to next path
+    }
+  }
+
+  if (candidates.size === 0) return null;
+
+  // Pick highest-scoring email
+  const [bestEmail] = [...candidates.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  // Basic MX record check — confirms the domain can receive mail
+  try {
+    await dns.resolveMx(bestEmail.split('@')[1]);
+  } catch {
+    console.log(`    ⚠️ No MX records for ${bestEmail.split('@')[1]} — skipping`);
+    return null;
+  }
+
+  const score = candidates.get(bestEmail);
+  console.log(`    🌐 Scraped from website: ${bestEmail} (score ${score})`);
+
+  return {
+    email: bestEmail,
+    name: '',
+    title: null,
+    source: 'website_scrape',
+    // Treat hiring-pattern emails as verified; generic ones are "accept_all" quality
+    verified: score >= 6,
+    confidence: Math.min(score * 10, 90),
+  };
+}
+
 /**
  * Find email using Apollo.io (50 free exports/month)
  * Docs: https://apolloio.github.io/apollo-api-docs
@@ -299,16 +416,29 @@ async function findEmailApollo(companyDomain) {
 }
 
 /**
- * Try all email finding services in rotation
- * Apollo: 50/month, Snov: 50/month, Hunter: 25/month = 125 verified emails/month
+ * Try all email finding methods in order:
+ *   1. Website scraping (FREE, unlimited) — tries contact/about/team pages
+ *   2. Apollo (50/month free)
+ *   3. Snov (50/month free)
+ *   4. Hunter (25/month free)
+ *
+ * Paid API quota is only consumed when scraping finds nothing.
  */
 async function findVerifiedEmail(companyDomain, companyName) {
   console.log(`  🔍 Finding email for ${companyDomain}...`);
-  
-  // Get usage counts from database
+
+  // ── Step 1: Website scraping (free, no quota) ──────────────────────────
+  const scraped = await scrapeEmailFromWebsite(companyDomain);
+  if (scraped?.email && scraped.verified) {
+    console.log(`    ✅ Found via website scrape: ${scraped.email}`);
+    return scraped;
+  }
+  // Keep scraped result as a fallback even if not "verified" (will use if paid services also fail)
+  const scrapedFallback = scraped?.email ? scraped : null;
+
+  // ── Step 2: Paid email finder APIs (quota-tracked) ─────────────────────
   const usage = await getServiceUsage();
   
-  // Available services with their monthly limits
   const services = [
     { name: 'apollo', fn: findEmailApollo, verifyFn: null,              limit: 50 },
     { name: 'snov',   fn: findEmailSnov,   verifyFn: verifyEmailSnov,   limit: 50 },
@@ -316,8 +446,13 @@ async function findVerifiedEmail(companyDomain, companyName) {
   ].filter(s => (usage[s.name] || 0) < s.limit);
 
   if (services.length === 0) {
-    console.log(`    ⚠️ All email finding quotas exhausted for this month`);
-    console.log(`    📊 Usage: Apollo ${usage.apollo || 0}/50, Snov ${usage.snov || 0}/50, Hunter ${usage.hunter || 0}/25`);
+    console.log(`    ⚠️ All paid quotas exhausted — Apollo ${usage.apollo || 0}/50, Snov ${usage.snov || 0}/50, Hunter ${usage.hunter || 0}/25`);
+    // Still use a scraped email if we have one, even if only generic quality
+    if (scrapedFallback) {
+      console.log(`    🌐 Using scraped fallback: ${scrapedFallback.email}`);
+      scrapedFallback.verified = true;
+      return scrapedFallback;
+    }
     return null;
   }
   
@@ -326,23 +461,19 @@ async function findVerifiedEmail(companyDomain, companyName) {
       const result = await service.fn(companyDomain, companyName);
       
       if (result?.email) {
-        // Log usage (counts against monthly limit)
         await logServiceUsage(service.name);
         
-        // If already verified by the service, return it
         if (result.verified) {
           console.log(`    ✅ Found verified via ${service.name}: ${result.email}`);
           return result;
         }
         
-        // If high confidence (>80%), trust it even if not explicitly verified
         if (result.confidence && result.confidence > 80) {
-          console.log(`    ✅ High-confidence email (${result.confidence}%) via ${service.name}: ${result.email}`);
+          console.log(`    ✅ High-confidence (${result.confidence}%) via ${service.name}: ${result.email}`);
           result.verified = true;
           return result;
         }
         
-        // Try to verify with the same service's verifier
         if (service.verifyFn) {
           console.log(`    🔄 Verifying ${result.email}...`);
           const verification = await service.verifyFn(result.email);
@@ -351,26 +482,29 @@ async function findVerifiedEmail(companyDomain, companyName) {
             console.log(`    ✅ Verified: ${result.email}`);
             result.verified = true;
             return result;
-          } else {
-            console.log(`    ⚠️ Verification status: ${verification?.status || 'unknown'}`);
-            // Still return if status is accept_all (catch-all domain)
-            if (verification?.status === 'accept_all') {
-              result.verified = true;
-              result.note = 'accept_all';
-              return result;
-            }
+          } else if (verification?.status === 'accept_all') {
+            result.verified = true;
+            result.note = 'accept_all';
+            return result;
           }
+          console.log(`    ⚠️ Verification: ${verification?.status || 'unknown'}`);
         }
       }
       
-      // Rate limiting between services
       await sleep(1000);
     } catch (error) {
       console.error(`    Error with ${service.name}:`, error.message);
     }
   }
-  
-  console.log(`    ❌ No verified email found`);
+
+  // ── Step 3: Use scraped fallback if paid services also failed ───────────
+  if (scrapedFallback) {
+    console.log(`    🌐 Paid services found nothing — using scraped fallback: ${scrapedFallback.email}`);
+    scrapedFallback.verified = true;
+    return scrapedFallback;
+  }
+
+  console.log(`    ❌ No email found via scraping or paid services`);
   return null;
 }
 
@@ -531,12 +665,13 @@ function validateEmailServices() {
   const hunterOk = !!config.emailServices.hunter.apiKey;
 
   console.log('\n📡 Email finder configuration:');
+  console.log(`  Website scraping: ✅ always active (free, unlimited)`);
   console.log(`  Apollo: ${apolloOk ? '✅ configured (50/month)' : '❌ MISSING — set APOLLO_API_KEY'}`);
   console.log(`  Snov:   ${snovOk   ? '✅ configured (50/month)' : '❌ MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
   console.log(`  Hunter: ${hunterOk ? '✅ configured (25/month)' : '❌ MISSING — set HUNTER_API_KEY'}`);
 
   const totalCapacity = (apolloOk ? 50 : 0) + (snovOk ? 50 : 0) + (hunterOk ? 25 : 0);
-  console.log(`  Monthly capacity: ${totalCapacity}/125 lookups available`);
+  console.log(`  Paid API capacity: ${totalCapacity}/125 lookups/month (scraping is on top of this)`);
 
   if (!apolloOk && !snovOk && !hunterOk) {
     throw new Error(
