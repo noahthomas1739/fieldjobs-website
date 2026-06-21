@@ -166,10 +166,11 @@ export default function AdminLeadsPage() {
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-slate-900">Monthly quota</h2>
+              <h2 className="mb-4 font-semibold text-slate-900">Monthly quota <span className="text-sm font-normal text-slate-400">(225 total available)</span></h2>
               <div className="space-y-4">
-                <QuotaBar name="Hunter" {...stats.quota.hunter} />
-                <QuotaBar name="Snov" {...stats.quota.snov} />
+                <QuotaBar name="Skrapp (150/mo)" {...stats.quota.skrapp} />
+                <QuotaBar name="Snov (50/mo)" {...stats.quota.snov} />
+                <QuotaBar name="Hunter (25/mo)" {...stats.quota.hunter} />
               </div>
             </div>
 

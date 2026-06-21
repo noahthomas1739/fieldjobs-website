@@ -8,8 +8,9 @@ const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
 
+const SKRAPP_LIMIT = config.emailServices.skrapp?.monthlyLimit || 150;
+const SNOV_LIMIT   = config.emailServices.snov.monthlyLimit;
 const HUNTER_LIMIT = config.emailServices.hunter.monthlyLimit;
-const SNOV_LIMIT = config.emailServices.snov.monthlyLimit;
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -74,9 +75,10 @@ async function getRecentRuns(scriptName, limit = 10) {
 }
 
 function checkConfig() {
+  const skrappOk = !!config.emailServices.skrapp?.apiKey;
+  const snovOk   = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
   const hunterOk = !!config.emailServices.hunter.apiKey;
-  const snovOk = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
-  return { hunterOk, snovOk };
+  return { skrappOk, snovOk, hunterOk };
 }
 
 function printReport({ usage, leads, runs, configStatus, issues }) {
@@ -85,15 +87,18 @@ function printReport({ usage, leads, runs, configStatus, issues }) {
   console.log('='.repeat(50));
 
   console.log('\n--- Email finder config ---');
-  console.log(`  Hunter: ${configStatus.hunterOk ? 'configured' : 'MISSING'}`);
-  console.log(`  Snov:   ${configStatus.snovOk ? 'configured' : 'MISSING'}`);
+  console.log(`  Skrapp: ${configStatus.skrappOk ? 'configured (150/mo)' : 'MISSING — set SKRAPP_API_KEY'}`);
+  console.log(`  Snov:   ${configStatus.snovOk   ? 'configured (50/mo)'  : 'MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
+  console.log(`  Hunter: ${configStatus.hunterOk ? 'configured (25/mo)'  : 'MISSING — set HUNTER_API_KEY'}`);
 
   console.log('\n--- Quota usage (this month) ---');
+  const skrappUsed = usage.skrapp || 0;
+  const snovUsed   = usage.snov   || 0;
   const hunterUsed = usage.hunter || 0;
-  const snovUsed = usage.snov || 0;
-  console.log(`  Hunter: ${hunterUsed}/${HUNTER_LIMIT}`);
+  console.log(`  Skrapp: ${skrappUsed}/${SKRAPP_LIMIT}`);
   console.log(`  Snov:   ${snovUsed}/${SNOV_LIMIT}`);
-  console.log(`  Combined remaining: ${Math.max(0, HUNTER_LIMIT - hunterUsed) + Math.max(0, SNOV_LIMIT - snovUsed)}`);
+  console.log(`  Hunter: ${hunterUsed}/${HUNTER_LIMIT}`);
+  console.log(`  Combined remaining: ${Math.max(0, SKRAPP_LIMIT - skrappUsed) + Math.max(0, SNOV_LIMIT - snovUsed) + Math.max(0, HUNTER_LIMIT - hunterUsed)}/225`);
 
   console.log('\n--- Leads ---');
   console.log(`  Total: ${leads.total}`);
@@ -131,15 +136,22 @@ async function runHealthCheck(options) {
   }
 
   const usage = await getQuotaUsage();
+  const skrappUsed = usage.skrapp || 0;
+  const snovUsed   = usage.snov   || 0;
   const hunterUsed = usage.hunter || 0;
-  const snovUsed = usage.snov || 0;
   const totalRemaining =
-    Math.max(0, HUNTER_LIMIT - hunterUsed) + Math.max(0, SNOV_LIMIT - snovUsed);
+    Math.max(0, SKRAPP_LIMIT - skrappUsed) +
+    Math.max(0, SNOV_LIMIT   - snovUsed)   +
+    Math.max(0, HUNTER_LIMIT - hunterUsed);
 
   if (totalRemaining <= 0) {
-    issues.push('Snov and Hunter monthly quotas exhausted');
-  } else if (!configStatus.snovOk && hunterUsed >= HUNTER_LIMIT) {
-    issues.push('Hunter quota exhausted and Snov is not configured');
+    issues.push('All email service quotas exhausted (Skrapp/Snov/Hunter)');
+  }
+  if (!configStatus.skrappOk) {
+    issues.push('Skrapp not configured — missing 150 free lookups/month (set SKRAPP_API_KEY)');
+  }
+  if (!configStatus.snovOk) {
+    issues.push('Snov not configured — missing 50 free lookups/month (set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET)');
   }
 
   const leads = await getLeadCounts();
@@ -204,8 +216,9 @@ async function getLeadGenStats() {
   return {
     config: configStatus,
     quota: {
+      skrapp: { used: skrappUsed, limit: SKRAPP_LIMIT },
+      snov:   { used: snovUsed,   limit: SNOV_LIMIT },
       hunter: { used: hunterUsed, limit: HUNTER_LIMIT },
-      snov: { used: snovUsed, limit: SNOV_LIMIT },
       remaining: totalRemaining,
     },
     leads,

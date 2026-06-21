@@ -240,8 +240,56 @@ async function verifyEmailSnov(email) {
 }
 
 /**
+ * Find email using Skrapp.io (150 free/month)
+ * Docs: https://skrapp.io/api
+ * Uses Domain Search endpoint
+ */
+async function findEmailSkrapp(companyDomain) {
+  if (!config.emailServices.skrapp?.apiKey) return null;
+
+  try {
+    const url = `https://api.skrapp.io/api/v2/find?domain=${encodeURIComponent(companyDomain)}`;
+    const response = await fetch(url, {
+      headers: {
+        'X-Access-Key': config.emailServices.skrapp.apiKey,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`Skrapp HTTP ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Skrapp returns { person: { email, firstName, lastName, position, accuracy } }
+    const person = data.person || data.email_address || data;
+
+    const email = person?.email || data?.email;
+    if (!email) return null;
+
+    const accuracy = person?.accuracy ?? data?.accuracy ?? 0;
+    const verified = accuracy >= 85;
+
+    return {
+      email,
+      name: `${person?.firstName || ''} ${person?.lastName || ''}`.trim(),
+      title: person?.position || null,
+      source: 'skrapp',
+      verified,
+      confidence: accuracy,
+    };
+  } catch (error) {
+    console.error('Skrapp error:', error.message);
+  }
+
+  return null;
+}
+
+/**
  * Try all email finding services in rotation
- * Hunter: 25/month, Snov: 50/month = 75 verified emails/month
+ * Skrapp: 150/month, Snov: 50/month, Hunter: 25/month = 225 verified emails/month
  */
 async function findVerifiedEmail(companyDomain, companyName) {
   console.log(`  🔍 Finding email for ${companyDomain}...`);
@@ -249,15 +297,16 @@ async function findVerifiedEmail(companyDomain, companyName) {
   // Get usage counts from database
   const usage = await getServiceUsage();
   
-  // Available services with their monthly limits
+  // Available services with their monthly limits — largest quota first
   const services = [
-    { name: 'snov', fn: findEmailSnov, verifyFn: verifyEmailSnov, limit: 50 },
+    { name: 'skrapp', fn: findEmailSkrapp, verifyFn: null, limit: 150 },
+    { name: 'snov',   fn: findEmailSnov,   verifyFn: verifyEmailSnov, limit: 50 },
     { name: 'hunter', fn: findEmailHunter, verifyFn: verifyEmailHunter, limit: 25 },
   ].filter(s => (usage[s.name] || 0) < s.limit);
-  
+
   if (services.length === 0) {
     console.log(`    ⚠️ All email finding quotas exhausted for this month`);
-    console.log(`    📊 Usage: Snov ${usage.snov || 0}/50, Hunter ${usage.hunter || 0}/25`);
+    console.log(`    📊 Usage: Skrapp ${usage.skrapp || 0}/150, Snov ${usage.snov || 0}/50, Hunter ${usage.hunter || 0}/25`);
     return null;
   }
   
@@ -466,48 +515,52 @@ async function logServiceUsage(service) {
 }
 
 function validateEmailServices() {
-  const hunterOk = !!config.emailServices.hunter.apiKey;
-  const snovOk = !!(
-    config.emailServices.snov.clientId && config.emailServices.snov.clientSecret
-  );
+  const hunterOk  = !!config.emailServices.hunter.apiKey;
+  const snovOk    = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
+  const skrappOk  = !!config.emailServices.skrapp?.apiKey;
 
   console.log('\n📡 Email finder configuration:');
-  console.log(
-    `  Hunter: ${hunterOk ? '✅ configured (25/month)' : '❌ MISSING — set HUNTER_API_KEY'}`
-  );
-  console.log(
-    `  Snov:   ${snovOk ? '✅ configured (50/month)' : '❌ MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`
-  );
+  console.log(`  Skrapp: ${skrappOk ? '✅ configured (150/month)' : '❌ MISSING — set SKRAPP_API_KEY'}`);
+  console.log(`  Snov:   ${snovOk   ? '✅ configured (50/month)'  : '❌ MISSING — set SNOV_CLIENT_ID + SNOV_CLIENT_SECRET'}`);
+  console.log(`  Hunter: ${hunterOk ? '✅ configured (25/month)'  : '❌ MISSING — set HUNTER_API_KEY'}`);
 
-  if (!hunterOk && !snovOk) {
+  const totalCapacity =
+    (skrappOk ? 150 : 0) + (snovOk ? 50 : 0) + (hunterOk ? 25 : 0);
+  console.log(`  Monthly capacity: ${totalCapacity}/225 lookups available`);
+
+  if (!hunterOk && !snovOk && !skrappOk) {
     throw new Error(
-      'No email finder APIs configured. Set HUNTER_API_KEY and/or SNOV credentials.'
+      'No email finder APIs configured. Set SKRAPP_API_KEY, SNOV_CLIENT_ID/SECRET, and/or HUNTER_API_KEY.'
     );
   }
 
+  if (!skrappOk) {
+    console.warn('\n⚠️  WARNING: Skrapp not configured — missing 150 free lookups/month.');
+    console.warn('   Add SKRAPP_API_KEY to GitHub secrets. Get a free key at https://app.skrapp.io/api\n');
+  }
   if (!snovOk) {
-    console.warn(
-      '\n⚠️  WARNING: Snov not configured — pipeline capped at ~25 new leads/month (Hunter only).'
-    );
-    console.warn(
-      '   Add SNOV_CLIENT_ID and SNOV_CLIENT_SECRET to GitHub secrets and Vercel env.\n'
-    );
+    console.warn('⚠️  WARNING: Snov not configured — missing 50 free lookups/month.');
+    console.warn('   Add SNOV_CLIENT_ID and SNOV_CLIENT_SECRET to GitHub secrets.\n');
   }
 
-  return { hunterOk, snovOk };
+  return { hunterOk, snovOk, skrappOk };
 }
 
 /**
  * Rotate industries weekly so each run focuses quota on fresh verticals.
  */
 function getIndustriesForThisRun(allIndustries) {
-  if (allIndustries.length <= 2) return allIndustries;
+  // Run 4 industries per execution — enough to use the larger Skrapp quota
+  // while still rotating so every industry gets attention over time.
+  const perRun = 4;
+  if (allIndustries.length <= perRun) return allIndustries;
 
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 1);
   const weekNum = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
-  const perRun = 2;
-  const startIdx = (weekNum * perRun) % allIndustries.length;
+  // Offset by day-of-week so Mon/Thu runs cover different industries
+  const dayOffset = now.getDay() >= 4 ? Math.ceil(allIndustries.length / 2) : 0;
+  const startIdx = ((weekNum * perRun) + dayOffset) % allIndustries.length;
 
   const selected = [];
   for (let i = 0; i < perRun; i++) {
@@ -542,16 +595,19 @@ async function runLeadGenerator() {
     const usage = await getServiceUsage();
     // Only Snov + Hunter are wired into findVerifiedEmail(); quota math must match or we never exit early correctly.
     console.log('\n📊 Email finder usage (this month):');
-    console.log(`  Snov: ${usage.snov || 0}/50`);
+    console.log(`  Skrapp: ${usage.skrapp || 0}/150`);
+    console.log(`  Snov:   ${usage.snov || 0}/50`);
     console.log(`  Hunter: ${usage.hunter || 0}/25`);
-    
+
     const totalRemaining =
-      (50 - (usage.snov || 0)) + (25 - (usage.hunter || 0));
-    
-    console.log(`  Combined lookups remaining (Snov+Hunter): ${totalRemaining}`);
-    
+      (150 - (usage.skrapp || 0)) +
+      (50  - (usage.snov   || 0)) +
+      (25  - (usage.hunter || 0));
+
+    console.log(`  Combined lookups remaining: ${totalRemaining}/225`);
+
     if (totalRemaining <= 0) {
-      console.log('\n⚠️ Snov and Hunter quotas exhausted for this month — no new leads until reset.');
+      console.log('\n⚠️ All email service quotas exhausted for this month — no new leads until reset.');
       const results = { saved: 0, skipped: 0, total_remaining: totalRemaining };
       await completeRunLog(runId, 'completed', { results });
       return results;

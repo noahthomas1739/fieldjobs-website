@@ -11,8 +11,9 @@ on:
   schedule:
     # Job Aggregator: Runs every 6 hours
     - cron: '0 */6 * * *'
-    # Lead Generator: Runs every Monday at 8 AM EST
+    # Lead Generator: Runs Monday + Thursday at 8 AM EST
     - cron: '0 13 * * 1'
+    - cron: '0 13 * * 4'
     # Email Outreach: Runs 3x daily (9am, 1pm, 5pm EST)
     - cron: '0 14,18,22 * * *'
     # Lead Gen Health Check: Tuesdays 9 AM EST (day after lead generator)
@@ -99,9 +100,9 @@ jobs:
   # ==========================================
   lead-generator:
     runs-on: ubuntu-latest
-    # Match cron loosely — strict == was skipping this job (same fix as email-outreach).
+    # Match Mon (day 1) and Thu (day 4) crons loosely.
     if: |
-      github.event_name == 'schedule' && contains(github.event.schedule, '13 * * 1') ||
+      github.event_name == 'schedule' && (contains(github.event.schedule, '13 * * 1') || contains(github.event.schedule, '13 * * 4')) ||
       github.event_name == 'workflow_dispatch' && (github.event.inputs.script == 'all' || github.event.inputs.script == 'lead-generator')
     
     steps:

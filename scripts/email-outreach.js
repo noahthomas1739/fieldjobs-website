@@ -299,7 +299,7 @@ async function sendEmail(lead, emailNumber) {
 // ==========================================
 
 /**
- * Get leads ready for their next email
+ * Get leads ready for their next email (excludes sequence_complete)
  */
 async function getLeadsForOutreach() {
   const { data: leads, error } = await getSupabase()
@@ -316,6 +316,20 @@ async function getLeadsForOutreach() {
   }
   
   return leads || [];
+}
+
+/**
+ * Mark a lead's sequence as fully complete
+ */
+async function markSequenceComplete(leadId) {
+  const { error } = await getSupabase()
+    .from('leads')
+    .update({ status: 'sequence_complete' })
+    .eq('id', leadId);
+
+  if (error) {
+    console.error('Error marking sequence complete:', error.message);
+  }
 }
 
 /**
@@ -445,16 +459,24 @@ async function runEmailOutreach() {
     console.log('\n--- Processing Follow-up Emails ---');
     const activeLeads = await getLeadsForOutreach();
     console.log(`Found ${activeLeads.length} active leads`);
-    
+
+    let notYetDue = 0;
+    let sequenceComplete = 0;
+    let markedComplete = 0;
+
     for (const lead of activeLeads) {
       if (totalSent >= remaining) break;
       
       const lastEmailNumber = lead.last_email_number || 0;
       const nextEmailNumber = lastEmailNumber + 1;
       
-      // Check if there's a next email in sequence
+      // Sequence finished — mark status and skip
       if (nextEmailNumber > 5) {
-        console.log(`  ⏭️ ${lead.contact_email} - Sequence complete`);
+        sequenceComplete++;
+        if (lead.status !== 'sequence_complete') {
+          await markSequenceComplete(lead.id);
+          markedComplete++;
+        }
         continue;
       }
       
@@ -467,7 +489,8 @@ async function runEmailOutreach() {
         const requiredDays = emailSchedule[nextEmailNumber] - emailSchedule[lastEmailNumber];
         
         if (daysSince < requiredDays) {
-          continue; // Not time yet
+          notYetDue++;
+          continue;
         }
       }
       
@@ -489,9 +512,22 @@ async function runEmailOutreach() {
     
     console.log('\n' + '='.repeat(50));
     console.log('🏁 Email Outreach Complete!');
-    console.log(`✅ Total emails sent: ${totalSent}`);
-    
-    const results = { sent: totalSent, daily_limit: config.email.dailyLimit, sent_today: sentToday };
+    console.log(`✅ Sent this run: ${totalSent}`);
+    console.log(`📊 Daily total: ${sentToday + totalSent}/${config.email.dailyLimit}`);
+    console.log(`⏳ Not yet due: ${notYetDue} leads`);
+    console.log(`🏁 Sequence complete: ${sequenceComplete} leads${markedComplete > 0 ? ` (${markedComplete} newly marked)` : ''}`);
+    if (totalSent === 0 && activeLeads.length === 0) {
+      console.log('\n💡 No leads to email yet — run lead-generator first (Mon + Thu).');
+      console.log('   Ensure SKRAPP_API_KEY, SNOV_CLIENT_ID/SECRET, HUNTER_API_KEY are set in GitHub secrets.');
+    }
+
+    const results = {
+      sent: totalSent,
+      daily_limit: config.email.dailyLimit,
+      sent_today: sentToday + totalSent,
+      not_yet_due: notYetDue,
+      sequence_complete: sequenceComplete,
+    };
     await completeRunLog(runId, 'completed', { results });
     return { sent: totalSent };
   } catch (error) {
