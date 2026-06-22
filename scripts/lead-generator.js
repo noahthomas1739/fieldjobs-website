@@ -303,7 +303,13 @@ async function scrapeEmailFromWebsite(companyDomain) {
 
       if (!res.ok) continue;
 
-      const html = await res.text();
+      let html = await res.text();
+      // Decode JS unicode escapes (\u003E → >) and common HTML entities
+      // so the email regex doesn't pick up artifact strings like "u003Euser@domain.com"
+      html = html
+        .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+        .replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&amp;/gi, '&')
+        .replace(/&#x3E;/gi, '>').replace(/&#60;/gi, '<').replace(/&#62;/gi, '>');
       const matches = html.match(EMAIL_REGEX) || [];
 
       for (const email of matches) {
