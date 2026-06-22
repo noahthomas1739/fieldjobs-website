@@ -9,8 +9,8 @@ name: Field Jobs Automation
 
 on:
   schedule:
-    # Job Aggregator: Runs every 6 hours
-    - cron: '0 */6 * * *'
+    # Job Aggregator: Runs once daily at 6 AM EST (rotates 2 industries/day to stay within Adzuna 250 calls/month)
+    - cron: '0 11 * * *'
     # Lead Generator: Runs Monday + Thursday at 8 AM EST
     - cron: '0 13 * * 1'
     - cron: '0 13 * * 4'
@@ -59,6 +59,8 @@ env:
   ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
   ADZUNA_API_KEY: ${{ secrets.ADZUNA_API_KEY }}
   JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
+  USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
+  USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
 
 permissions:
   contents: read
@@ -71,7 +73,7 @@ jobs:
   job-aggregator:
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'schedule' && github.event.schedule == '0 */6 * * *' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 11 * * *' ||
       github.event_name == 'workflow_dispatch' && (github.event.inputs.script == 'all' || github.event.inputs.script == 'job-aggregator')
     
     steps:

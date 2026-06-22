@@ -92,6 +92,10 @@ async function auditActiveAlignment(limit = 500) {
 /**
  * Fetch jobs from Adzuna API (Free: 250 calls/month)
  * https://developer.adzuna.com/
+ *
+ * QUOTA MATH: 250 calls/month ÷ 30 days ≈ 8 calls/day budget.
+ * We rotate 2 industries per run and use results_per_page=50 so each
+ * call yields the maximum jobs while staying within quota.
  */
 async function fetchAdzunaJobs(industry) {
   if (!config.jobApis.adzuna.appId || !config.jobApis.adzuna.apiKey) {
@@ -100,10 +104,11 @@ async function fetchAdzunaJobs(industry) {
   }
 
   const jobs = [];
-  
-  for (const keyword of industry.keywords) {
+  // Limit to 4 keywords per industry to stay within the daily call budget
+  for (const keyword of industry.keywords.slice(0, 4)) {
     try {
-      const url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${config.jobApis.adzuna.appId}&app_key=${config.jobApis.adzuna.apiKey}&what=${encodeURIComponent(keyword)}&results_per_page=10&content-type=application/json`;
+      // results_per_page=50 is the Adzuna maximum — gets 5× more jobs per API call
+      const url = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${config.jobApis.adzuna.appId}&app_key=${config.jobApis.adzuna.apiKey}&what=${encodeURIComponent(keyword)}&results_per_page=50&content-type=application/json`;
       
       const response = await fetch(url);
       const data = await response.json();
@@ -126,13 +131,73 @@ async function fetchAdzunaJobs(industry) {
         }
       }
       
-      // Rate limiting
       await sleep(500);
     } catch (error) {
       console.error(`Error fetching Adzuna jobs for ${keyword}:`, error.message);
     }
   }
   
+  return jobs;
+}
+
+/**
+ * Fetch jobs from USAJOBS.gov API (Free, no meaningful rate limit)
+ * Register for a free key at https://developer.usajobs.gov/
+ * Perfect for nuclear, DOE, federal construction, aerospace, and utilities jobs.
+ *
+ * Set USAJOBS_API_KEY and USAJOBS_EMAIL in GitHub secrets / .env.local
+ */
+async function fetchUSAJobsJobs(industry) {
+  const apiKey  = process.env.USAJOBS_API_KEY;
+  const userEmail = process.env.USAJOBS_EMAIL;
+
+  if (!apiKey || !userEmail) {
+    // Silently skip — this source is optional; only log once
+    return [];
+  }
+
+  const jobs = [];
+  for (const keyword of industry.keywords.slice(0, 3)) {
+    try {
+      const params = new URLSearchParams({
+        Keyword: keyword,
+        ResultsPerPage: '50',
+        Fields: 'Min',
+      });
+      const response = await fetch(`https://data.usajobs.gov/api/search?${params}`, {
+        headers: {
+          'Host': 'data.usajobs.gov',
+          'User-Agent': userEmail,
+          'Authorization-Key': apiKey,
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+      const data = await response.json();
+      const items = data?.SearchResult?.SearchResultItems || [];
+
+      for (const item of items) {
+        const pos = item.MatchedObjectDescriptor;
+        if (!pos) continue;
+        jobs.push({
+          source: 'usajobs',
+          external_id: `usajobs_${pos.PositionID}`,
+          title: pos.PositionTitle,
+          company: pos.OrganizationName || 'U.S. Government',
+          location: pos.PositionLocationDisplay || 'United States',
+          description: pos.UserArea?.Details?.JobSummary || pos.QualificationSummary || '',
+          salary_min: pos.PositionRemuneration?.[0]?.MinimumRange ? Math.round(Number(pos.PositionRemuneration[0].MinimumRange)) : null,
+          salary_max: pos.PositionRemuneration?.[0]?.MaximumRange ? Math.round(Number(pos.PositionRemuneration[0].MaximumRange)) : null,
+          url: pos.PositionURI,
+          industry: industry.key,
+          posted_date: pos.PublicationStartDate,
+          employment_type: 'full_time',
+        });
+      }
+      await sleep(300);
+    } catch (error) {
+      console.error(`Error fetching USAJOBS for ${keyword}:`, error.message);
+    }
+  }
   return jobs;
 }
 
@@ -247,7 +312,7 @@ async function saveJobsToDatabase(jobs) {
         employment_type: job.employment_type || 'full_time',
         is_active: true,
         created_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+        expires_at: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days
       };
       
       const { error } = await supabase
@@ -282,6 +347,21 @@ async function saveJobsToDatabase(jobs) {
 // MAIN EXECUTION
 // ==========================================
 
+/**
+ * Pick 2 industries for this run using a day-of-month offset so that
+ * all 10 industries are covered over every 5 daily runs.
+ * Keeps Adzuna usage well under its 250 calls/month free limit.
+ */
+function getIndustriesForThisRun(industries) {
+  const dayIndex = Math.floor(Date.now() / 86400000); // increments each day
+  const start = (dayIndex * 2) % industries.length;
+  const result = [];
+  for (let i = 0; i < 2; i++) {
+    result.push(industries[(start + i) % industries.length]);
+  }
+  return result;
+}
+
 async function runJobAggregator() {
   console.log('🚀 Starting Job Aggregator...\n');
   console.log('=' .repeat(50));
@@ -289,13 +369,20 @@ async function runJobAggregator() {
   const runId = await createRunLog();
   
   const allJobs = [];
+
+  // Rotate 2 industries per daily run — covers all 10 every 5 days
+  // and keeps Adzuna within its 250 calls/month free limit
+  const industriesThisRun = getIndustriesForThisRun(config.industries);
+  const usajobsEnabled = !!(process.env.USAJOBS_API_KEY && process.env.USAJOBS_EMAIL);
+
+  console.log(`📅 Industries this run (${industriesThisRun.length}/${config.industries.length}): ${industriesThisRun.map(i => i.key).join(', ')}`);
+  console.log(`🏛️ USAJOBS: ${usajobsEnabled ? '✅ active' : '⚪ not configured (set USAJOBS_API_KEY + USAJOBS_EMAIL for free gov jobs)'}`);
   
   try {
-    // Fetch from each source for each industry
-    for (const industry of config.industries) {
+    for (const industry of industriesThisRun) {
       console.log(`\n📂 Fetching jobs for: ${industry.name}`);
       
-      // Adzuna
+      // Adzuna (quota-rotated, results_per_page=50)
       const adzunaJobs = await fetchAdzunaJobs(industry);
       console.log(`  Adzuna: ${adzunaJobs.length} jobs`);
       allJobs.push(...adzunaJobs);
@@ -304,6 +391,13 @@ async function runJobAggregator() {
       const jsearchJobs = await fetchJSearchJobs(industry);
       console.log(`  JSearch: ${jsearchJobs.length} jobs`);
       allJobs.push(...jsearchJobs);
+
+      // USAJOBS (free, unlimited — gov/federal field jobs)
+      if (usajobsEnabled) {
+        const usaJobs = await fetchUSAJobsJobs(industry);
+        console.log(`  USAJOBS: ${usaJobs.length} jobs`);
+        allJobs.push(...usaJobs);
+      }
     }
     
     console.log('\n' + '='.repeat(50));
