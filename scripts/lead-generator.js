@@ -558,7 +558,7 @@ Return ONLY the JSON array.`;
 
   try {
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }],
     });
@@ -671,6 +671,15 @@ async function logServiceUsage(service) {
 }
 
 function validateEmailServices() {
+  // Debug: print env var presence without exposing values
+  console.log('\n🔑 Env vars present:',
+    `APOLLO_API_KEY=${process.env.APOLLO_API_KEY ? '✅' : '❌'}`,
+    `SNOV_CLIENT_ID=${process.env.SNOV_CLIENT_ID ? '✅' : '❌'}`,
+    `SNOV_CLIENT_SECRET=${process.env.SNOV_CLIENT_SECRET ? '✅' : '❌'}`,
+    `HUNTER_API_KEY=${process.env.HUNTER_API_KEY ? '✅' : '❌'}`,
+    `CLAUDE_API_KEY=${process.env.CLAUDE_API_KEY ? '✅' : '❌'}`,
+  );
+
   const apolloOk = !!config.emailServices.apollo?.apiKey;
   const snovOk   = !!(config.emailServices.snov.clientId && config.emailServices.snov.clientSecret);
   const hunterOk = !!config.emailServices.hunter.apiKey;
