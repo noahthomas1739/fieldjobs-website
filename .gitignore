@@ -87,3 +87,6 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Local lead exports
+scripts/exports/

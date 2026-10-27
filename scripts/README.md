@@ -85,6 +85,16 @@ npm run automation:all
 - Fails scheduled runs when the pipeline is unhealthy (opens a GitHub issue)
 - **Admin UI**: `/admin/leads` (requires `LEAD_GEN_ADMIN_EMAILS` env var)
 
+### Board Employers (`board-employers.js`)
+- Finds companies advertising on RoadDogJobs (open postings) and RoadTechs (paid "Shops" directories)
+- Stores **company names only** in `board_employers` — no job titles, descriptions, pay or poster contacts
+- Respects robots.txt, one request every 3 seconds, never logs in; RoadTechs shop contact pages (reCAPTCHA-gated) are never touched
+- Finds each company's domain (Claude, DNS-checked) and a contact via the lead generator's email finders, then saves it to `leads` with `lead_source`
+- Skips companies already in `leads`; companies with no email are retried after 30 days
+- `--dry-run` writes `scripts/exports/board-employers-YYYY-MM-DD.csv` without touching the database; `--collect-only` skips enrichment; `--enrich-limit=15` caps lookups per run
+- **Setup**: run `add-board-employers.sql` once in Supabase
+- **Schedule**: Wednesdays at 8 AM EST
+
 ### Email Outreach (`email-outreach.js`)
 - Sends 5-email cadence to verified leads
 - Respects daily limits (100/day default)
@@ -109,6 +119,7 @@ The `.github/workflows/automation.yml` file runs these scripts on a schedule:
 |--------|----------|
 | Job Aggregator | Every 6 hours |
 | Lead Generator | Mondays 8 AM EST |
+| Board Employers | Wednesdays 8 AM EST |
 | Email Outreach | 9 AM, 1 PM, 5 PM EST |
 
 ### Manual Trigger
@@ -120,6 +131,7 @@ You can also trigger scripts manually from GitHub Actions → Field Jobs Automat
 |-------|---------|
 | `aggregated_jobs` | Jobs from external APIs |
 | `leads` | Companies/contacts for outreach |
+| `board_employers` | Companies seen on RoadDogJobs / RoadTechs |
 | `email_log` | Tracks all sent emails |
 | `email_service_usage` | Tracks API usage |
 | `automation_runs` | Script execution logs |
