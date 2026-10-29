@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createSupabaseRouteClient, isEmployerAccount } from '@/lib/supabase-server'
 
 export async function POST(request) {
   try {
     const { jobData } = await request.json()
     
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createSupabaseRouteClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only employer accounts may purchase job postings.
+    if (!(await isEmployerAccount(supabase, user))) {
+      return NextResponse.json({
+        error: 'Only employer accounts can purchase job postings. Please create or switch to an employer account.'
+      }, { status: 403 })
     }
 
     // Try to use Price ID from environment, otherwise use dynamic pricing

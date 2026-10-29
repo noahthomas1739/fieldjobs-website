@@ -1,24 +1,29 @@
+import { createSupabaseRouteClient, isEmployerAccount } from '@/lib/supabase-server'
 // app/api/purchase-credits/route.js
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+
 
 export async function POST(request) {
   try {
     const { priceId, credits, packageType, amount } = await request.json()
     console.log('💰 Resume credits purchase request:', { priceId, credits, packageType, amount })
     
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = await createSupabaseRouteClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       console.error('Authentication failed:', authError)
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // Only employer accounts may purchase resume search credits.
+    if (!(await isEmployerAccount(supabase, user))) {
+      console.error('Blocked credits purchase for non-employer account:', user.id)
+      return NextResponse.json({
+        error: 'Only employer accounts can purchase resume search credits. Please create or switch to an employer account.'
+      }, { status: 403 })
     }
 
     let customerId

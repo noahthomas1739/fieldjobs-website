@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createSupabaseRouteClient, isEmployerAccount } from '@/lib/supabase-server'
 
 export async function POST(request) {
   try {
@@ -11,16 +10,21 @@ export async function POST(request) {
     // Note: priceId is optional - we'll use dynamic pricing if not provided
     console.log('Processing addon purchase with priceId:', priceId || 'dynamic')
     
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = await createSupabaseRouteClient()
     
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
       console.error('Authentication failed:', authError)
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+
+    // Only employer accounts may purchase job add-ons (Featured, Urgent, etc.).
+    if (!(await isEmployerAccount(supabase, user))) {
+      console.error('Blocked addon purchase for non-employer account:', user.id)
+      return NextResponse.json({
+        error: 'Only employer accounts can purchase job add-ons. Please create or switch to an employer account.'
+      }, { status: 403 })
     }
 
     let customerId

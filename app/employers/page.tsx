@@ -69,6 +69,20 @@ export default function EmployersPage() {
     }
   }
 
+  // Shared employer check reused by all purchase handlers below (mirrors the
+  // multi-location account_type check in handleFreeJobClick above).
+  const isEmployerAccount = () =>
+    user?.user_metadata?.account_type === 'employer' ||
+    user?.app_metadata?.account_type === 'employer' ||
+    user?.user_metadata?.accountType === 'employer'
+
+  // Logged in but not an employer account - block the purchase, explain why,
+  // and send them to create an employer account (returning here afterward).
+  const blockNonEmployerPurchase = () => {
+    alert('Only employer accounts can purchase job postings. Please create or switch to an employer account to continue.')
+    router.push('/auth/signup?type=employer&returnTo=/employers')
+  }
+
   // Purchase function for resume credits
   const handleCreditPurchase = async (packageType: string) => {
     // Check if user is signed in
@@ -76,6 +90,11 @@ export default function EmployersPage() {
       // Not logged in - these are typically first-time visitors from a cold
       // email campaign, so send them to account creation instead of login.
       router.push('/auth/signup?type=employer&returnTo=/employers')
+      return
+    }
+
+    if (!isEmployerAccount()) {
+      blockNonEmployerPurchase()
       return
     }
 
@@ -149,6 +168,11 @@ export default function EmployersPage() {
       return
     }
 
+    if (!isEmployerAccount()) {
+      blockNonEmployerPurchase()
+      return
+    }
+
     try {
       const response = await fetch('/api/stripe/create-payment', {
         method: 'POST',
@@ -202,6 +226,11 @@ export default function EmployersPage() {
       // Not logged in - these are typically first-time visitors from a cold
       // email campaign, so send them to account creation instead of login.
       router.push('/auth/signup?type=employer&returnTo=/employers')
+      return
+    }
+
+    if (!isEmployerAccount()) {
+      blockNonEmployerPurchase()
       return
     }
 
@@ -273,6 +302,11 @@ export default function EmployersPage() {
       // Not logged in - these are typically first-time visitors from a cold
       // email campaign, so send them to account creation instead of login.
       router.push('/auth/signup?type=employer&returnTo=/employers')
+      return
+    }
+
+    if (!isEmployerAccount()) {
+      blockNonEmployerPurchase()
       return
     }
 

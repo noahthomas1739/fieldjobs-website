@@ -107,7 +107,7 @@ export async function POST(request) {
     console.log('Getting user profile...')
     const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
-      .select('stripe_customer_id, email')
+      .select('stripe_customer_id, email, account_type')
       .eq('id', userId)
       .single()
 
@@ -118,8 +118,17 @@ export async function POST(request) {
 
     console.log('User profile:', {
       hasCustomerId: !!userProfile?.stripe_customer_id,
-      email: userProfile?.email
+      email: userProfile?.email,
+      accountType: userProfile?.account_type
     })
+
+    // Only employer accounts may purchase subscription plans.
+    if (userProfile?.account_type !== 'employer') {
+      console.log('🚫 Blocked subscription purchase for non-employer account:', userId, userProfile?.account_type)
+      return NextResponse.json({
+        error: 'Only employer accounts can purchase subscription plans. Please create or switch to an employer account.'
+      }, { status: 403 })
+    }
 
     let customerId = userProfile?.stripe_customer_id
 
