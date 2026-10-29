@@ -5,6 +5,29 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useJobViewTracking } from '@/hooks/useJobViewTracking'
+import {
+  Search,
+  Mail,
+  CheckCircle2,
+  Loader2,
+  Star,
+  Zap,
+  Gift,
+  DollarSign,
+  MapPin,
+  Briefcase,
+  Factory,
+  FileText,
+  Atom,
+  Fuel,
+  Sailboat,
+  Leaf,
+  HardHat,
+  Rocket,
+  Shield,
+  Cpu,
+  Pickaxe,
+} from 'lucide-react'
 
 export default function HomePage() {
   const { user } = useAuth()
@@ -253,8 +276,8 @@ export default function HomePage() {
   const filterAndSortJobs = () => {
     // Debug: Log all unique industry values in jobs
     const uniqueIndustries = [...new Set(jobs.map((job: any) => job.industry).filter(Boolean))]
-    console.log('🔍 Unique industries in jobs:', uniqueIndustries)
-    console.log('🔍 Active filters:', activeFilters)
+    console.log('Unique industries in jobs:', uniqueIndustries)
+    console.log('Active filters:', activeFilters)
     
     let filtered = jobs.filter((job: any) => {
       // Search input filter
@@ -475,12 +498,12 @@ export default function HomePage() {
         
         if (response.ok) {
           setSavedJobs((prev: any) => [...prev, jobId])
-          alert('Job saved successfully! View it in your dashboard.')
+          alert('Job saved. View it in your dashboard.')
         } else {
           const error = await response.json()
           if (error.error === 'Job already saved') {
             setSavedJobs((prev: any) => [...prev, jobId])
-            alert('Job was already saved!')
+            alert('Job was already saved.')
           } else {
             alert('Error saving job: ' + error.error)
           }
@@ -499,7 +522,7 @@ export default function HomePage() {
     }
     
     if (appliedJobs.includes(job.id)) {
-      alert('You have already applied to this job!')
+      alert('You have already applied to this job.')
       return
     }
     
@@ -561,10 +584,10 @@ export default function HomePage() {
           const msg =
             typeof data.message === 'string'
               ? data.message
-              : '🎉 Application submitted on FieldJobs.'
-          alert(data.employerNotified ? `🎉 ${msg}` : `ℹ️ ${msg}`)
+              : 'Application submitted on FieldJobs.'
+          alert(msg)
         } else {
-          alert('🎉 Application submitted successfully! The employer will review your application and contact you if selected.')
+          alert('Application submitted. The employer will review your application and contact you if you are selected.')
           setShowApplicationModal(false)
           setSelectedJob(null)
           setApplicationForm({
@@ -583,9 +606,9 @@ export default function HomePage() {
           // For aggregated jobs, keep candidate on-site
           if (selectedJob.isExternal) {
             setShowApplicationModal(false)
-            alert('❌ You have already applied to this job. Check your dashboard for status updates.')
+            alert('You have already applied to this job. Check your dashboard for status updates.')
           } else {
-            alert('❌ You have already applied to this job! Check your dashboard to see your application status.')
+            alert('You have already applied to this job. Check your dashboard to see your application status.')
           }
           setAppliedJobs((prev: any) => [...prev, selectedJob.id])
           setShowApplicationModal(false)
@@ -628,7 +651,7 @@ export default function HomePage() {
       
       if (response.ok) {
         const data = await response.json()
-        alert('🎉 ' + data.message)
+        alert(data.message)
         setAlertForm({
           name: '',
           keywords: '',
@@ -749,7 +772,10 @@ export default function HomePage() {
           fontSize: '0.9rem',
           fontWeight: '500'
         }}>
-          🎁 Post Your First Job FREE for 90 Days - No cost to you!
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Gift size={16} />
+            Post your first job free for 90 days — no cost to you
+          </span>
           <button
             onClick={handleEmployerBannerClick}
             style={{
@@ -797,7 +823,10 @@ export default function HomePage() {
           fontSize: '0.9rem',
           fontWeight: '500'
         }}>
-          🎁 Employers: Post Your First Job Free - 90 days of visibility, no credit card required
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Gift size={16} />
+            Employers: post your first job free — 90 days of visibility, no credit card required
+          </span>
           <button
             onClick={handleEmployerBannerClick}
             style={{
@@ -869,10 +898,13 @@ export default function HomePage() {
               fontWeight: '600',
               transition: 'all 0.3s ease'
             }}
-            onMouseEnter={(e) => (e.target as HTMLButtonElement).style.background = '#e55a2b'}
-            onMouseLeave={(e) => (e.target as HTMLButtonElement).style.background = '#ff6b35'}
+            onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#e55a2b'}
+            onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35'}
           >
-            🔍 Search Jobs
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Search size={18} />
+              Search Jobs
+            </span>
           </button>
         </div>
 
@@ -953,19 +985,19 @@ export default function HomePage() {
             className="scrollbar-hide"
           >
             {[
-              { key: 'nuclear', label: 'Nuclear Power', icon: '❄️' },
-              { key: 'power-generation', label: 'Power Gen (Fossil)', icon: '⚡' },
-              { key: 'ogc', label: 'OG&C', icon: '🛢️' },
-              { key: 'offshore', label: 'Offshore', icon: '🚢' },
-              { key: 'renewable', label: 'Renewable', icon: '🌱' },
-              { key: 'construction', label: 'Construction', icon: '🏗️' },
-              { key: 'aerospace', label: 'Aerospace', icon: '🚀' },
-              { key: 'defense', label: 'Defense', icon: '🛡️' },
-              { key: 'electric-td', label: 'Electric T&D', icon: '⚡' },
-              { key: 'ai-data-centers', label: 'AI Data Centers', icon: '🤖' },
-              { key: 'pulp-paper', label: 'Pulp & Paper', icon: '📄' },
-              { key: 'manufacturing', label: 'Manufacturing', icon: '🏭' },
-              { key: 'mining', label: 'Mining', icon: '⛏️' }
+              { key: 'nuclear', label: 'Nuclear Power', icon: Atom },
+              { key: 'power-generation', label: 'Power Gen (Fossil)', icon: Zap },
+              { key: 'ogc', label: 'OG&C', icon: Fuel },
+              { key: 'offshore', label: 'Offshore', icon: Sailboat },
+              { key: 'renewable', label: 'Renewable', icon: Leaf },
+              { key: 'construction', label: 'Construction', icon: HardHat },
+              { key: 'aerospace', label: 'Aerospace', icon: Rocket },
+              { key: 'defense', label: 'Defense', icon: Shield },
+              { key: 'electric-td', label: 'Electric T&D', icon: Zap },
+              { key: 'ai-data-centers', label: 'AI Data Centers', icon: Cpu },
+              { key: 'pulp-paper', label: 'Pulp & Paper', icon: FileText },
+              { key: 'manufacturing', label: 'Manufacturing', icon: Factory },
+              { key: 'mining', label: 'Mining', icon: Pickaxe }
             ].map((industry) => (
               <button
                 key={industry.key}
@@ -993,16 +1025,16 @@ export default function HomePage() {
                 }}
                 onMouseEnter={(e) => {
                   if (!activeFilters.includes(industry.key)) {
-                    (e.target as HTMLButtonElement).style.background = '#333'
+                    (e.currentTarget as HTMLButtonElement).style.background = '#333'
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!activeFilters.includes(industry.key)) {
-                    (e.target as HTMLButtonElement).style.background = '#1a1a1a'
+                    (e.currentTarget as HTMLButtonElement).style.background = '#1a1a1a'
                   }
                 }}
               >
-                <span style={{ fontSize: '1.2rem' }}>{industry.icon}</span>
+                <industry.icon size={20} />
                 <span>{industry.label}</span>
           </button>
             ))}
@@ -1017,7 +1049,10 @@ export default function HomePage() {
               onClick={() => setShowAlertModal(true)}
               style={{ background: '#28a745', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
             >
-              📧 Set Up Job Alerts
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Mail size={16} />
+                Set Up Job Alerts
+              </span>
             </button>
           </div>
         </div>
@@ -1040,8 +1075,8 @@ export default function HomePage() {
           gap: '0.5rem',
           animation: 'slideInRight 0.3s ease-out'
         }}>
-          <span style={{ fontSize: '1.2rem' }}>✅</span>
-          <span style={{ fontWeight: '500' }}>Search completed! Found {filteredJobs.length} jobs</span>
+          <CheckCircle2 size={20} />
+          <span style={{ fontWeight: '500' }}>Found {filteredJobs.length} job{filteredJobs.length === 1 ? '' : 's'}</span>
         </div>
       )}
 
@@ -1158,7 +1193,7 @@ export default function HomePage() {
               <span style={{ fontWeight: '500', color: '#333', fontSize: '0.9rem' }}>Active filters:</span>
               {searchInput && (
                 <span style={{ background: '#e8f4fd', color: '#1976d2', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  🔍 "{searchInput}"
+                  "{searchInput}"
                   <button onClick={() => setSearchInput('')} style={{ background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: '0', fontSize: '12px' }}>✕</button>
                 </span>
               )}
@@ -1188,12 +1223,12 @@ export default function HomePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
           {isLoading ? (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
+              <Loader2 size={32} style={{ marginBottom: '1rem', color: '#ff6b35', animation: 'spin 1s linear infinite' }} />
               <div>Loading the latest job opportunities...</div>
             </div>
           ) : filteredJobs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+              <Search size={40} style={{ marginBottom: '1rem', color: '#9ca3af' }} />
               <h3>No jobs found</h3>
               <p style={{ color: '#666', marginBottom: '1.5rem' }}>Try adjusting your search criteria or filters</p>
               <button
@@ -1279,9 +1314,13 @@ export default function HomePage() {
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       boxShadow: '0 4px 15px rgba(34, 197, 94, 0.4)',
-                      border: '2px solid #fff'
+                      border: '2px solid #fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem'
                     }}>
-                      🎁 NEW EMPLOYER
+                      <Gift size={12} />
+                      NEW EMPLOYER
                     </div>
                   )}
                   
@@ -1300,9 +1339,13 @@ export default function HomePage() {
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
-                      border: '2px solid #fff'
+                      border: '2px solid #fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem'
                     }}>
-                      ⭐ FEATURED
+                      <Star size={12} fill="#b8860b" />
+                      FEATURED
                     </div>
                   )}
                   
@@ -1322,9 +1365,13 @@ export default function HomePage() {
                       letterSpacing: '0.5px',
                       boxShadow: '0 4px 15px rgba(255, 68, 68, 0.4)',
                       border: '2px solid #fff',
-                      animation: 'pulse 2s infinite'
+                      animation: 'pulse 2s infinite',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem'
                     }}>
-                      🚨 URGENT
+                      <Zap size={12} fill="white" />
+                      URGENT
                     </div>
                   )}
                   
@@ -1415,21 +1462,21 @@ export default function HomePage() {
                     flexWrap: 'wrap'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '1rem' }}>💰</span>
+                      <DollarSign size={16} color="#6b7280" />
                       <span style={{ fontWeight: '600' }}>
                         {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '1rem' }}>📍</span>
+                      <MapPin size={16} color="#6b7280" />
                       <span>{job.region || job.location}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '1rem' }}>💼</span>
+                      <Briefcase size={16} color="#6b7280" />
                       <span>{job.jobType || job.job_type || 'Full Time'}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontSize: '1rem' }}>🏭</span>
+                      <Factory size={16} color="#6b7280" />
                       <span>{job.industry || 'Other'}</span>
                     </div>
                   </div>
@@ -1791,7 +1838,10 @@ export default function HomePage() {
 
               {/* Resume Status Indicator */}
               <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8f9fa', borderRadius: '5px', fontSize: '0.9rem' }}>
-                📄 Resume: <span style={{ color: '#007bff', fontWeight: '500' }}>Will be automatically attached from your profile</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <FileText size={16} color="#007bff" />
+                  Resume: <span style={{ color: '#007bff', fontWeight: '500' }}>Will be automatically attached from your profile</span>
+                </span>
                 <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
                   No resume on file? <Link href="/dashboard?tab=profile" style={{ color: '#ff6b35' }}>Upload one in your dashboard</Link>
                 </div>
