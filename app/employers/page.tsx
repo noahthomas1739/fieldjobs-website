@@ -10,6 +10,11 @@ export default function EmployersPage() {
   const [freeJobEligible, setFreeJobEligible] = useState(false)
   const [checkingEligibility, setCheckingEligibility] = useState(false)
 
+  // Annual savings modal state — lets the user pick monthly vs. annual billing
+  // before we send them to Stripe for Enterprise / Unlimited subscriptions.
+  const [showAnnualSavingsModal, setShowAnnualSavingsModal] = useState(false)
+  const [selectedPlanForModal, setSelectedPlanForModal] = useState<'enterprise' | 'unlimited' | null>(null)
+
   // Check free job eligibility when user logs in
   useEffect(() => {
     const checkFreeJobEligibility = async () => {
@@ -133,8 +138,63 @@ export default function EmployersPage() {
     }
   }
 
+  // Purchase function for the one-time Single Job Post (NOT a subscription)
+  const handleSingleJobPurchase = async () => {
+    // Check if user is signed in
+    if (!user) {
+      // Redirect to login with return URL
+      router.push('/auth/login?returnTo=/employers')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/stripe/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobData: { title: 'Single Job Posting' },
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
+        return
+      }
+
+      if (data.sessionId) {
+        const { getStripe } = await import('@/lib/stripe-client')
+        const stripe = await getStripe()
+        if (stripe) {
+          const result = await stripe.redirectToCheckout({
+            sessionId: data.sessionId,
+          })
+          if (result?.error) {
+            alert('Stripe redirect failed: ' + result.error.message)
+          }
+        } else if (data.url) {
+          window.location.href = data.url
+        } else {
+          alert(
+            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
+          )
+        }
+      } else if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error purchasing single job post:', error)
+      alert('Error starting checkout. Please try again.')
+    }
+  }
+
   // Purchase function for subscription plans
-  const handleSubscriptionPurchase = async (planType: string) => {
+  const handleSubscriptionPurchase = async (planType: string, billingInterval: 'monthly' | 'yearly' = 'yearly') => {
     // Check if user is signed in
     if (!user) {
       // Redirect to login with return URL
@@ -158,23 +218,9 @@ export default function EmployersPage() {
     }
 
     try {
-      const priceMapping: Record<string, string> = {
-        'single': process.env.NEXT_PUBLIC_STRIPE_SINGLE_JOB_PRICE_ID || '',
-        'starter': process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '',
-        'growth': process.env.NEXT_PUBLIC_STRIPE_GROWTH_PLAN_PRICE_ID || '',
-        'professional': process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '',
-        'enterprise': process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '',
-        'unlimited': process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_MONTHLY_PRICE_ID || process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '',
-      }
-
-      const priceId = priceMapping[planType]
-
-      if (priceId === undefined) {
-        // planType not in mapping at all — genuinely unsupported
-        alert('Plan not available. Please contact support.')
-        return
-      }
-      // Empty string is fine — the API falls back to dynamic pricing
+      // Leave priceId empty so the server picks the correct Stripe price
+      // based on planType + billingInterval (see /api/stripe/create-subscription).
+      const priceId = ''
 
       const response = await fetch('/api/stripe/create-subscription', {
         method: 'POST',
@@ -184,6 +230,7 @@ export default function EmployersPage() {
         body: JSON.stringify({
           priceId: priceId,
           planType: planType,
+          billingInterval: billingInterval,
           userId: user.id,
         }),
       })
@@ -393,7 +440,7 @@ export default function EmployersPage() {
               <li>✅ Advanced analytics</li>
             </ul>
             <button 
-              onClick={() => handleSubscriptionPurchase('single')}
+              onClick={handleSingleJobPurchase}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold"
             >
               Purchase Now
@@ -416,7 +463,10 @@ export default function EmployersPage() {
               <li>✅ Advanced analytics</li>
             </ul>
             <button 
-              onClick={() => handleSubscriptionPurchase('enterprise')}
+              onClick={() => {
+                setSelectedPlanForModal('enterprise')
+                setShowAnnualSavingsModal(true)
+              }}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
             >
               Choose Plan
@@ -436,7 +486,10 @@ export default function EmployersPage() {
               <li>✅ Advanced analytics</li>
             </ul>
             <button 
-              onClick={() => handleSubscriptionPurchase('unlimited')}
+              onClick={() => {
+                setSelectedPlanForModal('unlimited')
+                setShowAnnualSavingsModal(true)
+              }}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold"
             >
               Choose Plan
@@ -522,7 +575,7 @@ export default function EmployersPage() {
             </button>
           ) : (
             <button 
-              onClick={() => handleSubscriptionPurchase('single')}
+              onClick={handleSingleJobPurchase}
               className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-lg font-semibold"
             >
               Post Your First Job - $99
@@ -530,6 +583,100 @@ export default function EmployersPage() {
           )}
         </div>
       </div>
+
+      {/* Annual Savings Modal */}
+      {showAnnualSavingsModal && selectedPlanForModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-8 w-full max-w-lg">
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-3">💰</div>
+              <h2 className="text-2xl font-bold mb-2">Save Big with Annual Billing!</h2>
+              <p className="text-gray-600">Get 10% off when you pay annually</p>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 mb-6">
+              {selectedPlanForModal === 'enterprise' && (
+                <>
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Monthly Plan</div>
+                      <div className="text-2xl font-bold text-gray-800">$208/month</div>
+                      <div className="text-xs text-gray-500">$2,496/year total</div>
+                    </div>
+                    <div className="text-3xl">→</div>
+                    <div>
+                      <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
+                      <div className="text-2xl font-bold text-green-600">$187/month</div>
+                      <div className="text-xs text-green-700">$2,246/year total</div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                      Save $250 per year! 💵
+                    </div>
+                  </div>
+                </>
+              )}
+              {selectedPlanForModal === 'unlimited' && (
+                <>
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <div className="text-sm text-gray-600">Monthly Plan</div>
+                      <div className="text-2xl font-bold text-gray-800">$329/month</div>
+                      <div className="text-xs text-gray-500">$3,948/year total</div>
+                    </div>
+                    <div className="text-3xl">→</div>
+                    <div>
+                      <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
+                      <div className="text-2xl font-bold text-green-600">$296/month</div>
+                      <div className="text-xs text-green-700">$3,553/year total</div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                      Save $395 per year! 💵
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  const plan = selectedPlanForModal
+                  setShowAnnualSavingsModal(false)
+                  setSelectedPlanForModal(null)
+                  handleSubscriptionPurchase(plan, 'yearly')
+                }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-lg"
+              >
+                ✓ Choose Annual Plan & Save!
+              </button>
+              <button
+                onClick={() => {
+                  const plan = selectedPlanForModal
+                  setShowAnnualSavingsModal(false)
+                  setSelectedPlanForModal(null)
+                  handleSubscriptionPurchase(plan, 'monthly')
+                }}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium"
+              >
+                Continue with Monthly Plan
+              </button>
+              <button
+                onClick={() => {
+                  setShowAnnualSavingsModal(false)
+                  setSelectedPlanForModal(null)
+                }}
+                className="w-full text-gray-500 hover:text-gray-700 py-2 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

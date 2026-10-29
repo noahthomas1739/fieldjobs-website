@@ -1,7 +1,6 @@
 // /app/api/stripe/create-subscription/route.js - Enhanced debugging
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createSupabaseRouteClient } from '@/lib/supabase-server'
 import Stripe from 'stripe'
 
 // ENHANCED DEBUGGING - Add this at the very top
@@ -25,11 +24,8 @@ export async function POST(request) {
   console.log('=== POST REQUEST RECEIVED ===')
   
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
-    
+    const supabase = await createSupabaseRouteClient()
+
     console.log('Parsing request body...')
     const { priceId, planType, billingInterval = 'yearly', userId } = await request.json()
     console.log('Request data:', { priceId, planType, billingInterval, userId })
@@ -37,6 +33,16 @@ export async function POST(request) {
     if (!userId || !planType) {
       console.log('Missing fields:', { userId: !!userId, planType: !!planType })
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    // 'single' is a one-time job post purchase, not a subscription.
+    // It must go through /api/stripe/create-payment (mode: 'payment') instead.
+    if (planType === 'single') {
+      console.log('🚫 Rejecting one-time plan type sent to subscription endpoint:', planType)
+      return NextResponse.json({
+        error: 'Invalid plan type for subscription checkout',
+        details: 'The "single" plan is a one-time purchase. Use /api/stripe/create-payment instead.'
+      }, { status: 400 })
     }
     
     // If no priceId provided, try to get from environment variables
