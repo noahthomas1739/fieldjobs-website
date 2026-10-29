@@ -160,7 +160,7 @@ async function findEmailSnov(companyDomain) {
     const accessToken = tokenData.access_token;
     
     if (!accessToken) {
-      console.error('Snov: Failed to get access token');
+      console.error(`Snov: Failed to get access token (HTTP ${tokenResponse.status}): ${JSON.stringify(tokenData).slice(0, 200)}`);
       return null;
     }
     
@@ -388,9 +388,9 @@ async function findEmailApollo(companyDomain) {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
+        'X-Api-Key': config.emailServices.apollo.apiKey, // Apollo no longer accepts api_key in the body
       },
       body: JSON.stringify({
-        api_key: config.emailServices.apollo.apiKey,
         q_organization_domains: companyDomain,
         per_page: 5,
         // Prioritize decision-makers likely to handle hiring
@@ -404,7 +404,8 @@ async function findEmailApollo(companyDomain) {
     });
 
     if (!response.ok) {
-      console.error(`Apollo HTTP ${response.status}`);
+      const detail = (await response.text().catch(() => '')).slice(0, 200);
+      console.error(`Apollo HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
       return null;
     }
 
