@@ -1,4 +1,5 @@
 import { createSupabaseRouteClient, isEmployerAccount } from '@/lib/supabase-server'
+import { ensureProfileRow } from '@/lib/profile'
 // app/api/purchase-credits/route.js
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
@@ -25,6 +26,12 @@ export async function POST(request) {
         error: 'Only employer accounts can purchase resume search credits. Please create or switch to an employer account.'
       }, { status: 403 })
     }
+
+    // Defensive fix for the "profiles row missing" bug - some legitimately
+    // signed-up users end up with no profiles row at all (see
+    // lib/profile.js for the root-cause writeup). Make sure one exists
+    // before we update it below with the Stripe customer id.
+    await ensureProfileRow(supabase, user)
 
     let customerId
     

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { ensureProfileRow } from '@/lib/profile'
 
 // Only allow redirecting back to a relative, same-site path (e.g. "/employers").
 // This guards against open-redirect issues from a crafted `returnTo` query param.
@@ -252,6 +253,15 @@ function SignupPageContent() {
       })
       
       if (authError) throw authError
+
+      // Fix for the "profile not found" bug: there's no reviewable,
+      // app-level guarantee that a generic `profiles` row gets created for
+      // every new signup (see lib/profile.js for the full writeup), and
+      // Stripe purchase routes assume one exists. Create it explicitly here
+      // rather than depending on an opaque mechanism outside this repo.
+      if (authData.user) {
+        await ensureProfileRow(supabase, authData.user, accountType)
+      }
       
       // Create profile based on account type
       if (accountType === 'job_seeker') {

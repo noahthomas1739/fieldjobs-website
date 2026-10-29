@@ -1,6 +1,7 @@
 // /app/api/stripe/create-subscription/route.js - Enhanced debugging
 import { NextResponse } from 'next/server'
 import { createSupabaseRouteClient } from '@/lib/supabase-server'
+import { ensureProfileRow } from '@/lib/profile'
 import Stripe from 'stripe'
 
 // ENHANCED DEBUGGING - Add this at the very top
@@ -43,6 +44,21 @@ export async function POST(request) {
         error: 'Invalid plan type for subscription checkout',
         details: 'The "single" plan is a one-time purchase. Use /api/stripe/create-payment instead.'
       }, { status: 400 })
+    }
+
+    // Defensive fix for the "User profile not found" (PGRST116) bug: profiles
+    // rows were assumed to already exist for every signed-up user, but there's
+    // no app-level guarantee of that. Proactively create one here (if missing)
+    // using the authenticated session's own metadata, before we rely on the
+    // profiles lookup below. No-ops if a row already exists or there's no
+    // matching session.
+    try {
+      const { data: { user: sessionUser } } = await supabase.auth.getUser()
+      if (sessionUser?.id === userId) {
+        await ensureProfileRow(supabase, sessionUser)
+      }
+    } catch (err) {
+      console.log('⚠️ Could not verify/create profiles row ahead of lookup:', err?.message)
     }
     
     // If no priceId provided, try to get from environment variables
@@ -105,11 +121,25 @@ export async function POST(request) {
     }
 
     console.log('Getting user profile...')
-    const { data: userProfile, error: profileError } = await supabase
+    let { data: userProfile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id, email, account_type')
       .eq('id', userId)
       .single()
+
+    // Still missing (e.g. the pre-emptive ensureProfileRow above couldn't run
+    // because there was no matching session) - try one more time with
+    // whatever we know, so a legitimately signed-up user never hits a bare
+    // 404 here.
+    if (profileError?.code === 'PGRST116') {
+      console.log('⚠️ No profiles row found for', userId, '- creating one before giving up')
+      await ensureProfileRow(supabase, { id: userId, email: null })
+      ;({ data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id, email, account_type')
+        .eq('id', userId)
+        .single())
+    }
 
     if (profileError) {
       console.error('❌ Profile error:', profileError)

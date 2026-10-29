@@ -1,13 +1,11 @@
+import { createSupabaseRouteClient } from '@/lib/supabase-server'
+import { ensureProfileRow } from '@/lib/profile'
 import { NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+
 
 export async function POST(request) {
   try {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = await createSupabaseRouteClient()
 
     console.log('🚀 Free job creation started')
     
@@ -38,13 +36,35 @@ export async function POST(request) {
 
     console.log('✅ Input validation passed')
 
+    // Defensive fix for the "profiles row missing" bug - make sure this user
+    // has a profiles row before checking eligibility below (see
+    // lib/profile.js for the root-cause writeup).
+    try {
+      const { data: { user: sessionUser } } = await supabase.auth.getUser()
+      if (sessionUser?.id === userId) {
+        await ensureProfileRow(supabase, sessionUser)
+      }
+    } catch (err) {
+      console.log('⚠️ Could not verify/create profiles row ahead of eligibility check:', err?.message)
+    }
+
     // Check user eligibility
     console.log('🔍 Checking user eligibility...')
-    const { data: profile, error: profileError } = await supabase
+    let { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('has_used_free_job, id')
       .eq('id', userId)
       .single()
+
+    if (profileError?.code === 'PGRST116') {
+      console.log('⚠️ No profiles row found for', userId, '- creating one before giving up')
+      await ensureProfileRow(supabase, { id: userId, email: null })
+      ;({ data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('has_used_free_job, id')
+        .eq('id', userId)
+        .single())
+    }
 
     if (profileError) {
       console.error('❌ Profile lookup error:', profileError)

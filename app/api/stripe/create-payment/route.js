@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe-server'
 import { createSupabaseRouteClient, isEmployerAccount } from '@/lib/supabase-server'
+import { ensureProfileRow } from '@/lib/profile'
 
 export async function POST(request) {
   try {
@@ -12,6 +13,12 @@ export async function POST(request) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Defensive fix for the "profiles row missing" bug - make sure this user
+    // has a profiles row (e.g. for isEmployerAccount's fallback lookup, and
+    // any future code here that relies on it) instead of assuming one
+    // already exists. No-op if it already does.
+    await ensureProfileRow(supabase, user)
 
     // Only employer accounts may purchase job postings.
     if (!(await isEmployerAccount(supabase, user))) {

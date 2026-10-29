@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { ensureProfileRow } from '@/lib/profile'
 
 // Only allow redirecting back to a relative, same-site path (e.g. "/employers").
 // Guards against open-redirect issues from a stored `signup_return_to` value.
@@ -129,6 +130,14 @@ function AuthCallbackContent() {
                 }
               }
 
+              // Fix for the "profile not found" bug: make sure this user has
+              // a profiles row (OAuth signups never otherwise get one - see
+              // lib/profile.js for the root-cause writeup) before sending
+              // them off to purchase/post-job flows that assume it exists.
+              if (accountType) {
+                await ensureProfileRow(supabase, data.user, accountType)
+              }
+
               console.log('🔍 Redirect Logic Debug:')
               console.log('- storedAccountType:', storedAccountType)
               console.log('- storedReturnTo:', storedReturnTo)
@@ -231,6 +240,14 @@ function AuthCallbackContent() {
                   console.log('Could not clear stored return destination:', err)
                 }
               }
+
+              // Fix for the "profile not found" bug: make sure this user has
+              // a profiles row (OAuth signups never otherwise get one - see
+              // lib/profile.js for the root-cause writeup) before sending
+              // them off to purchase/post-job flows that assume it exists.
+              if (accountType) {
+                await ensureProfileRow(supabase, data.user, accountType)
+              }
               
               console.log('🔍 Redirect Logic Debug:')
               console.log('- storedAccountType:', storedAccountType)
@@ -280,6 +297,13 @@ function AuthCallbackContent() {
             console.log('Email confirmed successfully for:', data.user.email)
             setStatus('success')
             setMessage('Email confirmed successfully!')
+
+            // Fix for the "profile not found" bug: make sure this user has
+            // a profiles row (see lib/profile.js for the root-cause
+            // writeup) now that their email/signup is confirmed.
+            if (data.user.user_metadata?.account_type) {
+              await ensureProfileRow(supabase, data.user)
+            }
             
             // Redirect after a short delay
             setTimeout(() => {

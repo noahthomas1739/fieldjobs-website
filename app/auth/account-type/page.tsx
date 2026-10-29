@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { ensureProfileRow } from '@/lib/profile'
 
 export default function AccountTypePage() {
   const { user, loading } = useAuth()
@@ -66,6 +67,13 @@ export default function AccountTypePage() {
       }
 
       console.log('Account type updated successfully!')
+
+      // Fix for the "profile not found" bug: make sure this user has a
+      // profiles row (see lib/profile.js for the root-cause writeup) now
+      // that we know their account type.
+      if (user) {
+        await ensureProfileRow(supabase, user, accountType)
+      }
       
       // Add a small delay to ensure the update propagates
       setTimeout(() => {
