@@ -1,10 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+
+// Only allow redirecting back to a relative, same-site path (e.g. "/employers").
+// This guards against open-redirect issues from a crafted `returnTo` query param.
+function sanitizeReturnTo(path: string | null): string | null {
+  if (!path) return null
+  if (!path.startsWith('/') || path.startsWith('//')) return null
+  return path
+}
 
 function LinkedInIcon() {
   return (
@@ -14,12 +22,23 @@ function LinkedInIcon() {
   )
 }
 
-export default function SignupPage() {
+function SignupPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
   const { signInWithGoogle } = useAuth()
-  const [step, setStep] = useState(1) // 1: Choose type, 2: Basic info, 3: Additional info
-  const [accountType, setAccountType] = useState('')
+
+  // Support being linked to directly with a known account type (e.g. from the
+  // public /employers pricing page: /auth/signup?type=employer&returnTo=/employers)
+  // so visitors skip the "choose account type" step and land back where they
+  // started after creating their account.
+  const requestedType = searchParams.get('type')
+  const initialAccountType =
+    requestedType === 'employer' || requestedType === 'job_seeker' ? requestedType : ''
+  const returnTo = sanitizeReturnTo(searchParams.get('returnTo'))
+
+  const [step, setStep] = useState(initialAccountType ? 2 : 1) // 1: Choose type, 2: Basic info, 3: Additional info
+  const [accountType, setAccountType] = useState(initialAccountType)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -72,8 +91,12 @@ export default function SignupPage() {
     setAccountType(selectedAccountType)
     
     try {
-      // Store account type in localStorage to retrieve after OAuth redirect
+      // Store account type (and optional return destination) in localStorage
+      // to retrieve after OAuth redirect
       localStorage.setItem('signup_account_type', selectedAccountType)
+      if (returnTo) {
+        localStorage.setItem('signup_return_to', returnTo)
+      }
       
       // signInWithGoogle() handles the redirect automatically
       await signInWithGoogle()
@@ -94,8 +117,12 @@ export default function SignupPage() {
     setAccountType(selectedAccountType)
     
     try {
-      // Store account type in localStorage to retrieve after OAuth redirect
+      // Store account type (and optional return destination) in localStorage
+      // to retrieve after OAuth redirect
       localStorage.setItem('signup_account_type', selectedAccountType)
+      if (returnTo) {
+        localStorage.setItem('signup_return_to', returnTo)
+      }
       
       // LinkedIn OAuth signup
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -312,8 +339,10 @@ export default function SignupPage() {
       // Send verification email
       alert('✅ Account created successfully! Please check your email to verify your account.')
       
-      // Redirect to appropriate dashboard
-      router.push(accountType === 'job_seeker' ? '/dashboard' : '/employer')
+      // Redirect back to where the user started (e.g. the /employers pricing
+      // page) if we have a safe returnTo, otherwise fall back to the
+      // appropriate dashboard.
+      router.push(returnTo || (accountType === 'job_seeker' ? '/dashboard' : '/employer'))
       
     } catch (error: any) {
       console.error('Signup error:', error)
@@ -1041,5 +1070,18 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Main component with Suspense wrapper (required for useSearchParams)
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-2xl">Loading...</div>
+      </div>
+    }>
+      <SignupPageContent />
+    </Suspense>
   )
 }

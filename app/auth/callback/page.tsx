@@ -4,6 +4,14 @@ import { useEffect, useState, Suspense } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+// Only allow redirecting back to a relative, same-site path (e.g. "/employers").
+// Guards against open-redirect issues from a stored `signup_return_to` value.
+function sanitizeReturnTo(path: string | null): string | null {
+  if (!path) return null
+  if (!path.startsWith('/') || path.startsWith('//')) return null
+  return path
+}
+
 // Separate component that uses useSearchParams - must be wrapped in Suspense
 function AuthCallbackContent() {
   const router = useRouter()
@@ -38,10 +46,12 @@ function AuthCallbackContent() {
             setMessage('Sign in successful!')
             
             // Continue with existing logic...
-            // Check if we have a stored account type from signup
+            // Check if we have a stored account type (and return destination) from signup
             let storedAccountType = null
+            let storedReturnTo = null
             try {
               storedAccountType = localStorage.getItem('signup_account_type')
+              storedReturnTo = localStorage.getItem('signup_return_to')
               console.log('Stored account type from signup:', storedAccountType)
             } catch (err) {
               console.error('Error accessing localStorage:', err)
@@ -110,16 +120,30 @@ function AuthCallbackContent() {
               console.log('Refreshed session:', refreshedSession)
 
               const accountType = storedAccountType || data.user?.user_metadata?.account_type
+              const safeReturnTo = sanitizeReturnTo(storedReturnTo)
+              if (storedReturnTo) {
+                try {
+                  localStorage.removeItem('signup_return_to')
+                } catch (err) {
+                  console.log('Could not clear stored return destination:', err)
+                }
+              }
 
               console.log('🔍 Redirect Logic Debug:')
               console.log('- storedAccountType:', storedAccountType)
+              console.log('- storedReturnTo:', storedReturnTo)
               console.log('- user_metadata?.account_type:', data.user?.user_metadata?.account_type)
               console.log('- final accountType:', accountType)
-              console.log('- Will redirect to:', !accountType ? '/auth/account-type' : (accountType === 'employer' ? '/employer' : '/dashboard'))
+              console.log('- Will redirect to:', !accountType ? '/auth/account-type' : (safeReturnTo || (accountType === 'employer' ? '/employer' : '/dashboard')))
 
               if (!accountType) {
                 console.log('👤 New user - redirecting to account type selection')
                 router.push('/auth/account-type')
+              } else if (safeReturnTo) {
+                // Came from a page (e.g. /employers) that wants the user back
+                // after completing signup.
+                console.log('↩️ Redirecting back to:', safeReturnTo)
+                router.push(safeReturnTo)
               } else if (accountType === 'employer') {
                 console.log('🏢 Existing employer - redirecting to employer dashboard')
                 router.push('/employer')
@@ -153,10 +177,12 @@ function AuthCallbackContent() {
             setStatus('success')
             setMessage('Sign in successful!')
             
-            // Check if we have a stored account type from signup
+            // Check if we have a stored account type (and return destination) from signup
             let storedAccountType = null
+            let storedReturnTo = null
             try {
               storedAccountType = localStorage.getItem('signup_account_type')
+              storedReturnTo = localStorage.getItem('signup_return_to')
               console.log('Stored account type from signup:', storedAccountType)
             } catch (err) {
               console.log('localStorage not available:', err)
@@ -197,16 +223,30 @@ function AuthCallbackContent() {
               console.log('Refreshed session:', refreshedSession)
               
               const accountType = storedAccountType || data.user?.user_metadata?.account_type
+              const safeReturnTo = sanitizeReturnTo(storedReturnTo)
+              if (storedReturnTo) {
+                try {
+                  localStorage.removeItem('signup_return_to')
+                } catch (err) {
+                  console.log('Could not clear stored return destination:', err)
+                }
+              }
               
               console.log('🔍 Redirect Logic Debug:')
               console.log('- storedAccountType:', storedAccountType)
+              console.log('- storedReturnTo:', storedReturnTo)
               console.log('- user_metadata?.account_type:', data.user?.user_metadata?.account_type)
               console.log('- final accountType:', accountType)
-              console.log('- Will redirect to:', !accountType ? '/auth/account-type' : (accountType === 'employer' ? '/employer' : '/dashboard'))
+              console.log('- Will redirect to:', !accountType ? '/auth/account-type' : (safeReturnTo || (accountType === 'employer' ? '/employer' : '/dashboard')))
               
               if (!accountType) {
                 console.log('👤 New user - redirecting to account type selection')
                 router.push('/auth/account-type')
+              } else if (safeReturnTo) {
+                // Came from a page (e.g. /employers) that wants the user back
+                // after completing signup.
+                console.log('↩️ Redirecting back to:', safeReturnTo)
+                router.push(safeReturnTo)
               } else if (accountType === 'employer') {
                 console.log('🏢 Existing employer - redirecting to employer dashboard')
                 router.push('/employer')

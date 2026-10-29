@@ -73,8 +73,9 @@ export default function EmployersPage() {
   const handleCreditPurchase = async (packageType: string) => {
     // Check if user is signed in
     if (!user) {
-      // Redirect to login with return URL
-      router.push('/auth/login?returnTo=/employers')
+      // Not logged in - these are typically first-time visitors from a cold
+      // email campaign, so send them to account creation instead of login.
+      router.push('/auth/signup?type=employer&returnTo=/employers')
       return
     }
 
@@ -142,8 +143,9 @@ export default function EmployersPage() {
   const handleSingleJobPurchase = async () => {
     // Check if user is signed in
     if (!user) {
-      // Redirect to login with return URL
-      router.push('/auth/login?returnTo=/employers')
+      // Not logged in - these are typically first-time visitors from a cold
+      // email campaign, so send them to account creation instead of login.
+      router.push('/auth/signup?type=employer&returnTo=/employers')
       return
     }
 
@@ -197,8 +199,9 @@ export default function EmployersPage() {
   const handleSubscriptionPurchase = async (planType: string, billingInterval: 'monthly' | 'yearly' = 'yearly') => {
     // Check if user is signed in
     if (!user) {
-      // Redirect to login with return URL
-      router.push('/auth/login?returnTo=/employers')
+      // Not logged in - these are typically first-time visitors from a cold
+      // email campaign, so send them to account creation instead of login.
+      router.push('/auth/signup?type=employer&returnTo=/employers')
       return
     }
 
@@ -267,8 +270,9 @@ export default function EmployersPage() {
   const handleAddonPurchase = async (addonType: string) => {
     // Check if user is signed in
     if (!user) {
-      // Redirect to login with return URL
-      router.push('/auth/login?returnTo=/employers')
+      // Not logged in - these are typically first-time visitors from a cold
+      // email campaign, so send them to account creation instead of login.
+      router.push('/auth/signup?type=employer&returnTo=/employers')
       return
     }
 
