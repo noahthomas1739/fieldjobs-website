@@ -295,8 +295,18 @@ export default function EmployersPage() {
     }
   }
 
-  // Purchase function for add-on features
-  const handleAddonPurchase = async (addonType: string) => {
+  // Purchase function for add-on features (Featured Listing / Urgent Badge).
+  //
+  // NOTE: Featured/Urgent are applied to a specific job posting (see
+  // app/api/purchase-job-feature/route.js, which requires a jobId) - there's
+  // no standalone checkout for these without a job to attach them to, and
+  // this page previously posted to a non-existent /api/stripe/create-checkout
+  // route. Rather than inventing a new "pending credit" purchase-without-a-job
+  // system, this sends employers to their job list in the dashboard to pick
+  // (or post) a job to apply the add-on to - the same thing the "Manage
+  // Featured/Urgent Jobs" buttons in the employer dashboard's billing tab
+  // already do (see app/employer/page.tsx, setActiveTab('jobs')).
+  const handleAddonPurchase = (addonType: string) => {
     // Check if user is signed in
     if (!user) {
       // Not logged in - these are typically first-time visitors from a cold
@@ -310,64 +320,19 @@ export default function EmployersPage() {
       return
     }
 
-    try {
-      const addonMapping: Record<string, { priceId: string; name: string }> = {
-        'featured': {
-          priceId: process.env.NEXT_PUBLIC_STRIPE_FEATURED_LISTING_PRICE_ID || '',
-          name: 'Featured Job Listing'
-        },
-        'urgent': {
-          priceId: process.env.NEXT_PUBLIC_STRIPE_URGENT_BADGE_PRICE_ID || '',
-          name: 'Urgent Badge'
-        }
-      }
-
-      const addon = addonMapping[addonType]
-
-      if (!addon) {
-        alert('Add-on not available. Please contact support.')
-        return
-      }
-
-      const response = await fetch('/api/stripe/create-checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          priceId: addon.priceId,
-          addonType: addonType,
-          successUrl: `${window.location.origin}/employers?addon=success`,
-          cancelUrl: `${window.location.origin}/employers?addon=cancelled`
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.sessionId) {
-        const { getStripe } = await import('@/lib/stripe-client')
-        const stripe = await getStripe()
-        if (stripe) {
-          const result = await stripe.redirectToCheckout({
-            sessionId: data.sessionId,
-          })
-          if (result?.error) {
-            alert('Stripe redirect failed: ' + result.error.message)
-          }
-        } else if (data.url) {
-          window.location.href = data.url
-        } else {
-          alert(
-            'Checkout could not start. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel environment variables.'
-          )
-        }
-      } else {
-        alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
-      }
-    } catch (error) {
-      console.error('Error purchasing add-on:', error)
-      alert('Error starting checkout. Please try again.')
+    const addonNames: Record<string, string> = {
+      featured: 'Featured Listing',
+      urgent: 'Urgent Badge'
     }
+    const addonName = addonNames[addonType]
+
+    if (!addonName) {
+      alert('Add-on not available. Please contact support.')
+      return
+    }
+
+    alert(`${addonName} is applied to a specific job posting. Choose (or post) a job from your dashboard, then use the "Feature" / "Mark Urgent" button on that job to purchase it.`)
+    router.push('/employer?tab=jobs')
   }
 
   return (
