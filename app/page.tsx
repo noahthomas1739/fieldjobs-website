@@ -760,6 +760,15 @@ export default function HomePage() {
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
+        /* Keep the hero search bar's button from squeezing the search input
+           off-screen on narrow viewports (the input has flex:1/minWidth:0 so
+           it can shrink, but the button's desktop padding was still wide
+           enough to crowd it) - desktop layout/padding is unaffected. */
+        @media (max-width: 480px) {
+          .hero-search-button {
+            padding: 1rem 1.25rem !important;
+          }
+        }
       `}</style>
       {/* Thin Free Job Notification Bar */}
       {shouldShowThinBanner() && freeJobEligible && user && (
@@ -869,7 +878,7 @@ export default function HomePage() {
         <p style={{ margin: '1rem 0 2rem 0' }}>Connect with top employers in nuclear, energy, aerospace, defense, AI data centers, and technical industries</p>
         
         {/* Simplified Search - One Line */}
-        <div style={{ display: 'flex', gap: '0', maxWidth: '800px', margin: '2rem auto 0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' }}>
+        <div className="hero-search-bar" style={{ display: 'flex', gap: '0', maxWidth: '800px', margin: '2rem auto 0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.3)' }}>
           <input
             type="text"
             value={searchInput}
@@ -878,6 +887,7 @@ export default function HomePage() {
             placeholder="Search jobs by title, company, or keywords..."
             style={{ 
               flex: 1, 
+              minWidth: 0, 
               padding: '1rem 1.5rem', 
               border: 'none',
               fontSize: '1.1rem', 
@@ -888,7 +898,9 @@ export default function HomePage() {
           />
           <button
             onClick={performSearch}
+            className="hero-search-button"
             style={{ 
+              flexShrink: 0,
               padding: '1rem 2.5rem', 
               background: '#ff6b35', 
               color: 'white', 
