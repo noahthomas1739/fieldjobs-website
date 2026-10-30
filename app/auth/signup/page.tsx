@@ -37,6 +37,13 @@ function SignupPageContent() {
   const initialAccountType =
     requestedType === 'employer' || requestedType === 'job_seeker' ? requestedType : ''
   const returnTo = sanitizeReturnTo(searchParams.get('returnTo'))
+  // The "Post a Free Job" banner (homepage and /employers) links here with
+  // ?redirect=free_job&type=employer so a brand-new employer lands back on
+  // the free-job posting flow instead of a generic dashboard after signup -
+  // mirrors the already-logged-in behavior in handleFreeJobClick.
+  const postSignupRedirect = searchParams.get('redirect') === 'free_job'
+    ? '/employer?action=post-free-job'
+    : returnTo
 
   const [step, setStep] = useState(initialAccountType ? 2 : 1) // 1: Choose type, 2: Basic info, 3: Additional info
   const [accountType, setAccountType] = useState(initialAccountType)
@@ -95,8 +102,8 @@ function SignupPageContent() {
       // Store account type (and optional return destination) in localStorage
       // to retrieve after OAuth redirect
       localStorage.setItem('signup_account_type', selectedAccountType)
-      if (returnTo) {
-        localStorage.setItem('signup_return_to', returnTo)
+      if (postSignupRedirect) {
+        localStorage.setItem('signup_return_to', postSignupRedirect)
       }
       
       // signInWithGoogle() handles the redirect automatically
@@ -121,8 +128,8 @@ function SignupPageContent() {
       // Store account type (and optional return destination) in localStorage
       // to retrieve after OAuth redirect
       localStorage.setItem('signup_account_type', selectedAccountType)
-      if (returnTo) {
-        localStorage.setItem('signup_return_to', returnTo)
+      if (postSignupRedirect) {
+        localStorage.setItem('signup_return_to', postSignupRedirect)
       }
       
       // LinkedIn OAuth signup
@@ -350,9 +357,9 @@ function SignupPageContent() {
       alert('✅ Account created successfully! Please check your email to verify your account.')
       
       // Redirect back to where the user started (e.g. the /employers pricing
-      // page) if we have a safe returnTo, otherwise fall back to the
-      // appropriate dashboard.
-      router.push(returnTo || (accountType === 'job_seeker' ? '/dashboard' : '/employer'))
+      // page, or the free-job posting flow) if we have one, otherwise fall
+      // back to the appropriate dashboard.
+      router.push(postSignupRedirect || (accountType === 'job_seeker' ? '/dashboard' : '/employer'))
       
     } catch (error: any) {
       console.error('Signup error:', error)
