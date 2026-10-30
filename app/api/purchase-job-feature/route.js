@@ -1,5 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createSupabaseRouteClient } from '@/lib/supabase-server'
+import { ensureProfileRow } from '@/lib/profile'
+
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder')
@@ -8,10 +9,7 @@ export async function POST(request) {
   try {
     console.log('🎯 === JOB FEATURE PURCHASE STARTED ===')
     
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
-    })
+    const supabase = await createSupabaseRouteClient()
     
     const { jobId, featureType, userId } = await request.json()
     
@@ -57,6 +55,19 @@ export async function POST(request) {
     
     console.log('✅ Job verified:', job.title)
     
+    // Defensive fix for the "profiles row missing" bug - make sure this user
+    // has a profiles row before reading it below (see lib/profile.js for the
+    // root-cause writeup). Only do this when the session matches the
+    // claimed userId so we don't create rows on someone else's behalf.
+    try {
+      const { data: { user: sessionUser } } = await supabase.auth.getUser()
+      if (sessionUser?.id === userId) {
+        await ensureProfileRow(supabase, sessionUser)
+      }
+    } catch (err) {
+      console.log('⚠️ Could not verify/create profiles row ahead of feature purchase:', err?.message)
+    }
+
     // Get user profile for Stripe customer
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
