@@ -120,13 +120,33 @@ function AuthCallbackContent() {
               const { data: refreshedSession } = await supabase.auth.getSession()
               console.log('Refreshed session:', refreshedSession)
 
-              const accountType = storedAccountType || data.user?.user_metadata?.account_type
+              // The user's real, already-set account type (from a previous
+              // signup/login) must always win over a leftover
+              // `signup_account_type` value in localStorage. Without this, a
+              // stale or mismatched stored value (e.g. a user who started an
+              // OAuth signup as one account type, abandoned it, and later
+              // actually logs in with a different real account type) would
+              // incorrectly override where a RETURNING user gets redirected
+              // on every subsequent OAuth login until the key happens to get
+              // cleared.
+              const accountType = data.user?.user_metadata?.account_type || storedAccountType
               const safeReturnTo = sanitizeReturnTo(storedReturnTo)
               if (storedReturnTo) {
                 try {
                   localStorage.removeItem('signup_return_to')
                 } catch (err) {
                   console.log('Could not clear stored return destination:', err)
+                }
+              }
+              // Always clear the stored signup account type once we've read
+              // it for this callback, regardless of whether it was applied -
+              // otherwise a stale value leaks into every future OAuth login
+              // on this browser (see comment above).
+              if (storedAccountType) {
+                try {
+                  localStorage.removeItem('signup_account_type')
+                } catch (err) {
+                  console.log('Could not clear stored account type:', err)
                 }
               }
 
@@ -231,13 +251,33 @@ function AuthCallbackContent() {
               const { data: refreshedSession } = await supabase.auth.getSession()
               console.log('Refreshed session:', refreshedSession)
               
-              const accountType = storedAccountType || data.user?.user_metadata?.account_type
+              // The user's real, already-set account type (from a previous
+              // signup/login) must always win over a leftover
+              // `signup_account_type` value in localStorage. Without this, a
+              // stale or mismatched stored value (e.g. a user who started an
+              // OAuth signup as one account type, abandoned it, and later
+              // actually logs in with a different real account type) would
+              // incorrectly override where a RETURNING user gets redirected
+              // on every subsequent OAuth login until the key happens to get
+              // cleared.
+              const accountType = data.user?.user_metadata?.account_type || storedAccountType
               const safeReturnTo = sanitizeReturnTo(storedReturnTo)
               if (storedReturnTo) {
                 try {
                   localStorage.removeItem('signup_return_to')
                 } catch (err) {
                   console.log('Could not clear stored return destination:', err)
+                }
+              }
+              // Always clear the stored signup account type once we've read
+              // it for this callback, regardless of whether it was applied -
+              // otherwise a stale value leaks into every future OAuth login
+              // on this browser (see comment above).
+              if (storedAccountType) {
+                try {
+                  localStorage.removeItem('signup_account_type')
+                } catch (err) {
+                  console.log('Could not clear stored account type:', err)
                 }
               }
 
