@@ -1,26 +1,106 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   FIELDJOBS DESIGN TOKENS
+   Shared palette / typography source of truth for the whole site.
+   Mirrored in lib/theme.ts for components that use inline styles instead
+   of Tailwind utility classes. Keep both in sync.
+
+   Palette intent: clean, professional, trade/industrial B2B (LinkedIn/Indeed
+   territory) — confident blues + neutral slates, with ONE warm accent
+   (amber, used sparingly for "featured/urgent" highlights) instead of the
+   old orange/purple/gradient-badge look.
+   ========================================================================== */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+
+  /* Brand blue scale — primary actions, links, headers */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a5f;
+
+  /* Neutral slate scale — text, surfaces, borders */
+  --color-ink: #0f172a;      /* headings */
+  --color-body: #334155;     /* body copy */
+  --color-muted: #64748b;    /* secondary/metadata text */
+  --color-subtle: #94a3b8;   /* placeholders, disabled */
+  --color-surface: #f8fafc;  /* page/card background tint */
+  --color-surface-alt: #f1f5f9;
+  --color-border: #e2e8f0;
+
+  /* Single warm accent — used sparingly (featured/urgent/highlight only) */
+  --color-accent-50: #fffbeb;
+  --color-accent-200: #fde68a;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+
+  /* Semantic status colors */
+  --color-success: #16a34a;
+  --color-success-bg: #f0fdf4;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans-base);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+
+  --color-accent-50: var(--color-accent-50);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+
+  --color-ink: var(--color-ink);
+  --color-body: var(--color-body);
+  --color-muted: var(--color-muted);
+  --color-subtle: var(--color-subtle);
+  --color-surface: var(--color-surface);
+  --color-surface-alt: var(--color-surface-alt);
+  --color-border: var(--color-border);
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-body);
+  font-family: var(--font-sans-base), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Disciplined type hierarchy for a polished B2B product.
+   Default heading weight/tracking so pages that use plain <h1>-<h3> tags
+   (job detail modals, legal pages, etc.) get consistent styling for free;
+   pages using Tailwind utility classes can still override per element. */
+h1, h2, h3, h4 {
+  color: var(--color-ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+p {
+  line-height: 1.6;
 }

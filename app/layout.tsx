@@ -5,7 +5,11 @@ import { Navbar } from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans-base',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: {
@@ -112,7 +116,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${inter.className}`}>
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"
