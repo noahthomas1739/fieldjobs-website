@@ -6,6 +6,28 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import SubscriptionManagement from '@/components/SubscriptionManagement'
 import { cleanJobDescriptionText } from '@/lib/formatJobDescription'
+import {
+  BarChart3,
+  Briefcase,
+  Mail,
+  Search,
+  TrendingUp,
+  ShoppingCart,
+  User,
+  Gift,
+  Star,
+  Zap,
+  CheckCircle2,
+  FileText,
+  CreditCard,
+  Pencil,
+  Save,
+  X,
+  PartyPopper,
+  PiggyBank,
+  DollarSign,
+  ArrowRight,
+} from 'lucide-react'
 
 function EmployerDashboardContent() {
   const { user, loading } = useAuth()
@@ -171,7 +193,7 @@ function EmployerDashboardContent() {
       const data = await response.json()
 
       if (data.success) {
-        alert('🎉 ' + data.message)
+        alert(data.message)
         await loadJobs()
         setFreeJobEligible(false)
         setShowFreeJobForm(false)
@@ -330,7 +352,7 @@ function EmployerDashboardContent() {
     const isUpgrade = hasActiveSubscription && planLevel > currentLevel
     const isDowngrade = hasActiveSubscription && planLevel < currentLevel
     
-    console.log(`🔍 Button for ${plan}: current=${currentPlan}, isCurrentPlan=${isCurrentPlan}, hasActive=${hasActiveSubscription}`)
+    console.log(`Button for ${plan}: current=${currentPlan}, isCurrentPlan=${isCurrentPlan}, hasActive=${hasActiveSubscription}`)
 
     if (isCurrentPlan) {
       return (
@@ -345,7 +367,7 @@ function EmployerDashboardContent() {
         return (
           <button 
             onClick={() => handleUpgrade(priceId, plan)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+            className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-medium"
             disabled={isLoading}
           >
             {isLoading ? 'Processing...' : 'Upgrade'}
@@ -355,7 +377,7 @@ function EmployerDashboardContent() {
         return (
           <button 
             onClick={() => handleDowngrade(priceId, plan)}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+            className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-medium"
             disabled={isLoading}
           >
             {isLoading ? 'Processing...' : 'Downgrade'}
@@ -369,7 +391,7 @@ function EmployerDashboardContent() {
             setSelectedPlanForModal({plan, priceId})
             setShowAnnualSavingsModal(true)
           }}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium"
+          className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-medium"
           disabled={isLoading}
         >
           {isLoading ? 'Processing...' : 'Choose Plan'}
@@ -589,16 +611,16 @@ function EmployerDashboardContent() {
   }
 
   const handleJobFeaturePurchase = async (jobId: number, featureType: string) => {
-    console.log('🎯 CLIENT: Feature purchase clicked!', { jobId, featureType, userId: user?.id })
+    console.log('CLIENT: Feature purchase clicked!', { jobId, featureType, userId: user?.id })
     
     if (!user?.id) {
-      console.log('❌ CLIENT: No user ID, aborting')
+      console.log('CLIENT: No user ID, aborting')
         return
       }
     
     try {
       setIsLoading(true)
-      console.log('🎯 CLIENT: Calling API /api/purchase-job-feature')
+      console.log('CLIENT: Calling API /api/purchase-job-feature')
       
       const response = await fetch('/api/purchase-job-feature', {
         method: 'POST',
@@ -612,12 +634,12 @@ function EmployerDashboardContent() {
         }),
       })
       
-      console.log('📡 CLIENT: API response status:', response.status)
+      console.log('CLIENT: API response status:', response.status)
       const data = await response.json()
-      console.log('📡 CLIENT: API response data:', data)
+      console.log('CLIENT: API response data:', data)
       
       if (data.sessionId) {
-        console.log('✅ CLIENT: Got session ID, redirecting to Stripe')
+        console.log('CLIENT: Got session ID, redirecting to Stripe')
         const { getStripe } = await import('@/lib/stripe-client')
         const stripe = await getStripe()
         if (stripe) {
@@ -635,11 +657,11 @@ function EmployerDashboardContent() {
           )
         }
       } else {
-        console.log('❌ CLIENT: No session ID in response')
+        console.log('CLIENT: No session ID in response')
         alert('Error creating checkout session: ' + (data.error || 'Unknown error'))
       }
     } catch (error) {
-      console.error('❌ CLIENT: Error purchasing job feature:', error)
+      console.error('CLIENT: Error purchasing job feature:', error)
       alert('Error starting checkout. Please try again.')
     } finally {
       setIsLoading(false)
@@ -674,12 +696,12 @@ function EmployerDashboardContent() {
         return
       }
       
-      console.log('🔄 Loading subscription for user:', user.id)
+      console.log('Loading subscription for user:', user.id)
       
       const response = await fetch(`/api/subscription-status?userId=${user.id}`)
       const data = await response.json()
       
-      console.log('📊 Subscription API response:', data)
+      console.log('Subscription API response:', data)
       
       if (data.success) {
         // Handle both subscription and single job purchase responses
@@ -702,15 +724,15 @@ function EmployerDashboardContent() {
           stripeSubscriptionId: null
         }
         
-        console.log('✅ Setting subscription state:', subscriptionData.tier)
+        console.log('Setting subscription state:', subscriptionData.tier)
         setSubscription(subscriptionData)
-        console.log('✅ Subscription state set:', subscriptionData)
+        console.log('Subscription state set:', subscriptionData)
       } else {
-        console.log('ℹ️ No active subscription found, setting free tier')
+        console.log('No active subscription found, setting free tier')
         setSubscription({ tier: 'free', credits: 0, activeJobs: 0, activeJobsLimit: 0, stripeSubscriptionId: null })
       }
     } catch (error) {
-      console.error('❌ Error loading subscription:', error)
+      console.error('Error loading subscription:', error)
       setSubscription({ tier: 'free', credits: 0, activeJobs: 0, stripeSubscriptionId: null })
     }
   }
@@ -763,7 +785,7 @@ function EmployerDashboardContent() {
       if (data.success) {
         setUnlockedProfiles(prev => new Set([...prev, profileId]))
         setUserCredits(prev => prev - 1)
-        alert('✅ Contact details unlocked! 1 credit used.')
+        alert('Contact details unlocked. 1 credit used.')
       } else {
         alert('Error unlocking profile: ' + data.error)
       }
@@ -781,7 +803,7 @@ function EmployerDashboardContent() {
 
   // Debug logging (moved outside filter function)
   if (applications.length > 0 && filteredApplications.length === 0) {
-    console.log('🔍 Filter Debug:', {
+    console.log('Filter Debug:', {
       selectedJobFilter,
       statusFilter,
       totalApplications: applications.length,
@@ -818,20 +840,20 @@ function EmployerDashboardContent() {
 
   // FIXED: Main useEffect with better error handling and loading state management
   useEffect(() => {
-    console.log('🔄 Dashboard useEffect - user:', !!user, 'loading:', loading)
+    console.log('Dashboard useEffect - user:', !!user, 'loading:', loading)
     
     if (loading) {
-      console.log('🔄 Auth still loading, waiting...')
+      console.log('Auth still loading, waiting...')
       return
     }
     
     if (!user) {
-      console.log('❌ No user found, redirecting to login')
+      console.log('No user found, redirecting to login')
       router.push('/auth/login')
       return
     }
     
-    console.log('✅ User found, loading dashboard data')
+    console.log('User found, loading dashboard data')
     loadEmployerData()
   }, [user, loading, router])
 
@@ -844,11 +866,11 @@ function EmployerDashboardContent() {
       }
       
       try {
-        console.log('🔄 Checking subscription status...')
+        console.log('Checking subscription status...')
         const response = await fetch(`/api/check-subscription-status?userId=${user.id}`)
         const data = await response.json()
         
-        console.log('📊 Subscription check response:', data)
+        console.log('Subscription check response:', data)
         
         setSubscriptionCheck({
           loading: false,
@@ -858,7 +880,7 @@ function EmployerDashboardContent() {
         })
 
         if (data.subscription) {
-          console.log('✅ Updating subscription from check:', data.subscription.plan_type)
+          console.log('Updating subscription from check:', data.subscription.plan_type)
           setSubscription({
             tier: data.subscription.plan_type || 'free',
             credits: data.subscription.credits || 0,
@@ -870,7 +892,7 @@ function EmployerDashboardContent() {
           })
         }
       } catch (error) {
-        console.error('❌ Error checking subscription:', error)
+        console.error('Error checking subscription:', error)
         setSubscriptionCheck(prev => ({ ...prev, loading: false }))
       }
     }
@@ -925,7 +947,7 @@ function EmployerDashboardContent() {
   // FIXED: Enhanced data loading with better error handling
   const loadEmployerData = async () => {
     try {
-      console.log('🔄 Loading employer data...')
+      console.log('Loading employer data...')
       setIsLoading(true)
       
       // Load all data with individual error handling
@@ -941,11 +963,11 @@ function EmployerDashboardContent() {
       // Wait for all promises to complete, even if some fail
       await Promise.allSettled(dataPromises)
       
-      console.log('✅ Employer data loading completed')
+      console.log('Employer data loading completed')
     } catch (error) {
-      console.error('❌ Critical error loading employer data:', error)
+      console.error('Critical error loading employer data:', error)
     } finally {
-      console.log('🔄 Setting isLoading to false')
+      console.log('Setting isLoading to false')
       setIsLoading(false)
     }
   }
@@ -954,19 +976,19 @@ function EmployerDashboardContent() {
     if (!user) return
     
     try {
-      console.log('📊 Loading jobs for employer:', user.id)
+      console.log('Loading jobs for employer:', user.id)
       
       const response = await fetch(`/api/jobs?userId=${user.id}`)
       const data = await response.json()
       
       if (data.jobs) {  
         setJobs(data.jobs)
-        console.log(`✅ Loaded ${data.jobs.length} jobs`)
+        console.log(`Loaded ${data.jobs.length} jobs`)
       } else {
-        console.error('❌ Failed to load jobs:', data.error)
+        console.error('Failed to load jobs:', data.error)
       }
     } catch (error) {
-      console.error('❌ Error loading jobs:', error)
+      console.error('Error loading jobs:', error)
     }
   }
 
@@ -974,38 +996,38 @@ function EmployerDashboardContent() {
     if (!user) return
     
     try {
-      console.log('📊 Loading applications for employer:', user.id)
+      console.log('Loading applications for employer:', user.id)
       
       const response = await fetch(`/api/applications?employerId=${user.id}`)
       const data = await response.json()
       
       if (data.success) {
         setApplications(data.applications)
-        console.log(`✅ Loaded ${data.applications.length} applications`)
+        console.log(`Loaded ${data.applications.length} applications`)
         
         // Debug: Log application statuses and current filters
-        console.log('📊 Application statuses:', data.applications.map((app: any) => ({
+        console.log('Application statuses:', data.applications.map((app: any) => ({
           id: app.id,
           status: app.status,
           name: `${app.first_name} ${app.last_name}`
         })))
-        console.log('🔍 Current filters:', { selectedJobFilter, statusFilter })
+        console.log('Current filters:', { selectedJobFilter, statusFilter })
         
         // Force reset filters to show all applications by default
-        console.log('🔄 Current statusFilter:', statusFilter)
+        console.log('Current statusFilter:', statusFilter)
         if (statusFilter !== '') {
-          console.log('🔄 Resetting statusFilter from', statusFilter, 'to empty (show all)')
+          console.log('Resetting statusFilter from', statusFilter, 'to empty (show all)')
           setStatusFilter('')
         }
         if (selectedJobFilter !== '') {
-          console.log('🔄 Resetting selectedJobFilter from', selectedJobFilter, 'to empty (show all)')
+          console.log('Resetting selectedJobFilter from', selectedJobFilter, 'to empty (show all)')
           setSelectedJobFilter('')
         }
       } else {
-        console.error('❌ Failed to load applications:', data.error)
+        console.error('Failed to load applications:', data.error)
       }
     } catch (error) {
-      console.error('❌ Error loading applications:', error)
+      console.error('Error loading applications:', error)
     }
   }
 
@@ -1017,11 +1039,11 @@ function EmployerDashboardContent() {
       const data = await response.json()
       
       if (data.success) {
-        console.log('🔍 Raw analytics data:', data.analytics)
+        console.log('Raw analytics data:', data.analytics)
         setAnalytics(data.analytics)
-        console.log('✅ Loaded analytics data')
+        console.log('Loaded analytics data')
       } else {
-        console.log('❌ Analytics API returned:', data)
+        console.log('Analytics API returned:', data)
       }  
     } catch (error) {
       console.error('Error loading analytics:', error)
@@ -1130,7 +1152,7 @@ function EmployerDashboardContent() {
   const updateApplicationStatus = async (applicationId: number, newStatus: string) => {
     if (!user?.id) return
     
-    console.log('🔄 Updating application status:', { applicationId, newStatus, userId: user.id })
+    console.log('Updating application status:', { applicationId, newStatus, userId: user.id })
     
     try {
       const response = await fetch('/api/applications', {
@@ -1145,11 +1167,11 @@ function EmployerDashboardContent() {
         }),
       })
       
-      console.log('📡 Response status:', response.status, response.statusText)
+      console.log('Response status:', response.status, response.statusText)
       
       if (response.ok) {
         const result = await response.json()
-        console.log('✅ Update successful:', result)
+        console.log('Update successful:', result)
         
         // Send status update email
         try {
@@ -1161,20 +1183,20 @@ function EmployerDashboardContent() {
               newStatus 
             })
           })
-          console.log('📧 Status update email sent')
+          console.log('Status update email sent')
         } catch (emailError) {
-          console.error('📧 Status update email failed:', emailError)
+          console.error('Status update email failed:', emailError)
         }
         
         await loadApplications()
         alert('Application status updated successfully!')
       } else {
         const error = await response.json()
-        console.error('❌ Update failed:', error)
+        console.error('Update failed:', error)
         alert('Error: ' + error.error)
       }
     } catch (error) {
-      console.error('❌ Network error updating application:', error)
+      console.error('Network error updating application:', error)
       alert('Error updating application status')
     }
   }
@@ -1273,8 +1295,9 @@ function EmployerDashboardContent() {
               <p className="text-xs text-blue-600 mt-1">
                 Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobsLimit}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
-                📧 Contact: <a href="mailto:Employers@field-jobs.co" className="text-blue-600 hover:text-blue-800 underline">Employers@field-jobs.co</a>
+              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <Mail size={14} className="text-muted" />
+                Contact: <a href="mailto:Employers@field-jobs.co" className="text-blue-600 hover:text-blue-800 underline">Employers@field-jobs.co</a>
               </p>
             </div>
             <div className="flex gap-3">
@@ -1282,9 +1305,10 @@ function EmployerDashboardContent() {
                 <>
                   <button
                     onClick={() => setShowFreeJobForm(true)}
-                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg"
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm"
                   >
-                    🎁 First Job Free
+                    <Gift size={16} />
+                    First Job Free
                   </button>
                   <button
                     onClick={() => {
@@ -1297,7 +1321,7 @@ function EmployerDashboardContent() {
                       }
                       setShowJobForm(true)
                     }}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-medium"
                   >
                     Post Job
                   </button>
@@ -1314,7 +1338,7 @@ function EmployerDashboardContent() {
                     }
                     setShowJobForm(true)
                   }}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium"
+                  className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-medium"
                 >
                   Post New Job
                 </button>
@@ -1332,7 +1356,7 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">Active Jobs</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-indigo-500">
+              <div className="text-2xl font-bold text-brand-600">
                 {(subscription.tier === 'enterprise' || subscription.tier === 'unlimited')
                   ? '∞'
                   : `${Math.max(0, (subscription.activeJobsLimit || 0) - jobs.length)}`
@@ -1348,7 +1372,7 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">Total Applications</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-purple-500">
+              <div className="text-2xl font-bold text-brand-600">
                 {userCredits}
               </div>
               <div className="text-sm text-gray-600">Resume Search Credits</div>
@@ -1360,24 +1384,25 @@ function EmployerDashboardContent() {
         <div className="bg-white rounded-lg p-4 mb-6 shadow">
           <div className="flex flex-wrap gap-2">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'jobs', label: 'Job Postings', icon: '💼' },
-              { id: 'applications', label: 'Applications', icon: '📧', badge: applications.length },
-              { id: 'resume-search', label: 'Resume Search', icon: '🔍' },
-              { id: 'analytics', label: 'Analytics', icon: '📈' },
-              { id: 'billing', label: 'Products & Billing', icon: '🛒' },
-              { id: 'profile', label: 'Profile', icon: '👤' }
+              { id: 'overview', label: 'Overview', icon: BarChart3 },
+              { id: 'jobs', label: 'Job Postings', icon: Briefcase },
+              { id: 'applications', label: 'Applications', icon: Mail, badge: applications.length },
+              { id: 'resume-search', label: 'Resume Search', icon: Search },
+              { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+              { id: 'billing', label: 'Products & Billing', icon: ShoppingCart },
+              { id: 'profile', label: 'Profile', icon: User }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                   activeTab === tab.id
-                    ? 'bg-orange-500 text-white'
+                    ? 'bg-brand-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {tab.icon} {tab.label}
+                <tab.icon size={16} />
+                {tab.label}
                 {tab.badge && tab.badge > 0 && (
                   <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
                     {tab.badge}
@@ -1409,20 +1434,20 @@ function EmployerDashboardContent() {
                         </div>
                         <div className="flex gap-1">
                           {job.is_free_job && (
-                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">🎁 FREE</span>
+                            <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Gift size={12} />FREE</span>
                           )}
                           {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) && (
-                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">⭐ Featured</span>
+                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Star size={12} fill="currentColor" />Featured</span>
                           )}
                           {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) && (
-                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">🚨 Urgent</span>
+                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Zap size={12} fill="currentColor" />Urgent</span>
                           )}
                         </div>
                       </div>
                     </div>
                   ))}
                   {jobs.length === 0 && (
-                    <p className="text-gray-500 italic">No jobs posted yet. <button onClick={() => setShowJobForm(true)} className="text-orange-500">Post your first job</button>!</p>
+                    <p className="text-gray-500 italic">No jobs posted yet. <button onClick={() => setShowJobForm(true)} className="text-brand-600">Post your first job</button>.</p>
                   )}
                 </div>
                 
@@ -1439,7 +1464,7 @@ function EmployerDashboardContent() {
                         <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                           app.status === 'submitted' ? 'bg-blue-100 text-blue-800' : 
                           app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                          app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
+                          app.status === 'interviewed' ? 'bg-brand-100 text-brand-800' :
                           app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
@@ -1460,9 +1485,10 @@ function EmployerDashboardContent() {
                   {freeJobEligible && !checkingEligibility && (
                     <button
                       onClick={() => setShowFreeJobForm(true)}
-                      className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-4 py-2 rounded-lg"
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                     >
-                      🎁 Post Free Job
+                      <Gift size={16} />
+                      Post Free Job
                     </button>
                   )}
                   <button
@@ -1476,7 +1502,7 @@ function EmployerDashboardContent() {
                       }
                       setShowJobForm(true)
                     }}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg"
                   >
                     Post New Job
                   </button>
@@ -1513,7 +1539,7 @@ function EmployerDashboardContent() {
                     }
                     setShowJobForm(true)
                   }}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                  className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg"
                 >
                   Post New Job
                 </button>
@@ -1521,12 +1547,12 @@ function EmployerDashboardContent() {
 
               {jobs.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-4xl mb-4">💼</div>
+                  <Briefcase size={40} className="mx-auto mb-4 text-muted" />
                   <h3 className="text-lg font-semibold mb-2">No jobs posted yet</h3>
                   <p className="text-gray-600 mb-4">Start by posting your first job to attract candidates</p>
                   <button
                     onClick={() => setShowJobForm(true)}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg"
                   >
                     Post Your First Job
                   </button>
@@ -1541,13 +1567,13 @@ function EmployerDashboardContent() {
                             <h3 className="text-lg font-semibold">{job.title}</h3>
                             <div className="flex gap-1">
                               {job.is_free_job && (
-                                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">🎁 FREE</span>
+                                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Gift size={12} />FREE</span>
                               )}
                               {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) && (
-                                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">⭐ Featured</span>
+                                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Star size={12} fill="currentColor" />Featured</span>
                               )}
                               {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) && (
-                                <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">🚨 Urgent</span>
+                                <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Zap size={12} fill="currentColor" />Urgent</span>
                               )}
                             </div>
                           </div>
@@ -1575,26 +1601,30 @@ function EmployerDashboardContent() {
                         <div className="flex gap-2">
                           {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) ? (
                             <span className="text-yellow-600 text-sm flex items-center gap-1 opacity-60">
-                              ⭐ Featured Active
+                              <Star size={14} fill="currentColor" />
+                              Featured Active
                             </span>
                           ) : (
                           <button
                             onClick={() => openFeaturePurchase(job, 'featured')}
                             className="text-yellow-600 hover:text-yellow-700 text-sm flex items-center gap-1"
                           >
-                            ⭐ Feature Job
+                            <Star size={14} />
+                            Feature Job
                           </button>
                           )}
                           {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) ? (
                             <span className="text-red-600 text-sm flex items-center gap-1 opacity-60">
-                              🚨 Urgent Active
+                              <Zap size={14} fill="currentColor" />
+                              Urgent Active
                             </span>
                           ) : (
                           <button
                             onClick={() => openFeaturePurchase(job, 'urgent')}
                             className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1"
                           >
-                            🚨 Mark Urgent
+                            <Zap size={14} />
+                            Mark Urgent
                           </button>
                           )}
                         </div>
@@ -1667,7 +1697,7 @@ function EmployerDashboardContent() {
                       onClick={() => {
                         setSelectedJobFilter('')
                         setStatusFilter('')
-                        console.log('🔄 Filters reset to show all applications')
+                        console.log('Filters reset to show all applications')
                       }}
                       className="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded"
                     >
@@ -1679,7 +1709,7 @@ function EmployerDashboardContent() {
 
               {filteredApplications.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-4xl mb-4">📧</div>
+                  <Mail size={40} className="mx-auto mb-4 text-muted" />
                   <h3 className="text-lg font-semibold mb-2">No applications yet</h3>
                   <p className="text-gray-600">Applications will appear here when candidates apply to your jobs</p>
                 </div>
@@ -1694,7 +1724,7 @@ function EmployerDashboardContent() {
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                               app.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
                               app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                              app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
+                              app.status === 'interviewed' ? 'bg-brand-100 text-brand-800' :
                               app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
@@ -1721,9 +1751,10 @@ function EmployerDashboardContent() {
                               const viewerUrl = `/api/view-resume-secure?url=${encodeURIComponent(app.resume_url)}`
                               window.open(viewerUrl, '_blank', 'noopener,noreferrer')
                             }}
-                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-block text-center"
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm inline-flex items-center gap-1 text-center"
                           >
-                            📄 View Resume
+                            <FileText size={14} />
+                            View Resume
                           </button>
                           )}
                           <select
@@ -1756,7 +1787,7 @@ function EmployerDashboardContent() {
                   </div>
                   <button
                     onClick={() => setActiveTab('billing')}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1 rounded text-sm font-medium"
                   >
                     Buy Credits
                   </button>
@@ -1765,50 +1796,50 @@ function EmployerDashboardContent() {
 
               {/* Resume Search Credits Purchase Section */}
               {userCredits < 5 && (
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
+                <div className="bg-brand-50 border border-brand-200 rounded-lg p-6 mb-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="text-2xl">💳</div>
+                    <CreditCard size={28} className="text-brand-700" />
                     <div>
-                      <h3 className="text-lg font-semibold text-orange-800">Need More Resume Search Credits?</h3>
-                      <p className="text-orange-700">Purchase resume search credits to unlock candidate contact information</p>
+                      <h3 className="text-lg font-semibold text-brand-800">Need More Resume Search Credits?</h3>
+                      <p className="text-brand-700">Purchase resume search credits to unlock candidate contact information</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white border border-orange-200 rounded-lg p-4 text-center">
-                      <div className="text-lg font-bold text-orange-600 mb-1">10 Credits</div>
+                    <div className="bg-white border border-brand-200 rounded-lg p-4 text-center">
+                      <div className="text-lg font-bold text-brand-700 mb-1">10 Credits</div>
                       <div className="text-2xl font-bold mb-2">$39</div>
                       <div className="text-sm text-gray-600 mb-3">$3.90 per credit</div>
                       <button
                         onClick={() => handleAddonPurchase('resume_credits_10')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium"
+                        className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg font-medium"
                       >
                         Purchase
                       </button>
                     </div>
                     
-                    <div className="bg-white border border-orange-200 rounded-lg p-4 text-center relative">
+                    <div className="bg-white border border-brand-200 rounded-lg p-4 text-center relative">
                       <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                         Most Popular
                       </div>
-                      <div className="text-lg font-bold text-orange-600 mb-1">25 Credits</div>
+                      <div className="text-lg font-bold text-brand-700 mb-1">25 Credits</div>
                       <div className="text-2xl font-bold mb-2">$79</div>
                       <div className="text-sm text-gray-600 mb-3">$3.16 per credit</div>
                       <button
                         onClick={() => handleAddonPurchase('resume_credits_25')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium"
+                        className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg font-medium"
                       >
                         Purchase
                       </button>
                     </div>
                     
-                    <div className="bg-white border border-orange-200 rounded-lg p-4 text-center">
-                      <div className="text-lg font-bold text-orange-600 mb-1">50 Credits</div>
+                    <div className="bg-white border border-brand-200 rounded-lg p-4 text-center">
+                      <div className="text-lg font-bold text-brand-700 mb-1">50 Credits</div>
                       <div className="text-2xl font-bold mb-2">$129</div>
                       <div className="text-sm text-gray-600 mb-3">$2.58 per credit</div>
                       <button
                         onClick={() => handleAddonPurchase('resume_credits_50')}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg font-medium"
+                        className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg font-medium"
                       >
                         Purchase
                       </button>
@@ -1860,7 +1891,7 @@ function EmployerDashboardContent() {
                   <button
                     onClick={searchResumes}
                     disabled={searchLoading}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg disabled:opacity-50"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-2 rounded-lg disabled:opacity-50"
                   >
                     {searchLoading ? 'Searching...' : 'Search Resumes'}
                   </button>
@@ -1880,7 +1911,7 @@ function EmployerDashboardContent() {
               <div>
                 {searchResults.length === 0 ? (
                   <div className="text-center py-12">
-                    <div className="text-4xl mb-4">🔍</div>
+                    <Search size={40} className="mx-auto mb-4 text-muted" />
                     <h3 className="text-lg font-semibold mb-2">No search results</h3>
                     <p className="text-gray-600">Use the filters above to search for candidates</p>
                   </div>
@@ -1949,8 +1980,8 @@ function EmployerDashboardContent() {
                   <div className="text-2xl font-bold text-green-600">{applications.length}</div>
                   <div className="text-sm text-gray-600">Total Applications</div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
+                <div className="bg-brand-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-brand-600">
                     {applications.length > 0 && analytics.totalViews > 0
                       ? Math.round((applications.length / analytics.totalViews) * 100)
                       : applications.length > 0 ? 'N/A' : 0
@@ -1958,8 +1989,8 @@ function EmployerDashboardContent() {
                   </div>
                   <div className="text-sm text-gray-600">Application Rate</div>
                 </div>
-                <div className="bg-orange-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{jobs.length}</div>
+                <div className="bg-brand-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-brand-600">{jobs.length}</div>
                   <div className="text-sm text-gray-600">Active Jobs</div>
                 </div>
               </div>
@@ -2037,21 +2068,21 @@ function EmployerDashboardContent() {
                 <h2 className="text-xl font-bold mb-6">Plans & Pricing</h2>
 
               <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="border border-orange-200 rounded-lg p-6 bg-orange-50 flex flex-col">
+                <div className="border border-brand-200 rounded-lg p-6 bg-brand-50 flex flex-col">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Single Job Post</h3>
-                    <div className="text-3xl font-bold text-orange-500 my-2">$199</div>
+                    <div className="text-3xl font-bold text-brand-600 my-2">$199</div>
                     <div className="text-gray-600 text-sm">one-time payment</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm flex-grow">
-                    <li>✅ 1 job posting</li>
-                    <li>✅ 60-day duration</li>
-                    <li>✅ Full applicant access</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />1 job posting</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />60-day duration</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />Full applicant access</li>
                   </ul>
                   <button 
                     onClick={handleSingleJobPurchase}
                     disabled={isLoading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium disabled:opacity-50 mt-auto"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 mt-auto"
                   >
                     {isLoading ? 'Processing...' : 'Purchase Now'}
                   </button>
@@ -2070,9 +2101,9 @@ function EmployerDashboardContent() {
                     <div className="text-green-600 text-xs font-semibold mt-1">Save $250/yr — $2,246/yr with annual billing</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm flex-grow">
-                    <li>✅ 20 job postings</li>
-                    <li>✅ 25 resume search credits</li>
-                    <li>✅ Priority support</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />20 job postings</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />25 resume search credits</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />Priority support</li>
                   </ul>
                   <div className="mt-auto">
                     {renderSubscriptionButton('enterprise', process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '')}
@@ -2087,9 +2118,9 @@ function EmployerDashboardContent() {
                     <div className="text-green-600 text-xs font-semibold mt-1">Save $395/yr — $3,553/yr with annual billing</div>
                   </div>
                   <ul className="space-y-2 mb-6 text-sm flex-grow">
-                    <li>✅ Unlimited job postings</li>
-                    <li>✅ 100 resume search credits</li>
-                    <li>✅ Priority support</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />Unlimited job postings</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />100 resume search credits</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-600" />Priority support</li>
                   </ul>
                   <div className="mt-auto">
                     {renderSubscriptionButton('unlimited', process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '')}
@@ -2104,11 +2135,11 @@ function EmployerDashboardContent() {
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
                   <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
                     <h4 className="font-semibold mb-2">Resume Search Credits - 10 Pack</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$39</div>
+                    <div className="text-2xl font-bold text-brand-600 mb-2">$39</div>
                     <p className="text-gray-600 text-sm mb-4 flex-grow">10 credits to unlock candidate profiles</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_10')}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-auto"
+                      className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded mt-auto"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Buy 10 Credits'}
@@ -2117,11 +2148,11 @@ function EmployerDashboardContent() {
                   
                   <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
                     <h4 className="font-semibold mb-2">Resume Search Credits - 25 Pack</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$79</div>
+                    <div className="text-2xl font-bold text-brand-600 mb-2">$79</div>
                     <p className="text-gray-600 text-sm mb-4 flex-grow">25 credits - Best Value</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_25')}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-auto"
+                      className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded mt-auto"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Buy 25 Credits'}
@@ -2130,11 +2161,11 @@ function EmployerDashboardContent() {
                   
                   <div className="border border-gray-200 rounded-lg p-4 flex flex-col">
                     <h4 className="font-semibold mb-2">Resume Search Credits - 50 Pack</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$129</div>
+                    <div className="text-2xl font-bold text-brand-600 mb-2">$129</div>
                     <p className="text-gray-600 text-sm mb-4 flex-grow">50 credits for high volume</p>
                     <button
                       onClick={() => handleAddonPurchase('resume_credits_50')}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded mt-auto"
+                      className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded mt-auto"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Processing...' : 'Buy 50 Credits'}
@@ -2145,27 +2176,29 @@ function EmployerDashboardContent() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold mb-2">Featured Listing</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$29</div>
+                    <div className="text-2xl font-bold text-brand-600 mb-2">$29</div>
                     <p className="text-gray-600 text-sm mb-4">Top of search results with bright highlight badge</p>
                     <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
                     <button 
                       onClick={() => setActiveTab('jobs')}
-                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded flex items-center justify-center gap-2"
                     >
-                      ⭐ Manage Featured Jobs
+                      <Star size={16} />
+                      Manage Featured Jobs
                     </button>
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold mb-2">Urgent Badge</h4>
-                    <div className="text-2xl font-bold text-orange-500 mb-2">$19</div>
+                    <div className="text-2xl font-bold text-brand-600 mb-2">$19</div>
                     <p className="text-gray-600 text-sm mb-4">Bright "URGENT" badge for immediate attention</p>
                     <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
                     <button 
                       onClick={() => setActiveTab('jobs')}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                      className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded flex items-center justify-center gap-2"
                     >
-                      🚨 Manage Urgent Jobs
+                      <Zap size={16} />
+                      Manage Urgent Jobs
                     </button>
                   </div>
                 </div>
@@ -2193,9 +2226,10 @@ function EmployerDashboardContent() {
                         zipCode: profile.zip_code || ''
                       })
                     }}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                   >
-                    ✏️ Edit Profile
+                    <Pencil size={16} />
+                    Edit Profile
                   </button>
                 ) : (
                   <div className="flex gap-2">
@@ -2226,20 +2260,20 @@ function EmployerDashboardContent() {
 
                           if (!response.ok) throw new Error('Failed to update profile')
 
-                          alert('✅ Profile updated successfully!')
+                          alert('Profile updated.')
                           setIsEditingProfile(false)
                           await loadProfile()
                         } catch (error) {
                           console.error('Error updating profile:', error)
-                          alert('❌ Failed to update profile')
+                          alert('Failed to update profile.')
                         } finally {
                           setIsLoading(false)
                         }
                       }}
                       disabled={isLoading}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg disabled:opacity-50 flex items-center gap-2"
                     >
-                      {isLoading ? 'Saving...' : '💾 Save Changes'}
+                      {isLoading ? 'Saving...' : <><Save size={16} />Save Changes</>}
                     </button>
                   </div>
                 )}
@@ -2429,7 +2463,7 @@ function EmployerDashboardContent() {
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  ✕
+                  <X size={20} />
                 </button>
               </div>
               
@@ -2613,7 +2647,7 @@ function EmployerDashboardContent() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                    className="px-4 py-2 bg-brand-600 text-white rounded hover:bg-brand-700"
                   >
                     {editingJob ? 'Update Job' : 'Post Job'}
                   </button>
@@ -2628,18 +2662,22 @@ function EmployerDashboardContent() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white text-gray-900 rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-green-600">Post Your First Job Free! 🎁</h2>
+                <h2 className="text-xl font-bold text-green-600 flex items-center gap-2">
+                  <Gift size={20} />
+                  Post Your First Job Free
+                </h2>
                 <button
                   onClick={() => setShowFreeJobForm(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  ✕
+                  <X size={20} />
                 </button>
               </div>
               
-              <div className="bg-green-50 p-4 rounded-lg mb-4">
+              <div className="bg-green-50 p-4 rounded-lg mb-4 flex items-start gap-2">
+                <CheckCircle2 size={18} className="text-green-700 mt-0.5 shrink-0" />
                 <p className="text-green-800">
-                  🎉 Congratulations! You're eligible for one free job posting. This is a limited-time offer for new employers.
+                  You're eligible for one free job posting. This is a limited-time offer for new employers.
                 </p>
               </div>
               
@@ -2815,9 +2853,9 @@ function EmployerDashboardContent() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded hover:from-green-600 hover:to-blue-600 disabled:opacity-50"
+                    className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 inline-flex items-center gap-2"
                   >
-                    {isLoading ? 'Posting...' : 'Post Free Job 🎁'}
+                    {isLoading ? 'Posting...' : <><Gift size={16} />Post Free Job</>}
                   </button>
                 </div>
               </form>
@@ -2835,7 +2873,7 @@ function EmployerDashboardContent() {
                   onClick={() => setShowApplicationModal(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  ✕
+                  <X size={20} />
                 </button>
               </div>
               
@@ -2867,9 +2905,10 @@ function EmployerDashboardContent() {
                         const viewerUrl = `/api/view-resume-secure?url=${encodeURIComponent(selectedApplication.resume_url)}`
                         window.open(viewerUrl, '_blank', 'noopener,noreferrer')
                       }}
-                      className="text-blue-600 hover:text-blue-800 underline font-medium"
+                      className="text-blue-600 hover:text-blue-800 underline font-medium inline-flex items-center gap-1"
                     >
-                      📄 {selectedApplication.resume_filename || 'View Resume'}
+                      <FileText size={14} />
+                      {selectedApplication.resume_filename || 'View Resume'}
                     </button>
                   ) : (
                     <span className="text-gray-500 italic">No resume uploaded</span>
@@ -2918,7 +2957,7 @@ function EmployerDashboardContent() {
                   onClick={() => setShowFeatureModal(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
-                  ✕
+                  <X size={20} />
                 </button>
               </div>
               
@@ -2928,8 +2967,8 @@ function EmployerDashboardContent() {
               </div>
               
               <div className="bg-yellow-50 p-4 rounded-lg mb-4">
-                <h4 className="font-semibold mb-2">
-                  {featureType === 'featured' ? '⭐ Featured Job Listing' : '🚨 Urgent Job Badge'}
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  {featureType === 'featured' ? <><Star size={16} />Featured Job Listing</> : <><Zap size={16} />Urgent Job Badge</>}
                 </h4>
                 <p className="text-sm text-gray-700 mb-2">
                   {featureType === 'featured' 
@@ -2954,7 +2993,7 @@ function EmployerDashboardContent() {
                     handleJobFeaturePurchase(selectedJobForFeature.id, featureType)
                     setShowFeatureModal(false)
                   }}
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  className="px-4 py-2 bg-brand-600 text-white rounded hover:bg-brand-700"
                 >
                   Purchase {featureType === 'featured' ? '$29' : '$19'}
                 </button>
@@ -2968,8 +3007,8 @@ function EmployerDashboardContent() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="text-center mb-4">
-                <div className="text-4xl mb-2">🎉</div>
-                <h2 className="text-xl font-bold">Great News!</h2>
+                <PartyPopper size={32} className="mx-auto mb-2 text-brand-600" />
+                <h2 className="text-xl font-bold">Great News</h2>
               </div>
               
               <div className="mb-4">
@@ -2990,7 +3029,7 @@ function EmployerDashboardContent() {
                 </button>
                 <button
                   onClick={() => handlePromptAction('upgrade')}
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                  className="px-4 py-2 bg-brand-600 text-white rounded hover:bg-brand-700"
                 >
                   View Plans
                 </button>
@@ -3004,12 +3043,12 @@ function EmployerDashboardContent() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg p-8 w-full max-w-lg">
               <div className="text-center mb-6">
-                <div className="text-5xl mb-3">💰</div>
-                <h2 className="text-2xl font-bold mb-2">Save Big with Annual Billing!</h2>
+                <PiggyBank size={44} className="mx-auto mb-3 text-green-600" />
+                <h2 className="text-2xl font-bold mb-2">Save with annual billing</h2>
                 <p className="text-gray-600">Get 10% off when you pay annually</p>
               </div>
               
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 mb-6">
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
                 {selectedPlanForModal.plan === 'enterprise' && (
                   <>
                     <div className="flex justify-between items-center mb-4">
@@ -3018,7 +3057,7 @@ function EmployerDashboardContent() {
                         <div className="text-2xl font-bold text-gray-800">$208/month</div>
                         <div className="text-xs text-gray-500">$2,496/year total</div>
                       </div>
-                      <div className="text-3xl">→</div>
+                      <ArrowRight size={24} className="text-muted" />
                       <div>
                         <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
                         <div className="text-2xl font-bold text-green-600">$187/month</div>
@@ -3026,8 +3065,9 @@ function EmployerDashboardContent() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
-                        Save $250 per year! 💵
+                      <div className="inline-flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                        <DollarSign size={16} />
+                        Save $250 per year
                       </div>
                     </div>
                   </>
@@ -3040,7 +3080,7 @@ function EmployerDashboardContent() {
                         <div className="text-2xl font-bold text-gray-800">$329/month</div>
                         <div className="text-xs text-gray-500">$3,948/year total</div>
                       </div>
-                      <div className="text-3xl">→</div>
+                      <ArrowRight size={24} className="text-muted" />
                       <div>
                         <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
                         <div className="text-2xl font-bold text-green-600">$296/month</div>
@@ -3048,8 +3088,9 @@ function EmployerDashboardContent() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
-                        Save $395 per year! 💵
+                      <div className="inline-flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                        <DollarSign size={16} />
+                        Save $395 per year
                       </div>
                     </div>
                   </>
@@ -3062,9 +3103,10 @@ function EmployerDashboardContent() {
                     setShowAnnualSavingsModal(false)
                     handleSubscriptionPurchase(selectedPlanForModal.plan, 'yearly')
                   }}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-lg"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-sm flex items-center justify-center gap-2"
                 >
-                  ✓ Choose Annual Plan & Save!
+                  <CheckCircle2 size={20} />
+                  Choose Annual Plan & Save
                 </button>
                 <button
                   onClick={() => {
