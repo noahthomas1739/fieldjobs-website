@@ -2,6 +2,17 @@
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import {
+  Gift,
+  X,
+  Target,
+  Zap,
+  Rocket,
+  Check,
+  Star,
+  DollarSign,
+  ArrowRight,
+} from 'lucide-react'
 
 export default function EmployersPage() {
   const { user } = useAuth()
@@ -340,7 +351,7 @@ export default function EmployersPage() {
       {/* Thin Free Job Notification */}
       {showFreeJobBanner && (
         <div style={{ 
-          background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', 
+          background: '#1d4ed8', 
           color: 'white', 
           padding: '0.75rem 2rem', 
           textAlign: 'center',
@@ -351,9 +362,15 @@ export default function EmployersPage() {
           borderRadius: '8px'
         }}>
           {!user ? (
-            <>🎁 Employers: Post Your First Job FREE for 90 Days - No credit card required!</>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Gift size={16} />
+              Employers: post your first job free for 90 days — no credit card required
+            </span>
           ) : freeJobEligible ? (
-            <>🎁 You're eligible! Post Your First Job FREE for 90 Days</>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Gift size={16} />
+              You&apos;re eligible — post your first job free for 90 days
+            </span>
           ) : null}
           
           <button
@@ -387,12 +404,13 @@ export default function EmployersPage() {
               background: 'none',
               border: 'none',
               color: 'white',
-              fontSize: '1.2rem',
               cursor: 'pointer',
-              opacity: 0.7
+              opacity: 0.7,
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            ×
+            <X size={18} />
           </button>
         </div>
       )}
@@ -404,15 +422,24 @@ export default function EmployersPage() {
 
       <div className="grid md:grid-cols-3 gap-8 mb-8">
         <div className="text-center">
-          <h3 className="text-xl font-bold text-orange-500 mb-3">🎯 Targeted Reach</h3>
+          <h3 className="text-xl font-bold text-brand-600 mb-3 flex items-center justify-center gap-2">
+            <Target size={20} />
+            Targeted Reach
+          </h3>
           <p>Connect directly with qualified engineers, technicians, and technical professionals.</p>
         </div>
         <div className="text-center">
-          <h3 className="text-xl font-bold text-orange-500 mb-3">⚡ Fast Hiring</h3>
+          <h3 className="text-xl font-bold text-brand-600 mb-3 flex items-center justify-center gap-2">
+            <Zap size={20} />
+            Fast Hiring
+          </h3>
           <p>Post jobs and start receiving applications within hours from our active candidate base.</p>
         </div>
         <div className="text-center">
-          <h3 className="text-xl font-bold text-orange-500 mb-3">🚀 Quick Results</h3>
+          <h3 className="text-xl font-bold text-brand-600 mb-3 flex items-center justify-center gap-2">
+            <Rocket size={20} />
+            Quick Results
+          </h3>
           <p>Post jobs in minutes and start receiving applications immediately.</p>
         </div>
       </div>
@@ -423,77 +450,81 @@ export default function EmployersPage() {
           <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
           <p className="text-xl text-gray-600">Flexible pricing to fit your hiring needs</p>
           {freeJobEligible && user && (
-            <div className="bg-green-100 text-green-800 p-3 rounded-lg mt-4 inline-block">
-              🎁 You're eligible for a FREE job posting! <button onClick={handleFreeJobClick} className="underline font-semibold">Post it now</button>
+            <div className="bg-green-100 text-green-800 p-3 rounded-lg mt-4 inline-flex items-center gap-2">
+              <Gift size={16} />
+              You&apos;re eligible for a free job posting. <button onClick={handleFreeJobClick} className="underline font-semibold">Post it now</button>
             </div>
           )}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {/* Single Job Option */}
-          <div className="border-2 border-gray-200 rounded-lg p-6 text-center flex flex-col">
+          <div className="border-2 border-border rounded-lg p-6 text-center flex flex-col bg-white shadow-sm">
             <h3 className="text-xl font-semibold mb-4">Single Job Post</h3>
-            <div className="text-3xl font-bold text-orange-500 mb-2">$199</div>
+            <div className="text-3xl font-bold text-brand-600 mb-2">$199</div>
             <div className="text-gray-600 mb-4">one-time payment</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
-              <li>✅ 1 job posting</li>
-              <li>✅ 60-day duration</li>
-              <li>✅ Full applicant access</li>
-              <li>✅ Email support</li>
-              <li>✅ Advanced analytics</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> 1 job posting</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> 60-day duration</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Full applicant access</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Email support</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Advanced analytics</li>
             </ul>
             <button 
               onClick={handleSingleJobPurchase}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold"
+              className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-semibold"
             >
               Purchase Now
             </button>
           </div>
 
           {/* Enterprise Plan */}
-          <div className="border-2 border-purple-500 rounded-lg p-6 bg-purple-50 text-center flex flex-col relative">
+          <div className="border-2 border-brand-600 rounded-lg p-6 bg-brand-50 text-center flex flex-col relative shadow-sm">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold">BEST VALUE</span>
+              <span className="bg-brand-600 text-white px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1">
+                <Star size={12} fill="white" />
+                BEST VALUE
+              </span>
             </div>
             <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
-            <div className="text-3xl font-bold text-purple-600 mb-2">$208</div>
+            <div className="text-3xl font-bold text-brand-600 mb-2">$208</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
             <div className="text-green-600 text-xs font-semibold mb-4">Save $250/yr — $2,246/yr with annual billing</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
-              <li>✅ 20 job postings</li>
-              <li>✅ 25 resume search credits</li>
-              <li>✅ Email support</li>
-              <li>✅ Advanced analytics</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> 20 job postings</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> 25 resume search credits</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Email support</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Advanced analytics</li>
             </ul>
             <button 
               onClick={() => {
                 setSelectedPlanForModal('enterprise')
                 setShowAnnualSavingsModal(true)
               }}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
+              className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-semibold"
             >
               Choose Plan
             </button>
           </div>
 
           {/* Unlimited Plan */}
-          <div className="border-2 border-indigo-500 rounded-lg p-6 bg-indigo-50 text-center flex flex-col">
+          <div className="border-2 border-border rounded-lg p-6 bg-white text-center flex flex-col shadow-sm">
             <h3 className="text-xl font-semibold mb-4">Unlimited</h3>
-            <div className="text-3xl font-bold text-indigo-600 mb-2">$329</div>
+            <div className="text-3xl font-bold text-brand-600 mb-2">$329</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
             <div className="text-green-600 text-xs font-semibold mb-4">Save $395/yr — $3,553/yr with annual billing</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
-              <li>✅ Unlimited job postings</li>
-              <li>✅ 100 resume search credits</li>
-              <li>✅ Priority support</li>
-              <li>✅ Advanced analytics</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Unlimited job postings</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> 100 resume search credits</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Priority support</li>
+              <li className="flex items-center gap-2"><Check size={16} className="text-green-600 shrink-0" /> Advanced analytics</li>
             </ul>
             <button 
               onClick={() => {
                 setSelectedPlanForModal('unlimited')
                 setShowAnnualSavingsModal(true)
               }}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold"
+              className="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg font-semibold"
             >
               Choose Plan
             </button>
@@ -504,14 +535,14 @@ export default function EmployersPage() {
         <div className="bg-gray-50 p-8 rounded-lg mb-8">
           <h3 className="text-2xl font-bold text-center mb-6">Premium Add-Ons</h3>
           <div className="grid md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-white rounded-lg border">
+            <div className="text-center p-6 bg-white rounded-lg border border-border shadow-sm">
               <h4 className="font-semibold mb-3">Extra Resume Search Credits</h4>
-              <div className="text-lg font-bold text-orange-500 mb-4">Never expire</div>
+              <div className="text-lg font-bold text-brand-600 mb-4">Never expire</div>
               <div className="space-y-3">
                 <div>
                   <button 
                     onClick={() => handleCreditPurchase('small')}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded mb-1"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded mb-1"
                   >
                     $39 - Buy 10 Credits
                   </button>
@@ -519,7 +550,7 @@ export default function EmployersPage() {
                 <div>
                   <button 
                     onClick={() => handleCreditPurchase('medium')}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded mb-1"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded mb-1"
                   >
                     $79 - Buy 25 Credits
                   </button>
@@ -527,7 +558,7 @@ export default function EmployersPage() {
                 <div>
                   <button 
                     onClick={() => handleCreditPurchase('large')}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded"
                   >
                     $129 - Buy 50 Credits
                   </button>
@@ -535,31 +566,37 @@ export default function EmployersPage() {
               </div>
               <p className="text-xs text-gray-500 mt-3">Need to unlock more candidate contact info from our database? Buy extra credits for busy periods.</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg border">
+            <div className="text-center p-6 bg-white rounded-lg border border-border shadow-sm">
               <h4 className="font-semibold mb-3">Featured Job</h4>
-              <div className="text-lg font-bold text-orange-500 mb-2">+$29</div>
+              <div className="text-lg font-bold text-brand-600 mb-2">+$29</div>
               <div className="text-sm text-gray-600 mb-4">per job posting</div>
               <p className="text-xs text-gray-500 mb-4">Your job appears at the top of search results with a bright highlight badge</p>
               <button 
                 onClick={() => handleAddonPurchase('featured')}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded"
               >
                 Feature Jobs
               </button>
-              <p className="text-xs text-green-600 mt-2 font-medium">✓ Works with FREE jobs too!</p>
+              <p className="text-xs text-green-600 mt-2 font-medium flex items-center justify-center gap-1">
+                <Check size={14} />
+                Works with free jobs too
+              </p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg border">
+            <div className="text-center p-6 bg-white rounded-lg border border-border shadow-sm">
               <h4 className="font-semibold mb-3">Urgent Badge</h4>
-              <div className="text-lg font-bold text-orange-500 mb-2">+$19</div>
+              <div className="text-lg font-bold text-brand-600 mb-2">+$19</div>
               <div className="text-sm text-gray-600 mb-4">per job posting</div>
               <p className="text-xs text-gray-500 mb-4">Add a bright "URGENT" badge to get immediate attention from job seekers</p>
               <button 
                 onClick={() => handleAddonPurchase('urgent')}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded"
               >
                 Add Urgent
               </button>
-              <p className="text-xs text-green-600 mt-2 font-medium">✓ Works with FREE jobs too!</p>
+              <p className="text-xs text-green-600 mt-2 font-medium flex items-center justify-center gap-1">
+                <Check size={14} />
+                Works with free jobs too
+              </p>
             </div>
           </div>
         </div>
@@ -572,14 +609,15 @@ export default function EmployersPage() {
           {freeJobEligible && user ? (
             <button 
               onClick={handleFreeJobClick}
-              className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-lg"
+              className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg text-lg font-semibold shadow-sm inline-flex items-center gap-2"
             >
-              🎁 Post Your First Job FREE
+              <Gift size={18} />
+              Post Your First Job Free
             </button>
           ) : (
             <button 
               onClick={handleSingleJobPurchase}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-lg font-semibold"
+              className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg text-lg font-semibold"
             >
               Post Your First Job - $99
             </button>
@@ -592,12 +630,12 @@ export default function EmployersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-8 w-full max-w-lg">
             <div className="text-center mb-6">
-              <div className="text-5xl mb-3">💰</div>
-              <h2 className="text-2xl font-bold mb-2">Save Big with Annual Billing!</h2>
+              <DollarSign size={40} className="text-brand-600 mx-auto mb-3" />
+              <h2 className="text-2xl font-bold mb-2">Save with Annual Billing</h2>
               <p className="text-gray-600">Get 10% off when you pay annually</p>
             </div>
 
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 mb-6">
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
               {selectedPlanForModal === 'enterprise' && (
                 <>
                   <div className="flex justify-between items-center mb-4">
@@ -606,7 +644,7 @@ export default function EmployersPage() {
                       <div className="text-2xl font-bold text-gray-800">$208/month</div>
                       <div className="text-xs text-gray-500">$2,496/year total</div>
                     </div>
-                    <div className="text-3xl">→</div>
+                    <ArrowRight size={24} className="text-gray-400" />
                     <div>
                       <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
                       <div className="text-2xl font-bold text-green-600">$187/month</div>
@@ -614,8 +652,9 @@ export default function EmployersPage() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
-                      Save $250 per year! 💵
+                    <div className="inline-flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                      <DollarSign size={16} />
+                      Save $250 per year
                     </div>
                   </div>
                 </>
@@ -628,7 +667,7 @@ export default function EmployersPage() {
                       <div className="text-2xl font-bold text-gray-800">$329/month</div>
                       <div className="text-xs text-gray-500">$3,948/year total</div>
                     </div>
-                    <div className="text-3xl">→</div>
+                    <ArrowRight size={24} className="text-gray-400" />
                     <div>
                       <div className="text-sm text-green-600 font-semibold">Annual Plan</div>
                       <div className="text-2xl font-bold text-green-600">$296/month</div>
@@ -636,8 +675,9 @@ export default function EmployersPage() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="inline-block bg-green-600 text-white px-4 py-2 rounded-full font-bold">
-                      Save $395 per year! 💵
+                    <div className="inline-flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+                      <DollarSign size={16} />
+                      Save $395 per year
                     </div>
                   </div>
                 </>
@@ -652,9 +692,10 @@ export default function EmployersPage() {
                   setSelectedPlanForModal(null)
                   handleSubscriptionPurchase(plan, 'yearly')
                 }}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-sm inline-flex items-center justify-center gap-2"
               >
-                ✓ Choose Annual Plan & Save!
+                <Check size={20} />
+                Choose Annual Plan &amp; Save
               </button>
               <button
                 onClick={() => {
