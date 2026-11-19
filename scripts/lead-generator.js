@@ -55,6 +55,16 @@ async function completeRunLog(runId, status, payload = {}) {
 // Total: ~100 verified emails/month for FREE
 // ==========================================
 
+// Hunter departments, best first. People in these roles post or own traveling craft reqs.
+const PREFERRED_DEPARTMENTS = ['hr', 'operations', 'management', 'executive'];
+// Never pick these — they cannot hire and just bounce us to someone else.
+const SKIP_DEPARTMENTS = ['it', 'finance', 'legal', 'marketing', 'communication', 'design', 'education'];
+
+function departmentRank(department) {
+  const idx = PREFERRED_DEPARTMENTS.indexOf(department);
+  return idx === -1 ? PREFERRED_DEPARTMENTS.length : idx;
+}
+
 /**
  * Find email using Hunter.io (25 free/month)
  * Docs: https://hunter.io/api-documentation/v2
@@ -65,7 +75,7 @@ async function findEmailHunter(companyDomain) {
   
   try {
     // Use Domain Search to find emails - prioritize personal emails with seniority
-    const url = `https://api.hunter.io/v2/domain-search?domain=${companyDomain}&type=personal&limit=5&api_key=${config.emailServices.hunter.apiKey}`;
+    const url = `https://api.hunter.io/v2/domain-search?domain=${companyDomain}&type=personal&limit=10&api_key=${config.emailServices.hunter.apiKey}`;
     const response = await fetch(url);
     const data = await response.json();
     
@@ -74,8 +84,10 @@ async function findEmailHunter(companyDomain) {
       return null;
     }
     
-    // Find the best email - prefer verified ones with high confidence
-    const emails = data.data?.emails || [];
+    // Find the best email - hiring-relevant departments first, then verified / high confidence
+    const emails = (data.data?.emails || [])
+      .filter(e => !SKIP_DEPARTMENTS.includes(e.department))
+      .sort((a, b) => departmentRank(a.department) - departmentRank(b.department));
     const bestEmail = emails.find(e => e.verification?.status === 'valid') || 
                       emails.find(e => e.confidence > 80) ||
                       emails[0];
@@ -865,5 +877,11 @@ if (require.main === module) {
     });
 }
 
-module.exports = { runLeadGenerator };
+module.exports = {
+  runLeadGenerator,
+  findVerifiedEmail,
+  getExistingLeads,
+  saveTriedDomain,
+  validateEmailServices,
+};
 

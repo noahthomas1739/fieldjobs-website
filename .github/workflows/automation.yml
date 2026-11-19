@@ -18,6 +18,8 @@ on:
     - cron: '0 14,18,22 * * *'
     # Lead Gen Health Check: Tuesdays 9 AM EST (day after lead generator)
     - cron: '0 14 * * 2'
+    # Board Employers: Wednesdays 8 AM EST (companies posting on RoadDogJobs / RoadTechs)
+    - cron: '0 13 * * 3'
   
   # Allow manual triggers
   workflow_dispatch:
@@ -34,6 +36,7 @@ on:
           - email-outreach
           - job-seeker-digest
           - lead-gen-health
+          - board-employers
       digest_limit:
         description: 'Job seeker digest — max recipients (only for job-seeker-digest)'
         required: false
@@ -95,6 +98,31 @@ jobs:
       - name: Report results
         if: always()
         run: echo "Job aggregator completed"
+
+  # ==========================================
+  # BOARD EMPLOYERS
+  # ==========================================
+  board-employers:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' && github.event.schedule == '0 13 * * 3' ||
+      github.event_name == 'workflow_dispatch' && github.event.inputs.script == 'board-employers'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Board Employers
+        run: node scripts/board-employers.js
 
   # ==========================================
   # LEAD GENERATOR
