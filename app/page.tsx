@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useJobViewTracking } from '@/hooks/useJobViewTracking'
+import { JobDescription, cleanJobDescriptionText } from '@/lib/formatJobDescription'
 import {
   Search,
   Mail,
@@ -1500,7 +1501,7 @@ export default function HomePage() {
                     fontSize: '0.9rem',
                     marginBottom: '1rem'
                   }}>
-                        {job.description.substring(0, 200)}...
+                        {cleanJobDescriptionText(job.description).substring(0, 200)}...
                   </div>
                   
                   {/* Footer */}
@@ -1925,20 +1926,20 @@ export default function HomePage() {
             
             <div style={{ marginBottom: '1.5rem' }}>
               <h3>Job Description</h3>
-              <p style={{ lineHeight: 1.6, color: '#555' }}>{selectedJob.description}</p>
+              <JobDescription text={selectedJob.description} style={{ lineHeight: 1.6, color: '#555' }} />
             </div>
             
             {selectedJob.requirements && (
               <div style={{ marginBottom: '1.5rem' }}>
                 <h3>Requirements</h3>
-                <pre style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: '#555' }}>{selectedJob.requirements}</pre>
+                <JobDescription text={selectedJob.requirements} style={{ lineHeight: 1.6, color: '#555' }} />
               </div>
             )}
             
             {selectedJob.benefits && (
               <div style={{ marginBottom: '1.5rem' }}>
                 <h3>Benefits</h3>
-                <pre style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap', lineHeight: 1.6, color: '#555' }}>{selectedJob.benefits}</pre>
+                <JobDescription text={selectedJob.benefits} style={{ lineHeight: 1.6, color: '#555' }} />
               </div>
             )}
             

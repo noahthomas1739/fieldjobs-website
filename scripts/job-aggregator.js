@@ -7,6 +7,7 @@
 const config = require('./config');
 const { createClient } = require('@supabase/supabase-js');
 const { extractRecruiterEmail } = require('../lib/extractRecruiterEmail');
+const { cleanJobDescriptionText } = require('../lib/sanitizeJobText');
 
 // Initialize Supabase with service role key
 const supabase = createClient(config.supabase.url, config.supabase.serviceKey);
@@ -296,12 +297,17 @@ async function saveJobsToDatabase(jobs) {
       const salaryMax = job.salary_max ? Math.round(Number(job.salary_max)) : null;
       
       const contactEmail = extractRecruiterEmail(job.description) || null;
+      // Sanitize at ingestion: upstream sources (USAJobs, JSearch) often hand
+      // back raw HTML and/or markdown-style emphasis (_word_, **word**) that
+      // would otherwise show up as literal underscores/asterisks/tags on the
+      // site. Store a cleaned version so every consumer gets tidy text.
+      const cleanedDescription = cleanJobDescriptionText(job.description);
 
       const jobRecord = {
         title: job.title?.substring(0, 200) || 'Untitled',
         company_name: job.company?.substring(0, 100) || 'Unknown Company',
         location: job.location?.substring(0, 200) || 'United States',
-        description: job.description?.substring(0, 5000) || '',
+        description: cleanedDescription.substring(0, 5000) || '',
         contact_email: contactEmail ? contactEmail.substring(0, 200) : null,
         salary_min: salaryMin,
         salary_max: salaryMax,

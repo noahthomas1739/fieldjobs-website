@@ -5,6 +5,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import SubscriptionManagement from '@/components/SubscriptionManagement'
+import { cleanJobDescriptionText } from '@/lib/formatJobDescription'
 
 function EmployerDashboardContent() {
   const { user, loading } = useAuth()
@@ -1552,7 +1553,7 @@ function EmployerDashboardContent() {
                           </div>
                           <p className="text-gray-600 mb-1">{job.company} • {job.region}</p>
                           <p className="text-gray-500 text-sm">Posted: {formatDate(job.created_at)}</p>
-                          <p className="text-gray-700 mt-2 line-clamp-2">{job.description}</p>
+                          <p className="text-gray-700 mt-2 line-clamp-2">{cleanJobDescriptionText(job.description)}</p>
                         </div>
                         <div className="flex gap-2 ml-4">
                           <button
