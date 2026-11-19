@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { CheckCircle2, XCircle } from 'lucide-react'
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -64,9 +65,9 @@ export default function Contact() {
           {submitStatus === 'success' && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
               <div className="flex">
-                <div className="text-green-600 mr-3">✅</div>
+                <div className="text-green-600 mr-3"><CheckCircle2 size={20} /></div>
                 <div>
-                  <h3 className="text-green-800 font-medium">Message Sent!</h3>
+                  <h3 className="text-green-800 font-medium">Message sent</h3>
                   <p className="text-green-700 text-sm">We'll get back to you soon.</p>
                 </div>
               </div>
@@ -76,7 +77,7 @@ export default function Contact() {
           {submitStatus === 'error' && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
               <div className="flex">
-                <div className="text-red-600 mr-3">❌</div>
+                <div className="text-red-600 mr-3"><XCircle size={20} /></div>
                 <div>
                   <h3 className="text-red-800 font-medium">Error</h3>
                   <p className="text-red-700 text-sm">{errorMessage}</p>
@@ -94,7 +95,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="Your full name"
               />
             </div>
@@ -106,7 +107,7 @@ export default function Contact() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="your.email@example.com"
               />
             </div>
@@ -116,7 +117,7 @@ export default function Contact() {
                 name="subject"
                 value={formData.subject}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600"
               >
                 <option>General Inquiry</option>
                 <option>Technical Support</option>
@@ -134,7 +135,7 @@ export default function Contact() {
                 onChange={handleChange}
                 required
                 rows={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="Please describe your inquiry..."
               />
             </div>
@@ -151,7 +152,7 @@ export default function Contact() {
             <button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-brand-600 text-white py-2 px-4 rounded-md hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>

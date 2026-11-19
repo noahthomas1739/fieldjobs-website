@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
@@ -123,7 +124,7 @@ export default function TermsOfService() {
 
               <h3 className="text-lg font-medium text-gray-800 mb-2">7.3 Copyright Complaints</h3>
               <p className="text-gray-700">
-                If you believe content on our Service infringes your copyright, contact us at <a href="mailto:legal@field-jobs.co" className="text-orange-500 hover:underline">legal@field-jobs.co</a> with details of the alleged infringement.
+                If you believe content on our Service infringes your copyright, contact us at <a href="mailto:legal@field-jobs.co" className="text-brand-600 hover:underline">legal@field-jobs.co</a> with details of the alleged infringement.
               </p>
             </section>
 
@@ -243,15 +244,16 @@ export default function TermsOfService() {
               </p>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-gray-700"><strong>FieldJobs</strong></p>
-                <p className="text-gray-700">Email: <a href="mailto:legal@field-jobs.co" className="text-orange-500 hover:underline">legal@field-jobs.co</a></p>
-                <p className="text-gray-700">Website: <a href="https://field-jobs.co/contact" className="text-orange-500 hover:underline">field-jobs.co/contact</a></p>
+                <p className="text-gray-700">Email: <a href="mailto:legal@field-jobs.co" className="text-brand-600 hover:underline">legal@field-jobs.co</a></p>
+                <p className="text-gray-700">Website: <a href="https://field-jobs.co/contact" className="text-brand-600 hover:underline">field-jobs.co/contact</a></p>
               </div>
             </section>
           </div>
 
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <Link href="/" className="text-orange-500 hover:text-orange-600 font-medium">
-              ← Back to Home
+            <Link href="/" className="text-brand-600 hover:text-brand-700 font-medium inline-flex items-center gap-1.5">
+              <ArrowLeft size={16} />
+              Back to Home
             </Link>
           </div>
         </div>

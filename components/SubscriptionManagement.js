@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Calendar, AlertTriangle, FileText, Check, ExternalLink } from 'lucide-react'
 
 const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -25,7 +26,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
   const loadBillingHistory = async () => {
     try {
       setIsLoading(true)
-      console.log('📜 Loading billing history for user:', user.id)
+      console.log('Loading billing history for user:', user.id)
       const response = await fetch('/api/stripe/manage-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,16 +37,16 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       })
 
       const data = await response.json()
-      console.log('📜 Billing history response:', data)
+      console.log('Billing history response:', data)
       if (data.success) {
-        console.log('✅ Setting billing history:', data.billingHistory?.length || 0, 'invoices')
+        console.log('Setting billing history:', data.billingHistory?.length || 0, 'invoices')
         setBillingHistory(data.billingHistory || [])
       } else {
-        console.error('❌ Error loading billing history:', data.error)
+        console.error('Error loading billing history:', data.error)
         alert(`Unable to load billing history: ${data.message || data.error}`)
       }
     } catch (error) {
-      console.error('❌ Error loading billing history:', error)
+      console.error('Error loading billing history:', error)
       alert('Error loading billing history. Please try again.')
     } finally {
       setIsLoading(false)
@@ -59,7 +60,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       
       if (data.success && data.scheduledChanges) {
         setScheduledChanges(data.scheduledChanges)
-        console.log('📅 Loaded scheduled changes:', data.scheduledChanges)
+        console.log('Loaded scheduled changes:', data.scheduledChanges)
       }
     } catch (error) {
       console.error('Error loading scheduled changes:', error)
@@ -80,7 +81,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
 
       const data = await response.json()
       if (data.success) {
-        alert(`✅ ${data.message}`)
+        alert(data.message)
         onSubscriptionUpdate()
         setShowCancelConfirm(false)
       } else {
@@ -108,7 +109,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
 
       const data = await response.json()
       if (data.success) {
-        alert('✅ Subscription reactivated successfully!')
+        alert('Subscription reactivated.')
         onSubscriptionUpdate()
       } else {
         alert('Error reactivating subscription. Please try again.')
@@ -137,7 +138,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
 
       const data = await response.json()
       if (data.success) {
-        alert(`✅ Successfully upgraded to ${planName} plan!`)
+        alert(`Upgraded to ${planName} plan.`)
         onSubscriptionUpdate()
         loadScheduledChanges() // Reload scheduled changes
         setShowUpgradeModal(false)
@@ -168,13 +169,13 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
 
       const data = await response.json()
       if (data.success) {
-        alert(`✅ ${data.message}`)
+        alert(data.message)
         onSubscriptionUpdate()
         loadScheduledChanges() // Reload scheduled changes
       } else {
         // Show detailed error message for job slot issues
         if (data.requiresAction && data.activeJobCount && data.newJobLimit) {
-          alert(`⚠️ ${data.message}\n\nYou have ${data.activeJobCount} active jobs, but the new plan only allows ${data.newJobLimit}.\n\nPlease go to the Jobs tab and deactivate ${data.excessJobs} job${data.excessJobs > 1 ? 's' : ''} before downgrading.`)
+          alert(`${data.message}\n\nYou have ${data.activeJobCount} active jobs, but the new plan only allows ${data.newJobLimit}.\n\nPlease go to the Jobs tab and deactivate ${data.excessJobs} job${data.excessJobs > 1 ? 's' : ''} before downgrading.`)
         } else {
           alert(`Error scheduling downgrade: ${data.message || data.error || 'Please try again.'}`)
         }
@@ -260,7 +261,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 font-medium transition-colors ${
               activeTab === tab.id 
-                ? 'text-orange-500 border-b-2 border-orange-500' 
+                ? 'text-brand-600 border-b-2 border-brand-600' 
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -273,7 +274,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Current Plan Status */}
-          <div className={`p-6 rounded-lg ${isSubscriptionCancelled ? 'bg-red-50 border border-red-200' : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'}`}>
+          <div className={`p-6 rounded-lg ${isSubscriptionCancelled ? 'bg-red-50 border border-red-200' : 'bg-gradient-to-r from-brand-600 to-brand-700 text-white'}`}>
             <div className="flex justify-between items-center">
               <div>
                 <div className={`text-xl font-bold ${isSubscriptionCancelled ? 'text-red-800' : 'text-white'}`}>
@@ -309,7 +310,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   ) : (
                     <button
                       onClick={() => setShowUpgradeModal(true)}
-                      className="bg-white text-orange-500 hover:bg-gray-50 px-4 py-2 rounded-lg"
+                      className="bg-white text-brand-600 hover:bg-gray-50 px-4 py-2 rounded-lg"
                     >
                       Change Plan
                     </button>
@@ -322,7 +323,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
           {/* Scheduled Changes Alert */}
           {scheduledChanges.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800 mb-2">📅 Upcoming Changes</h4>
+              <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-1.5">
+                <Calendar size={16} />
+                Upcoming Changes
+              </h4>
               {scheduledChanges.map((change, index) => (
                 <div key={change.id || index} className="text-blue-700">
                   Your plan will change from <strong>{change.currentPlan}</strong> to <strong>{change.newPlan}</strong> on{' '}
@@ -347,7 +351,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
               <div className="text-sm text-gray-600">Resume Credits</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-purple-500">
+              <div className="text-2xl font-bold text-brand-600">
                 {subscription?.plan_type === 'free' ? '30 days' : '∞'}
               </div>
               <div className="text-sm text-gray-600">Job Duration</div>
@@ -366,7 +370,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
               </button>
               <button
                 onClick={() => setActiveTab('plans')}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg"
               >
                 {subscription?.plan_type === 'free' ? 'Upgrade Plan' : 'Change Plan'}
               </button>
@@ -382,26 +386,26 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
           
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Starter Plan */}
-            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'starter' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'starter' ? 'border-brand-600 bg-brand-50' : 'border-gray-200'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Starter</div>
-                <div className="text-3xl font-bold text-orange-500 mb-2">$199</div>
+                <div className="text-3xl font-bold text-brand-600 mb-2">$199</div>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
-                  <li>✓ 3 active job postings</li>
-                  <li>✓ 0 resume credits</li>
-                  <li>✓ Email support</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> 3 active job postings</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> 0 resume credits</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Email support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'starter' ? (
-                  <div className="bg-orange-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-brand-600 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : subscription?.plan_type === 'free' ? (
                   <button
                     onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '', 'Starter')}
                     disabled={isLoading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Upgrade Now'}
                   </button>
@@ -418,24 +422,24 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
 
             {/* Growth Plan */}
-            <div className={`border-2 rounded-lg p-6 relative ${subscription?.plan_type === 'growth' ? 'border-orange-500 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
+            <div className={`border-2 rounded-lg p-6 relative ${subscription?.plan_type === 'growth' ? 'border-brand-600 bg-brand-50' : 'border-brand-300 bg-brand-50'}`}>
               {subscription?.plan_type !== 'growth' && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-xs font-bold">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-600 text-white px-4 py-1 rounded-full text-xs font-bold">
                   MOST POPULAR
                 </div>
               )}
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Growth</div>
-                <div className="text-3xl font-bold text-orange-500 mb-2">$299</div>
+                <div className="text-3xl font-bold text-brand-600 mb-2">$299</div>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
-                  <li>✓ 6 active job postings</li>
-                  <li>✓ 5 resume credits</li>
-                  <li>✓ Email support</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> 6 active job postings</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> 5 resume credits</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Email support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'growth' ? (
-                  <div className="bg-orange-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-brand-600 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : (
@@ -449,7 +453,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                       }
                     }}
                     disabled={isLoading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : (subscription?.plan_type === 'professional' || subscription?.plan_type === 'enterprise') ? 'Downgrade' : 'Upgrade Now'}
                   </button>
@@ -458,19 +462,19 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
 
             {/* Professional Plan */}
-            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'professional' ? 'border-orange-500 bg-orange-50' : 'border-gray-200'}`}>
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'professional' ? 'border-brand-600 bg-brand-50' : 'border-gray-200'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Professional</div>
-                <div className="text-3xl font-bold text-orange-500 mb-2">$599</div>
+                <div className="text-3xl font-bold text-brand-600 mb-2">$599</div>
                 <div className="text-gray-600 mb-4">per month</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
-                  <li>✓ 15 active job postings</li>
-                  <li>✓ 25 resume credits</li>
-                  <li>✓ Priority support</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> 15 active job postings</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> 25 resume credits</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Priority support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'professional' ? (
-                  <div className="bg-orange-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-brand-600 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : (
@@ -480,7 +484,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                       : handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID || '', 'Professional')
                     }
                     disabled={isLoading}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : subscription?.plan_type === 'enterprise' ? 'Downgrade' : 'Upgrade Now'}
                   </button>
@@ -489,26 +493,26 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
 
             {/* Enterprise Plan */}
-            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'enterprise' ? 'border-purple-500 bg-purple-50' : 'border-purple-200 bg-purple-50'}`}>
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'enterprise' ? 'border-brand-600 bg-brand-50' : 'border-brand-200 bg-brand-50'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Enterprise</div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">$208</div>
+                <div className="text-3xl font-bold text-brand-600 mb-2">$208</div>
                 <div className="text-gray-600 mb-4 text-xs">per month<br/>Save $250/yr — $2,246/yr with annual billing</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
-                  <li>✓ Unlimited job postings</li>
-                  <li>✓ Unlimited resume credits</li>
-                  <li>✓ Priority support</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Unlimited job postings</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Unlimited resume credits</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Priority support</li>
                 </ul>
                 
                 {subscription?.plan_type === 'enterprise' ? (
-                  <div className="bg-purple-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-brand-600 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : (
                   <button
                     onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '', 'Enterprise')}
                     disabled={isLoading}
-                    className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Upgrade Now'}
                   </button>
@@ -517,27 +521,27 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
 
             {/* Unlimited Plan */}
-            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'unlimited' ? 'border-indigo-500 bg-indigo-50' : 'border-indigo-200 bg-indigo-50'}`}>
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'unlimited' ? 'border-brand-600 bg-brand-50' : 'border-brand-200 bg-brand-50'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Unlimited</div>
-                <div className="text-3xl font-bold text-indigo-600 mb-2">$329</div>
+                <div className="text-3xl font-bold text-brand-600 mb-2">$329</div>
                 <div className="text-gray-600 mb-4 text-xs">per month<br/>Save $395/yr — $3,553/yr with annual billing</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
-                  <li>✓ Unlimited job postings</li>
-                  <li>✓ Unlimited resume credits</li>
-                  <li>✓ Priority support</li>
-                  <li>✓ Dedicated account manager</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Unlimited job postings</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Unlimited resume credits</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Priority support</li>
+                  <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Dedicated account manager</li>
                 </ul>
                 
                 {subscription?.plan_type === 'unlimited' ? (
-                  <div className="bg-indigo-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-brand-600 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : (
                   <button
                     onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '', 'Unlimited')}
                     disabled={isLoading}
-                    className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Upgrade Now'}
                   </button>
@@ -565,8 +569,9 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 </button>
               </div>
               <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">
-                  ⚠️ Your subscription is cancelled and will end on {getNextBillingDate()}. You can reactivate it before then to continue your plan.
+                <p className="text-red-700 text-sm flex items-start gap-1.5">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  Your subscription is cancelled and will end on {getNextBillingDate()}. You can reactivate it before then to continue your plan.
                 </p>
               </div>
             </div>
@@ -585,7 +590,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
 
           {billingHistory.length === 0 ? (
             <div className="text-center py-8">
-              <div className="text-4xl mb-4">📄</div>
+              <FileText size={36} className="mx-auto mb-4 text-gray-400" />
               <p className="text-gray-500">No billing history available</p>
             </div>
           ) : (
@@ -627,9 +632,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                             href={invoice.hosted_invoice_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700 font-medium"
+                            className="text-blue-500 hover:text-blue-700 font-medium inline-flex items-center gap-1"
                           >
-                            View Invoice →
+                            View Invoice
+                            <ExternalLink size={12} />
                           </a>
                         )}
                         {!invoice.hosted_invoice_url && invoice.invoice_pdf && (
@@ -637,9 +643,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                             href={invoice.invoice_pdf}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700 font-medium"
+                            className="text-blue-500 hover:text-blue-700 font-medium inline-flex items-center gap-1"
                           >
-                            Download PDF →
+                            Download PDF
+                            <ExternalLink size={12} />
                           </a>
                         )}
                       </td>

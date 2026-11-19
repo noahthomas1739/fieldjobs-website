@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -45,7 +46,7 @@ export default function PrivacyPolicy() {
 
               <h3 className="text-lg font-medium text-gray-800 mb-2">2.2 Payment Information</h3>
             <p className="text-gray-700 mb-4">
-                When you make purchases, payment information is collected and processed by our payment processor, Stripe. We do not store complete credit card numbers on our servers. Please review <a href="https://stripe.com/privacy" className="text-orange-500 hover:underline" target="_blank" rel="noopener noreferrer">Stripe's Privacy Policy</a> for more information.
+                When you make purchases, payment information is collected and processed by our payment processor, Stripe. We do not store complete credit card numbers on our servers. Please review <a href="https://stripe.com/privacy" className="text-brand-600 hover:underline" target="_blank" rel="noopener noreferrer">Stripe's Privacy Policy</a> for more information.
               </p>
 
               <h3 className="text-lg font-medium text-gray-800 mb-2">2.3 Automatically Collected Information</h3>
@@ -136,7 +137,7 @@ export default function PrivacyPolicy() {
                 <li><strong>Withdraw consent:</strong> Withdraw previously given consent</li>
               </ul>
               <p className="text-gray-700 mt-4">
-                To exercise these rights, contact us at <a href="mailto:privacy@field-jobs.co" className="text-orange-500 hover:underline">privacy@field-jobs.co</a>
+                To exercise these rights, contact us at <a href="mailto:privacy@field-jobs.co" className="text-brand-600 hover:underline">privacy@field-jobs.co</a>
               </p>
             </section>
 
@@ -199,15 +200,16 @@ export default function PrivacyPolicy() {
               </p>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-gray-700"><strong>FieldJobs</strong></p>
-                <p className="text-gray-700">Email: <a href="mailto:privacy@field-jobs.co" className="text-orange-500 hover:underline">privacy@field-jobs.co</a></p>
-                <p className="text-gray-700">Website: <a href="https://field-jobs.co/contact" className="text-orange-500 hover:underline">field-jobs.co/contact</a></p>
+                <p className="text-gray-700">Email: <a href="mailto:privacy@field-jobs.co" className="text-brand-600 hover:underline">privacy@field-jobs.co</a></p>
+                <p className="text-gray-700">Website: <a href="https://field-jobs.co/contact" className="text-brand-600 hover:underline">field-jobs.co/contact</a></p>
               </div>
             </section>
           </div>
 
           <div className="mt-8 pt-8 border-t border-gray-200">
-            <Link href="/" className="text-orange-500 hover:text-orange-600 font-medium">
-              ← Back to Home
+            <Link href="/" className="text-brand-600 hover:text-brand-700 font-medium inline-flex items-center gap-1.5">
+              <ArrowLeft size={16} />
+              Back to Home
             </Link>
           </div>
         </div>

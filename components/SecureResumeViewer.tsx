@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { X, FileText, Lightbulb } from 'lucide-react'
 
 interface SecureResumeViewerProps {
   resumeUrl: string
@@ -47,9 +48,9 @@ export default function SecureResumeViewer({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold px-3"
+            className="text-gray-500 hover:text-gray-700 px-3"
           >
-            ✕
+            <X size={22} />
           </button>
         </div>
 
@@ -74,7 +75,7 @@ export default function SecureResumeViewer({
           {isLoading && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading resume...</p>
               </div>
             </div>
@@ -83,7 +84,7 @@ export default function SecureResumeViewer({
             style={{
               width: '100%',
               height: '100%',
-              background: '#f5f5f5',
+              background: '#f1f5f9',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -91,15 +92,15 @@ export default function SecureResumeViewer({
               gap: '1rem'
             }}
           >
-            <div style={{ fontSize: '48px' }}>📄</div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
+            <FileText size={44} color="#64748b" />
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>
               Resume Preview
             </div>
-            <div style={{ fontSize: '14px', color: '#666', textAlign: 'center', maxWidth: '300px' }}>
+            <div style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', maxWidth: '300px' }}>
               Resume viewing is temporarily disabled for security reasons.<br/>
               Contact the applicant directly for resume access.
             </div>
-            <div style={{ fontSize: '12px', color: '#999', marginTop: '1rem' }}>
+            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '1rem' }}>
               Applicant: {applicantName}
             </div>
           </div>
@@ -108,8 +109,9 @@ export default function SecureResumeViewer({
         {/* Footer with instructions */}
         <div className="p-4 border-t border-gray-200 bg-gray-50">
           <div className="flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              💡 <strong>Tip:</strong> Use your browser's zoom controls to adjust the view
+            <p className="text-sm text-gray-600 flex items-center gap-1.5">
+              <Lightbulb size={14} className="shrink-0" />
+              <span><strong>Tip:</strong> Use your browser's zoom controls to adjust the view</span>
             </p>
             <button
               onClick={onClose}

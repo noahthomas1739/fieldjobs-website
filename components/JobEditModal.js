@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Briefcase, Factory, DollarSign, FileText, AlertTriangle, X } from 'lucide-react'
 
 const JobEditModal = ({ job, isOpen, onClose, onJobUpdated, user }) => {
   const [formData, setFormData] = useState({})
@@ -11,8 +12,8 @@ const JobEditModal = ({ job, isOpen, onClose, onJobUpdated, user }) => {
   // Initialize form data when job changes
   useEffect(() => {
     if (job) {
-      console.log('🔍 JobEditModal received job:', job)
-      console.log('📊 Available job fields:', Object.keys(job))
+      console.log('JobEditModal received job:', job)
+      console.log('Available job fields:', Object.keys(job))
       
 setFormData({
   title: job.title || '',
@@ -34,7 +35,7 @@ setFormData({
 })
       setIsDirty(false)
       
-      console.log('✅ Form data populated:', {
+      console.log('Form data populated:', {
         title: job.title,
         company: job.company,
         region: job.region,
@@ -64,7 +65,7 @@ setFormData({
     try {
       setIsLoading(true)
       
-      console.log('🚀 Submitting job update:', {
+      console.log('Submitting job update:', {
         jobId: job.id,
         userId: user.id,
         formData: formData
@@ -80,13 +81,13 @@ setFormData({
         })
       })
 
-      console.log('📡 API response status:', response.status)
+      console.log('API response status:', response.status)
       
       const data = await response.json()
-      console.log('📄 API response data:', data)
+      console.log('API response data:', data)
       
       if (data.success) {
-        console.log('✅ Job update successful, closing modal...')
+        console.log('Job update successful, closing modal...')
         
         // Update the parent component with the new job data
         if (onJobUpdated && data.job) {
@@ -98,15 +99,15 @@ setFormData({
         onClose()
         
         // Show success message
-        alert('✅ Job updated successfully!')
+        alert('Job updated.')
         
-        console.log('✅ Modal should be closed now')
+        console.log('Modal should be closed now')
       } else {
-        console.error('❌ API returned error:', data)
+        console.error('API returned error:', data)
         alert(`Error updating job: ${data.error || 'Unknown error'}${data.details ? '\nDetails: ' + data.details : ''}`)
       }
     } catch (error) {
-      console.error('❌ Error updating job:', error)
+      console.error('Error updating job:', error)
       alert(`Error updating job: ${error.message}. Check the browser console for more details.`)
     } finally {
       setIsLoading(false)
@@ -130,7 +131,7 @@ setFormData({
       const data = await response.json()
       
       if (data.success) {
-        console.log('✅ Status change successful')
+        console.log('Status change successful')
         
         // Update the form data to reflect the new status
         setFormData(prev => ({ ...prev, status: newStatus }))
@@ -142,7 +143,7 @@ setFormData({
         }
         
         // Show success message
-        alert(`✅ Job ${newStatus === 'active' ? 'activated' : newStatus === 'paused' ? 'paused' : 'expired'} successfully!`)
+        alert(`Job ${newStatus === 'active' ? 'activated' : newStatus === 'paused' ? 'paused' : 'expired'}.`)
       } else {
         alert('Error updating job status: ' + (data.error || 'Unknown error'))
       }
@@ -155,17 +156,17 @@ setFormData({
   }
 
   const handleClose = () => {
-    console.log('🚪 Attempting to close modal, isDirty:', isDirty)
+    console.log('Attempting to close modal, isDirty:', isDirty)
     
     if (isDirty) {
       const confirmClose = window.confirm('You have unsaved changes. Are you sure you want to close?')
       if (!confirmClose) {
-        console.log('❌ User cancelled modal close')
+        console.log('User cancelled modal close')
         return
       }
     }
     
-    console.log('✅ Closing modal and resetting state')
+    console.log('Closing modal and resetting state')
     setIsDirty(false)
     onClose()
   }
@@ -212,9 +213,9 @@ setFormData({
           </div>
           <button
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
+            className="text-gray-400 hover:text-gray-600"
           >
-            ×
+            <X size={24} />
           </button>
         </div>
 
@@ -250,8 +251,11 @@ setFormData({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           
           {/* Job Basics Section */}
-          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-orange-500">
-            <h4 className="font-medium mb-4 text-lg">📝 Job Basics</h4>
+          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-brand-600">
+            <h4 className="font-medium mb-4 text-lg flex items-center gap-2">
+              <Briefcase size={18} className="text-brand-600" />
+              Job Basics
+            </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -264,7 +268,7 @@ setFormData({
                   value={formData.title}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 />
               </div>
               
@@ -278,7 +282,7 @@ setFormData({
                   value={formData.company}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 />
               </div>
             </div>
@@ -293,7 +297,7 @@ setFormData({
                   value={formData.region}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Region</option>
                   <option value="northeast">Northeast US</option>
@@ -317,7 +321,7 @@ setFormData({
                   value={formData.estimatedDuration}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Duration</option>
                   <option value="1-3-months">1-3 months</option>
@@ -333,8 +337,11 @@ setFormData({
           </div>
 
           {/* Industry & Classification Section */}
-          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-orange-500">
-            <h4 className="font-medium mb-4 text-lg">🏭 Industry & Classification</h4>
+          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-brand-600">
+            <h4 className="font-medium mb-4 text-lg flex items-center gap-2">
+              <Factory size={18} className="text-brand-600" />
+              Industry & Classification
+            </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -346,7 +353,7 @@ setFormData({
                   value={formData.primaryIndustry}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Primary Industry</option>
                   <option value="nuclear">Nuclear Power (SIC 4911)</option>
@@ -374,7 +381,7 @@ setFormData({
                   name="secondaryIndustry"
                   value={formData.secondaryIndustry}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Secondary Industry (Optional)</option>
                   <option value="nuclear">Nuclear Power (SIC 4911)</option>
@@ -405,7 +412,7 @@ setFormData({
                   value={formData.classification}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Classification</option>
                   <option value="junior">Junior (0-5 years)</option>
@@ -424,7 +431,7 @@ setFormData({
                   name="discipline"
                   value={formData.discipline}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Discipline (Optional)</option>
                   <option value="electrical">Electrical</option>
@@ -445,8 +452,11 @@ setFormData({
           </div>
 
           {/* Job Type & Compensation Section */}
-          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-orange-500">
-            <h4 className="font-medium mb-4 text-lg">💰 Job Type & Compensation</h4>
+          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-brand-600">
+            <h4 className="font-medium mb-4 text-lg flex items-center gap-2">
+              <DollarSign size={18} className="text-brand-600" />
+              Job Type & Compensation
+            </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -458,7 +468,7 @@ setFormData({
                   value={formData.jobType}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 >
                   <option value="">Select Type</option>
                   <option value="in-house">In-house</option>
@@ -479,7 +489,7 @@ setFormData({
                   onChange={handleInputChange}
                   placeholder="$35 - $45/hr or DOE"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 />
               </div>
             </div>
@@ -495,7 +505,7 @@ setFormData({
                   value={formData.perDiem}
                   onChange={handleInputChange}
                   placeholder="$75/day or $0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 />
               </div>
               
@@ -509,7 +519,7 @@ setFormData({
                   value={formData.mobilization}
                   onChange={handleInputChange}
                   placeholder="$2,000 or N/A"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 />
               </div>
               
@@ -523,15 +533,18 @@ setFormData({
                   value={formData.demobilization}
                   onChange={handleInputChange}
                   placeholder="$2,000 or N/A"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 />
               </div>
             </div>
           </div>
 
           {/* Job Description Section */}
-          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-orange-500">
-            <h4 className="font-medium mb-4 text-lg">📋 Job Description</h4>
+          <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-brand-600">
+            <h4 className="font-medium mb-4 text-lg flex items-center gap-2">
+              <FileText size={18} className="text-brand-600" />
+              Job Description
+            </h4>
             
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -544,7 +557,7 @@ setFormData({
                 required
                 rows={6}
                 placeholder="Describe the job responsibilities, requirements, and benefits..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
                 style={{ minHeight: '120px' }}
               />
             </div>
@@ -559,7 +572,7 @@ setFormData({
                 value={formData.contactEmail}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-transparent"
               />
             </div>
           </div>
@@ -568,8 +581,9 @@ setFormData({
           <div className="flex justify-between items-center pt-6 border-t">
             <div>
               {isDirty && (
-                <span className="text-orange-600 text-sm">
-                  ⚠️ You have unsaved changes
+                <span className="text-amber-600 text-sm flex items-center gap-1.5">
+                  <AlertTriangle size={14} />
+                  You have unsaved changes
                 </span>
               )}
             </div>
@@ -585,7 +599,7 @@ setFormData({
               <button
                 type="submit"
                 disabled={isLoading || !isDirty}
-                className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg disabled:cursor-not-allowed"
+                className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Saving...' : 'Save Changes'}
               </button>

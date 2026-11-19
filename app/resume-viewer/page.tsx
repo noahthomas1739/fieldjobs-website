@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
+import { AlertTriangle, FileText, Lock } from 'lucide-react'
 
 function ResumeViewerContent() {
   const searchParams = useSearchParams()
@@ -50,7 +51,7 @@ function ResumeViewerContent() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading resume...</p>
         </div>
       </div>
@@ -61,7 +62,7 @@ function ResumeViewerContent() {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-          <div className="text-red-500 text-4xl mb-4">⚠️</div>
+          <AlertTriangle size={36} className="text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-800 mb-2">Error</h1>
           <p className="text-gray-600">{error}</p>
         </div>
@@ -74,15 +75,16 @@ function ResumeViewerContent() {
       {/* Header */}
       <div className="bg-gray-900 text-white p-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">📄</span>
+          <FileText size={24} />
           <div>
             <h1 className="font-semibold">Resume Viewer</h1>
             <p className="text-xs text-gray-400">Confidential - View Only</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-yellow-400 bg-yellow-900/30 px-3 py-1 rounded">
-            🔒 Download Disabled
+          <span className="text-xs text-yellow-400 bg-yellow-900/30 px-3 py-1 rounded inline-flex items-center gap-1">
+            <Lock size={12} />
+            Download Disabled
           </span>
           <button 
             onClick={() => window.close()}
@@ -94,8 +96,9 @@ function ResumeViewerContent() {
       </div>
 
       {/* Warning Banner */}
-      <div className="bg-yellow-500 text-yellow-900 text-center py-2 text-sm font-medium">
-        ⚠️ This document is confidential. Downloading, copying, or printing is prohibited.
+      <div className="bg-yellow-500 text-yellow-900 text-center py-2 text-sm font-medium flex items-center justify-center gap-1.5">
+        <AlertTriangle size={14} />
+        This document is confidential. Downloading, copying, or printing is prohibited.
       </div>
 
       {/* PDF Viewer */}
@@ -147,7 +150,7 @@ export default function ResumeViewerPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
