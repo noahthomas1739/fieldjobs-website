@@ -6,26 +6,30 @@
    Mirrored in lib/theme.ts for components that use inline styles instead
    of Tailwind utility classes. Keep both in sync.
 
-   Palette intent: clean, professional, trade/industrial B2B (LinkedIn/Indeed
-   territory) — confident blues + neutral slates, with ONE warm accent
-   (amber, used sparingly for "featured/urgent" highlights) instead of the
-   old orange/purple/gradient-badge look.
+   Palette intent: FieldJobs' original brand palette — a confident warm
+   orange primary (the long-standing FieldJobs brand color, #ff6b35) with
+   neutral slates for text/surfaces, and a gold/amber accent used sparingly
+   for "featured" highlights. Restored to the original orange/purple-era
+   palette at the site owner's request; only the color VALUES changed back
+   here — the token names/structure from the palette refactor are unchanged
+   so the rest of the app keeps reading from a single source of truth.
    ========================================================================== */
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
 
-  /* Brand blue scale — primary actions, links, headers */
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-800: #1e40af;
-  --color-brand-900: #1e3a5f;
+  /* Brand orange scale — primary actions, links, headers (the original
+     FieldJobs brand orange, #ff6b35, anchored at brand-600) */
+  --color-brand-50: #fff5f0;
+  --color-brand-100: #ffe8dc;
+  --color-brand-200: #ffd0b5;
+  --color-brand-300: #ffb088;
+  --color-brand-400: #ff8f5c;
+  --color-brand-500: #ff7a42;
+  --color-brand-600: #ff6b35;
+  --color-brand-700: #e55a2b;
+  --color-brand-800: #c2410c;
+  --color-brand-900: #9a3412;
 
   /* Neutral slate scale — text, surfaces, borders */
   --color-ink: #0f172a;      /* headings */
@@ -36,11 +40,13 @@
   --color-surface-alt: #f1f5f9;
   --color-border: #e2e8f0;
 
-  /* Single warm accent — used sparingly (featured/urgent/highlight only) */
+  /* Single warm accent — used sparingly (featured highlight only); matches
+     the original gold "FEATURED" badge gradient (#ffd700 -> #ffed4e) with
+     the original dark-goldenrod text color (#b8860b) */
   --color-accent-50: #fffbeb;
-  --color-accent-200: #fde68a;
-  --color-accent-500: #f59e0b;
-  --color-accent-600: #d97706;
+  --color-accent-200: #ffed4e;
+  --color-accent-500: #ffd700;
+  --color-accent-600: #b8860b;
 
   /* Semantic status colors */
   --color-success: #16a34a;

@@ -719,7 +719,7 @@ export default function HomePage() {
   }
 
   return (
-    <div style={{ margin: 0, padding: 0, boxSizing: 'border-box', fontFamily: 'Arial, sans-serif', background: '#f1f5f9' }}>
+    <div style={{ margin: 0, padding: 0, boxSizing: 'border-box', fontFamily: 'Arial, sans-serif', background: '#f5f5f5' }}>
       {/* CSS Animations */}
       <style jsx>{`
         @keyframes slideInRight {
@@ -745,15 +745,15 @@ export default function HomePage() {
           height: 8px;
         }
         div::-webkit-scrollbar-track {
-          background: #f1f5f9;
+          background: #f0f0f0;
           border-radius: 10px;
         }
         div::-webkit-scrollbar-thumb {
-          background: #2563eb;
+          background: #ff6b35;
           border-radius: 10px;
         }
         div::-webkit-scrollbar-thumb:hover {
-          background: #1d4ed8;
+          background: #e55a25;
         }
         .scrollbar-hide {
           -ms-overflow-style: none;
@@ -775,7 +775,7 @@ export default function HomePage() {
       {/* Thin Free Job Notification Bar */}
       {shouldShowThinBanner() && freeJobEligible && user && (
         <div style={{ 
-          background: '#1d4ed8', 
+          background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', 
           color: 'white', 
           padding: '0.75rem 2rem', 
           textAlign: 'center',
@@ -827,7 +827,7 @@ export default function HomePage() {
       {/* For non-logged in users */}
       {shouldShowThinBanner() && !user && (
         <div style={{ 
-          background: '#1d4ed8', 
+          background: 'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)', 
           color: 'white', 
           padding: '0.75rem 2rem', 
           textAlign: 'center',
@@ -906,7 +906,7 @@ export default function HomePage() {
             style={{ 
               flexShrink: 0,
               padding: '1rem 2.5rem', 
-              background: '#2563eb', 
+              background: '#ff6b35', 
               color: 'white', 
               border: 'none',
               cursor: 'pointer', 
@@ -914,8 +914,8 @@ export default function HomePage() {
               fontWeight: '600',
               transition: 'all 0.3s ease'
             }}
-            onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#1d4ed8'}
-            onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#2563eb'}
+            onMouseEnter={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#e55a2b'}
+            onMouseLeave={(e) => (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35'}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
               <Search size={18} />
@@ -939,7 +939,7 @@ export default function HomePage() {
               left: '-10px',
               top: '50%',
               transform: 'translateY(-50%)',
-              background: '#2563eb',
+              background: '#ff6b35',
               color: 'white',
               border: 'none',
               borderRadius: '50%',
@@ -970,7 +970,7 @@ export default function HomePage() {
               right: '-10px',
               top: '50%',
               transform: 'translateY(-50%)',
-              background: '#2563eb', 
+              background: '#ff6b35', 
               color: 'white', 
               border: 'none',
               borderRadius: '50%',
@@ -1024,9 +1024,9 @@ export default function HomePage() {
                 style={{
                   minWidth: '140px',
                   padding: '1rem',
-                  background: activeFilters.includes(industry.key) ? '#2563eb' : '#1a1a1a',
+                  background: activeFilters.includes(industry.key) ? '#ff6b35' : '#1a1a1a',
                   color: 'white',
-                  border: '2px solid #2563eb',
+                  border: '2px solid #ff6b35',
                   borderRadius: '12px',
                   cursor: 'pointer',
                   fontSize: '0.9rem',
@@ -1063,7 +1063,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button
               onClick={() => setShowAlertModal(true)}
-              style={{ background: '#16a34a', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+              style={{ background: '#28a745', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
             >
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Mail size={16} />
@@ -1080,7 +1080,7 @@ export default function HomePage() {
           position: 'fixed', 
           top: '20px', 
           right: '20px', 
-          background: '#16a34a', 
+          background: '#28a745', 
           color: 'white', 
           padding: '1rem 1.5rem', 
           borderRadius: '8px', 
@@ -1155,7 +1155,7 @@ export default function HomePage() {
               <label style={{ fontWeight: '500', marginBottom: '0.5rem', color: '#333' }}>&nbsp;</label>
               <button
                 onClick={clearFilters}
-                style={{ padding: '0.5rem', background: 'transparent', color: '#2563eb', border: '2px solid #2563eb', borderRadius: '5px', cursor: 'pointer', width: '100%' }}
+                style={{ padding: '0.5rem', background: 'transparent', color: '#ff6b35', border: '2px solid #ff6b35', borderRadius: '5px', cursor: 'pointer', width: '100%' }}
               >
                 Clear Filters
               </button>
@@ -1164,17 +1164,17 @@ export default function HomePage() {
         </div>
 
         {/* Enhanced Results Header */}
-        <div data-results-section style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
+        <div data-results-section style={{ background: 'white', padding: '2rem', borderRadius: '10px', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid #e0e0e0' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
           <div>
               <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#1a1a1a', fontWeight: '700' }}>
                 {isLoading ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '20px', height: '20px', border: '2px solid #2563eb', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    <div style={{ width: '20px', height: '20px', border: '2px solid #ff6b35', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                     Loading Jobs...
                   </span>
                 ) : (
-                  <span style={{ color: filteredJobs.length === 0 ? '#666' : '#2563eb' }}>
+                  <span style={{ color: filteredJobs.length === 0 ? '#666' : '#ff6b35' }}>
                     {filteredJobs.length === 0 ? 'No Jobs Found' : `${filteredJobs.length} Job${filteredJobs.length === 1 ? '' : 's'} Available`}
                   </span>
                 )}
@@ -1208,17 +1208,17 @@ export default function HomePage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
               <span style={{ fontWeight: '500', color: '#333', fontSize: '0.9rem' }}>Active filters:</span>
               {searchInput && (
-                <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ background: '#e8f4fd', color: '#1976d2', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   "{searchInput}"
-                  <button onClick={() => setSearchInput('')} style={{ background: 'none', border: 'none', color: '#1d4ed8', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center' }}>
+                  <button onClick={() => setSearchInput('')} style={{ background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center' }}>
                     <X size={12} />
                   </button>
                 </span>
               )}
               {activeFilters.map(filter => (
-                <span key={filter} style={{ background: '#eff6ff', color: '#1d4ed8', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span key={filter} style={{ background: '#fff3e0', color: '#f57c00', padding: '0.25rem 0.75rem', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {filter.replace('-', ' ')}
-                  <button onClick={() => toggleFilter(filter)} style={{ background: 'none', border: 'none', color: '#1d4ed8', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center' }}>
+                  <button onClick={() => toggleFilter(filter)} style={{ background: 'none', border: 'none', color: '#f57c00', cursor: 'pointer', padding: '0', display: 'inline-flex', alignItems: 'center' }}>
                     <X size={12} />
                   </button>
                 </span>
@@ -1231,7 +1231,7 @@ export default function HomePage() {
                   setCompensationFilter('')
                   performSearch()
                 }}
-                style={{ background: '#2563eb', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '15px', fontSize: '0.8rem', border: 'none', cursor: 'pointer', fontWeight: '500' }}
+                style={{ background: '#ff6b35', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '15px', fontSize: '0.8rem', border: 'none', cursor: 'pointer', fontWeight: '500' }}
               >
                 Clear all filters
               </button>
@@ -1243,17 +1243,17 @@ export default function HomePage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '800px', margin: '0 auto' }}>
           {isLoading ? (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <Loader2 size={32} style={{ marginBottom: '1rem', color: '#2563eb', animation: 'spin 1s linear infinite' }} />
+              <Loader2 size={32} style={{ marginBottom: '1rem', color: '#ff6b35', animation: 'spin 1s linear infinite' }} />
               <div>Loading the latest job opportunities...</div>
             </div>
           ) : filteredJobs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-              <Search size={40} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
+              <Search size={40} style={{ marginBottom: '1rem', color: '#9ca3af' }} />
               <h3>No jobs found</h3>
               <p style={{ color: '#666', marginBottom: '1.5rem' }}>Try adjusting your search criteria or filters</p>
               <button
                 onClick={() => setShowAlertModal(true)}
-                style={{ background: '#2563eb', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
               >
                 Create Job Alert for These Criteria
               </button>
@@ -1270,25 +1270,25 @@ export default function HomePage() {
                   onClick={() => showJobDetails(job)}
                   style={{
                     background: isFeatured 
-                      ? 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)' 
+                      ? 'linear-gradient(135deg, #fff5f0 0%, #ffffff 100%)' 
                       : isFreeJob
-                        ? 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)'
+                        ? 'linear-gradient(135deg, #f0fff4 0%, #ffffff 100%)'
                         : 'white',
                     border: isFeatured 
-                      ? '2px solid #f59e0b' 
+                      ? '2px solid #ffd700' 
                       : isUrgent 
-                        ? '2px solid #dc2626' 
+                        ? '2px solid #ff4444' 
                         : isFreeJob
-                          ? '2px solid #16a34a'
-                          : '1px solid #e2e8f0',
+                          ? '2px solid #22c55e'
+                          : '1px solid #e5e7eb',
                     borderRadius: '8px',
                     padding: '1.5rem',
                     boxShadow: isFeatured 
-                      ? '0 4px 20px rgba(245, 158, 11, 0.15)' 
+                      ? '0 4px 20px rgba(255, 215, 0, 0.15)' 
                       : isUrgent 
-                        ? '0 4px 20px rgba(220, 38, 38, 0.15)' 
+                        ? '0 4px 20px rgba(255, 68, 68, 0.15)' 
                         : isFreeJob
-                          ? '0 4px 20px rgba(22, 163, 74, 0.15)'
+                          ? '0 4px 20px rgba(34, 197, 94, 0.15)'
                           : '0 1px 3px rgba(0,0,0,0.1)',
                     transition: 'all 0.2s ease',
                     position: 'relative',
@@ -1300,21 +1300,21 @@ export default function HomePage() {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)'
                     e.currentTarget.style.boxShadow = isFeatured 
-                      ? '0 8px 25px rgba(245, 158, 11, 0.2)' 
+                      ? '0 8px 25px rgba(255, 215, 0, 0.2)' 
                       : isUrgent 
-                        ? '0 8px 25px rgba(220, 38, 38, 0.2)' 
+                        ? '0 8px 25px rgba(255, 68, 68, 0.2)' 
                         : isFreeJob
-                          ? '0 8px 25px rgba(22, 163, 74, 0.2)'
+                          ? '0 8px 25px rgba(34, 197, 94, 0.2)'
                           : '0 4px 12px rgba(0,0,0,0.15)'
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)'
                     e.currentTarget.style.boxShadow = isFeatured 
-                      ? '0 4px 20px rgba(245, 158, 11, 0.15)' 
+                      ? '0 4px 20px rgba(255, 215, 0, 0.15)' 
                       : isUrgent 
-                        ? '0 4px 20px rgba(220, 38, 38, 0.15)' 
+                        ? '0 4px 20px rgba(255, 68, 68, 0.15)' 
                         : isFreeJob
-                          ? '0 4px 20px rgba(22, 163, 74, 0.15)'
+                          ? '0 4px 20px rgba(34, 197, 94, 0.15)'
                           : '0 1px 3px rgba(0,0,0,0.1)'
                   }}
                 >
@@ -1325,7 +1325,7 @@ export default function HomePage() {
                       position: 'absolute',
                       top: '-12px',
                       left: isFeatured ? '120px' : '20px',
-                      background: '#16a34a',
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                       color: 'white',
                       padding: '0.4rem 0.8rem',
                       borderRadius: '15px',
@@ -1333,7 +1333,7 @@ export default function HomePage() {
                       fontWeight: 'bold',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
-                      boxShadow: '0 4px 15px rgba(22, 163, 74, 0.35)',
+                      boxShadow: '0 4px 15px rgba(34, 197, 94, 0.4)',
                       border: '2px solid #fff',
                       display: 'flex',
                       alignItems: 'center',
@@ -1350,21 +1350,21 @@ export default function HomePage() {
                       position: 'absolute',
                       top: '-15px',
                       left: '20px',
-                      background: '#f59e0b',
-                      color: '#ffffff',
+                      background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
+                      color: '#b8860b',
                       padding: '0.5rem 1rem',
                       borderRadius: '20px',
                       fontSize: '0.8rem',
                       fontWeight: 'bold',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
-                      boxShadow: '0 4px 15px rgba(245, 158, 11, 0.35)',
+                      boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
                       border: '2px solid #fff',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.3rem'
                     }}>
-                      <Star size={12} fill="white" />
+                      <Star size={12} fill="#b8860b" />
                       FEATURED
                     </div>
                   )}
@@ -1375,7 +1375,7 @@ export default function HomePage() {
                       position: 'absolute',
                       top: isFeatured ? '-15px' : '-12px',
                       right: '20px',
-                      background: '#dc2626',
+                      background: 'linear-gradient(135deg, #ff4444 0%, #ff6b6b 100%)',
                       color: 'white',
                       padding: '0.4rem 0.8rem',
                       borderRadius: '15px',
@@ -1383,7 +1383,7 @@ export default function HomePage() {
                       fontWeight: 'bold',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
-                      boxShadow: '0 4px 15px rgba(220, 38, 38, 0.35)',
+                      boxShadow: '0 4px 15px rgba(255, 68, 68, 0.4)',
                       border: '2px solid #fff',
                       animation: 'pulse 2s infinite',
                       display: 'flex',
@@ -1406,7 +1406,7 @@ export default function HomePage() {
                           fontSize: '0.8rem',
                           fontWeight: '500',
                           marginRight: '0.5rem',
-                          background: badge === 'high-pay' ? '#0d9488' : '#334155',
+                          background: badge === 'high-pay' ? '#00d4aa' : '#1a1a1a',
                           color: 'white'
                         }}
                       >
@@ -1420,7 +1420,7 @@ export default function HomePage() {
                         fontSize: '0.8rem',
                         fontWeight: '500',
                         marginRight: '0.5rem',
-                        background: '#16a34a',
+                        background: '#28a745',
                         color: 'white'
                       }}>
                         Applied
@@ -1434,7 +1434,7 @@ export default function HomePage() {
                   <div style={{ 
                         fontSize: isFeatured ? '1.3rem' : '1.2rem', 
                         fontWeight: '700', 
-                        color: '#0f172a',
+                        color: '#1f2937',
                         marginBottom: '0.25rem',
                         lineHeight: '1.3'
                   }}>
@@ -1442,7 +1442,7 @@ export default function HomePage() {
                   </div>
                   <div style={{ 
                     fontSize: '1rem', 
-                        color: '#64748b',
+                        color: '#6b7280',
                         fontWeight: '500',
                         display: 'flex',
                         alignItems: 'center',
@@ -1452,8 +1452,8 @@ export default function HomePage() {
                     {job.isExternal && (
                       <span style={{
                         fontSize: '0.7rem',
-                        background: '#dbeafe',
-                        color: '#1d4ed8',
+                        background: '#e0e7ff',
+                        color: '#4338ca',
                         padding: '2px 8px',
                         borderRadius: '4px',
                         fontWeight: '500'
@@ -1465,7 +1465,7 @@ export default function HomePage() {
                     </div>
                     <div style={{ 
                       fontSize: '0.875rem', 
-                      color: '#64748b',
+                      color: '#6b7280',
                       textAlign: 'right'
                     }}>
                       {getPostedText(job)}
@@ -1478,32 +1478,32 @@ export default function HomePage() {
                     gap: '2rem', 
                     marginBottom: '1rem',
                     fontSize: '0.875rem',
-                    color: '#334155',
+                    color: '#4b5563',
                     flexWrap: 'wrap'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <DollarSign size={16} color="#64748b" />
+                      <DollarSign size={16} color="#6b7280" />
                       <span style={{ fontWeight: '600' }}>
                         {job.hourly_rate || job.hourlyRate || job.salary_range || 'Competitive'}
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <MapPin size={16} color="#64748b" />
+                      <MapPin size={16} color="#6b7280" />
                       <span>{job.region || job.location}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Briefcase size={16} color="#64748b" />
+                      <Briefcase size={16} color="#6b7280" />
                       <span>{job.jobType || job.job_type || 'Full Time'}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Factory size={16} color="#64748b" />
+                      <Factory size={16} color="#6b7280" />
                       <span>{job.industry || 'Other'}</span>
                     </div>
                   </div>
                   
                   {/* Description */}
                   <div style={{ 
-                    color: '#334155', 
+                    color: '#4b5563', 
                     lineHeight: '1.5', 
                     fontSize: '0.9rem',
                     marginBottom: '1rem'
@@ -1517,7 +1517,7 @@ export default function HomePage() {
                     justifyContent: 'space-between', 
                     alignItems: 'center',
                     paddingTop: '1rem',
-                    borderTop: '1px solid #e2e8f0'
+                    borderTop: '1px solid #e5e7eb'
                   }}>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <button 
@@ -1528,14 +1528,14 @@ export default function HomePage() {
                       disabled={appliedJobs.includes(job.id)}
                       style={{ 
                         background: appliedJobs.includes(job.id) 
-                            ? '#64748b' 
+                            ? '#6b7280' 
                           : isFeatured 
-                            ? '#f59e0b' 
-                            : '#2563eb', 
+                            ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' 
+                            : '#ff6b35', 
                         color: appliedJobs.includes(job.id) 
                           ? 'white' 
                           : isFeatured 
-                            ? '#ffffff' 
+                            ? '#b8860b' 
                             : 'white',
                           padding: '0.75rem 1.5rem', 
                         border: 'none', 
@@ -1544,7 +1544,7 @@ export default function HomePage() {
                         fontWeight: '600',
                           fontSize: '0.875rem',
                         opacity: appliedJobs.includes(job.id) ? 0.6 : 1,
-                          boxShadow: isFeatured ? '0 2px 8px rgba(245, 158, 11, 0.3)' : '0 2px 4px rgba(37, 99, 235, 0.2)',
+                          boxShadow: isFeatured ? '0 2px 8px rgba(255, 215, 0, 0.3)' : '0 2px 4px rgba(255, 107, 53, 0.2)',
                         transition: 'all 0.2s ease'
                       }}
                     >
@@ -1560,9 +1560,9 @@ export default function HomePage() {
                           toggleSaveJob(job.id)
                         }}
                       style={{
-                        background: savedJobs.includes(job.id) ? '#2563eb' : 'transparent',
-                        color: savedJobs.includes(job.id) ? 'white' : '#2563eb',
-                        border: '2px solid #2563eb',
+                        background: savedJobs.includes(job.id) ? '#ff6b35' : 'transparent',
+                        color: savedJobs.includes(job.id) ? 'white' : '#ff6b35',
+                        border: '2px solid #ff6b35',
                         padding: '0.5rem 1rem',
                           borderRadius: '6px',
                         cursor: 'pointer',
@@ -1576,7 +1576,7 @@ export default function HomePage() {
                     )}
                     </div>
                     <div style={{ 
-                      color: '#64748b',
+                      color: '#6b7280',
                       fontSize: '0.875rem'
                     }}>
                       Click anywhere to view details
@@ -1599,7 +1599,7 @@ export default function HomePage() {
                 border: '1px solid #ddd',
                 borderRadius: '5px',
                 cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                background: currentPage === 1 ? '#f1f5f9' : 'white',
+                background: currentPage === 1 ? '#f5f5f5' : 'white',
                 opacity: currentPage === 1 ? 0.6 : 1
               }}
             >
@@ -1627,7 +1627,7 @@ export default function HomePage() {
                     border: '1px solid #ddd',
                     borderRadius: '5px',
                     cursor: 'pointer',
-                    background: currentPage === pageNum ? '#2563eb' : 'white',
+                    background: currentPage === pageNum ? '#ff6b35' : 'white',
                     color: currentPage === pageNum ? 'white' : 'black',
                     fontWeight: currentPage === pageNum ? 'bold' : 'normal'
                   }}
@@ -1645,7 +1645,7 @@ export default function HomePage() {
                 border: '1px solid #ddd',
                 borderRadius: '5px',
                 cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                background: currentPage === totalPages ? '#f1f5f9' : 'white',
+                background: currentPage === totalPages ? '#f5f5f5' : 'white',
                 opacity: currentPage === totalPages ? 0.6 : 1
               }}
             >
@@ -1778,7 +1778,7 @@ export default function HomePage() {
                 </button>
                 <button
                   type="submit"
-                  style={{ background: '#2563eb', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}
+                  style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}
                 >
                   Create Alert
                 </button>
@@ -1857,13 +1857,13 @@ export default function HomePage() {
               </div>
 
               {/* Resume Status Indicator */}
-              <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '5px', fontSize: '0.9rem' }}>
+              <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8f9fa', borderRadius: '5px', fontSize: '0.9rem' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <FileText size={16} color="#2563eb" />
-                  Resume: <span style={{ color: '#2563eb', fontWeight: '500' }}>Will be automatically attached from your profile</span>
+                  <FileText size={16} color="#007bff" />
+                  Resume: <span style={{ color: '#007bff', fontWeight: '500' }}>Will be automatically attached from your profile</span>
                 </span>
                 <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
-                  No resume on file? <Link href="/dashboard?tab=profile" style={{ color: '#2563eb' }}>Upload one in your dashboard</Link>
+                  No resume on file? <Link href="/dashboard?tab=profile" style={{ color: '#ff6b35' }}>Upload one in your dashboard</Link>
                 </div>
               </div>
               
@@ -1894,7 +1894,7 @@ export default function HomePage() {
                 </button>
                 <button
                   type="submit"
-                  style={{ background: '#2563eb', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}
+                  style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}
                 >
                   Submit Application
                 </button>
@@ -1958,7 +1958,7 @@ export default function HomePage() {
                 }}
                 disabled={appliedJobs.includes(selectedJob.id)}
                 style={{ 
-                  background: appliedJobs.includes(selectedJob.id) ? '#64748b' : '#2563eb', 
+                  background: appliedJobs.includes(selectedJob.id) ? '#6c757d' : '#ff6b35', 
                   color: 'white', 
                   padding: '0.75rem 1.5rem', 
                   border: 'none', 
@@ -1976,9 +1976,9 @@ export default function HomePage() {
                   toggleSaveJob(selectedJob.id)
                 }}
                 style={{
-                  background: savedJobs.includes(selectedJob.id) ? '#2563eb' : 'transparent',
-                  color: savedJobs.includes(selectedJob.id) ? 'white' : '#2563eb',
-                  border: '2px solid #2563eb',
+                  background: savedJobs.includes(selectedJob.id) ? '#ff6b35' : 'transparent',
+                  color: savedJobs.includes(selectedJob.id) ? 'white' : '#ff6b35',
+                  border: '2px solid #ff6b35',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '5px',
                   cursor: 'pointer',
@@ -2000,12 +2000,12 @@ export default function HomePage() {
             <p style={{ color: '#666', marginBottom: '1.5rem' }}>Please log in to save jobs and apply for positions.</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <Link href="/auth/login" style={{ textDecoration: 'none' }}>
-                <button style={{ background: '#2563eb', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}>
+                <button style={{ background: '#ff6b35', color: 'white', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}>
                   Login
                 </button>
               </Link>
               <Link href="/auth/signup" style={{ textDecoration: 'none' }}>
-                <button style={{ background: 'transparent', color: '#2563eb', border: '2px solid #2563eb', padding: '0.75rem 1.5rem', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}>
+                <button style={{ background: 'transparent', color: '#ff6b35', border: '2px solid #ff6b35', padding: '0.75rem 1.5rem', borderRadius: '5px', cursor: 'pointer', fontWeight: '500' }}>
                   Sign Up
                 </button>
               </Link>

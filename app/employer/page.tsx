@@ -1305,7 +1305,7 @@ function EmployerDashboardContent() {
                 <>
                   <button
                     onClick={() => setShowFreeJobForm(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm"
+                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-lg"
                   >
                     <Gift size={16} />
                     First Job Free
@@ -1356,7 +1356,7 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">Active Jobs</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-brand-600">
+              <div className="text-2xl font-bold text-indigo-500">
                 {(subscription.tier === 'enterprise' || subscription.tier === 'unlimited')
                   ? '∞'
                   : `${Math.max(0, (subscription.activeJobsLimit || 0) - jobs.length)}`
@@ -1372,7 +1372,7 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">Total Applications</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-brand-600">
+              <div className="text-2xl font-bold text-purple-500">
                 {userCredits}
               </div>
               <div className="text-sm text-gray-600">Resume Search Credits</div>
@@ -1464,7 +1464,7 @@ function EmployerDashboardContent() {
                         <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                           app.status === 'submitted' ? 'bg-blue-100 text-blue-800' : 
                           app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                          app.status === 'interviewed' ? 'bg-brand-100 text-brand-800' :
+                          app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
                           app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
@@ -1485,7 +1485,7 @@ function EmployerDashboardContent() {
                   {freeJobEligible && !checkingEligibility && (
                     <button
                       onClick={() => setShowFreeJobForm(true)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                      className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
                     >
                       <Gift size={16} />
                       Post Free Job
@@ -1724,7 +1724,7 @@ function EmployerDashboardContent() {
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                               app.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
                               app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                              app.status === 'interviewed' ? 'bg-brand-100 text-brand-800' :
+                              app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
                               app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
@@ -1980,8 +1980,8 @@ function EmployerDashboardContent() {
                   <div className="text-2xl font-bold text-green-600">{applications.length}</div>
                   <div className="text-sm text-gray-600">Total Applications</div>
                 </div>
-                <div className="bg-brand-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-brand-600">
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
                     {applications.length > 0 && analytics.totalViews > 0
                       ? Math.round((applications.length / analytics.totalViews) * 100)
                       : applications.length > 0 ? 'N/A' : 0
@@ -2853,7 +2853,7 @@ function EmployerDashboardContent() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 inline-flex items-center gap-2"
+                    className="px-6 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded hover:from-green-600 hover:to-blue-600 disabled:opacity-50 inline-flex items-center gap-2"
                   >
                     {isLoading ? 'Posting...' : <><Gift size={16} />Post Free Job</>}
                   </button>
@@ -3048,7 +3048,7 @@ function EmployerDashboardContent() {
                 <p className="text-gray-600">Get 10% off when you pay annually</p>
               </div>
               
-              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 mb-6">
                 {selectedPlanForModal.plan === 'enterprise' && (
                   <>
                     <div className="flex justify-between items-center mb-4">
@@ -3103,7 +3103,7 @@ function EmployerDashboardContent() {
                     setShowAnnualSavingsModal(false)
                     handleSubscriptionPurchase(selectedPlanForModal.plan, 'yearly')
                   }}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-sm flex items-center justify-center gap-2"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 size={20} />
                   Choose Annual Plan & Save

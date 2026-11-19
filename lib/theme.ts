@@ -1,9 +1,13 @@
 /**
  * FieldJobs shared design tokens.
  *
- * Source of truth for the site's visual refresh: a clean, professional,
- * trade/industrial B2B palette (LinkedIn/Indeed territory) instead of the
- * old orange/purple/gradient "AI template" look.
+ * Source of truth for the site's palette: the original FieldJobs brand —
+ * a warm orange primary (#ff6b35) with neutral slates for text/surfaces,
+ * and a gold/amber accent used sparingly for "featured" highlights.
+ * Restored to the original orange/purple-era palette at the site owner's
+ * request after a brief blue/slate experiment; only the color VALUES
+ * changed back — the token names/structure stay the same so the rest of
+ * the app keeps reading from a single source of truth.
  *
  * These values MUST stay in sync with the CSS custom properties defined in
  * `app/globals.css` (`:root` block). Components that render with Tailwind
@@ -17,22 +21,22 @@
 export const theme = {
   colors: {
     brand: {
-      50: '#eff6ff',
-      100: '#dbeafe',
-      200: '#bfdbfe',
-      300: '#93c5fd',
-      400: '#60a5fa',
-      500: '#3b82f6',
-      600: '#2563eb',
-      700: '#1d4ed8',
-      800: '#1e40af',
-      900: '#1e3a5f',
+      50: '#fff5f0',
+      100: '#ffe8dc',
+      200: '#ffd0b5',
+      300: '#ffb088',
+      400: '#ff8f5c',
+      500: '#ff7a42',
+      600: '#ff6b35',
+      700: '#e55a2b',
+      800: '#c2410c',
+      900: '#9a3412',
     },
     accent: {
       50: '#fffbeb',
-      200: '#fde68a',
-      500: '#f59e0b',
-      600: '#d97706',
+      200: '#ffed4e',
+      500: '#ffd700',
+      600: '#b8860b',
     },
     ink: '#0f172a',
     body: '#334155',
