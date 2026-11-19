@@ -42,13 +42,13 @@ export function Navbar() {
                 {/* Different buttons for different user types */}
                 {user.user_metadata?.account_type === 'employer' ? (
                   <Link href="/employer">
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-2.5 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base rounded transition-colors whitespace-nowrap">
+                    <button className="bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base rounded-md font-medium transition-colors whitespace-nowrap">
                       Dashboard
                     </button>
                   </Link>
                 ) : (
                   <Link href="/dashboard">
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-2.5 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base rounded transition-colors whitespace-nowrap">
+                    <button className="bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base rounded-md font-medium transition-colors whitespace-nowrap">
                       My Profile
                     </button>
                   </Link>
@@ -69,7 +69,7 @@ export function Navbar() {
                   </button>
                 </Link>
                 <Link href="/employers">
-                  <button className="bg-orange-500 hover:bg-orange-600 text-white px-2.5 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base rounded transition-colors whitespace-nowrap">
+                  <button className="bg-brand-600 hover:bg-brand-700 text-white px-2.5 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base rounded-md font-medium transition-colors whitespace-nowrap">
                     Post Job
                   </button>
                 </Link>

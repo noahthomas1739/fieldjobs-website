@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Mail, Phone, Link2 } from 'lucide-react'
 
 export default function Footer() {
   return (
@@ -16,9 +17,15 @@ export default function Footer() {
               Connecting skilled professionals with technical careers across energy, construction, AI data centers, and industrial sectors.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">📧</a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">📱</a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">🔗</a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Email">
+                <Mail size={18} />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Phone">
+                <Phone size={18} />
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors" aria-label="Website link">
+                <Link2 size={18} />
+              </a>
             </div>
           </div>
 
