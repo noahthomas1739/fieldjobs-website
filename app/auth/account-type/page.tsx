@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { ensureProfileRow } from '@/lib/profile'
+import { Loader2 } from 'lucide-react'
 
 export default function AccountTypePage() {
   const { user, loading } = useAuth()
@@ -97,7 +98,7 @@ export default function AccountTypePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-2xl mb-4">⏳</div>
+          <Loader2 size={32} className="mx-auto mb-4 text-brand-600 animate-spin" />
           <div>Loading...</div>
         </div>
       </div>
@@ -120,7 +121,7 @@ export default function AccountTypePage() {
           <button
             onClick={() => handleAccountTypeSelection('employer')}
             disabled={isUpdating}
-            className="w-full p-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full p-4 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUpdating ? 'Setting up...' : "I'm an Employer"}
           </button>

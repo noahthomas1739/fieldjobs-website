@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { CheckCircle2, XCircle } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -55,16 +56,18 @@ export default function ForgotPasswordPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {message && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
-              <div className="text-green-800 text-sm">
-                ✅ {message}
+              <div className="text-green-800 text-sm flex items-center gap-2">
+                <CheckCircle2 size={16} className="shrink-0" />
+                {message}
               </div>
             </div>
           )}
 
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-              <div className="text-red-800 text-sm">
-                ❌ {error}
+              <div className="text-red-800 text-sm flex items-center gap-2">
+                <XCircle size={16} className="shrink-0" />
+                {error}
               </div>
             </div>
           )}
@@ -83,7 +86,7 @@ export default function ForgotPasswordPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-brand-500 focus:border-brand-500 sm:text-sm"
                   placeholder="Enter your email address"
                 />
               </div>
@@ -96,7 +99,7 @@ export default function ForgotPasswordPage() {
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                   loading 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
+                    : 'bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500'
                 }`}
               >
                 {loading ? (
@@ -148,7 +151,7 @@ export default function ForgotPasswordPage() {
           Need help?{' '}
           <Link 
             href="/contact" 
-            className="font-medium text-orange-500 hover:text-orange-600"
+            className="font-medium text-brand-600 hover:text-brand-700"
           >
             Contact Us
           </Link>

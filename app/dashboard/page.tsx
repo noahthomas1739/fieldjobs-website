@@ -5,6 +5,17 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import {
+  LayoutDashboard,
+  Heart,
+  FileText,
+  Bell,
+  User,
+  Briefcase,
+  Upload,
+  Loader2,
+  X,
+} from 'lucide-react'
 
 export default function JobSeekerDashboard() {
   const { user, loading } = useAuth()
@@ -385,7 +396,7 @@ export default function JobSeekerDashboard() {
       })
       
       if (response.ok) {
-        alert('✅ Profile saved successfully!')
+        alert('Profile saved.')
       } else {
         const error = await response.json()
         alert('Error saving profile: ' + error.error)
@@ -438,7 +449,7 @@ export default function JobSeekerDashboard() {
           resumeUrl: data.resumeUrl,
           resumeFileName: file.name
         }))
-        alert('✅ Resume uploaded successfully!')
+        alert('Resume uploaded.')
       } else {
         const error = await response.json()
         alert('Error uploading resume: ' + error.error)
@@ -495,7 +506,7 @@ export default function JobSeekerDashboard() {
         
         setJobAlerts((prev: any[]) => [...prev, newAlertData])
         
-        alert('🎉 ' + data.message)
+        alert(data.message)
         setNewAlert({
           name: '',
           keywords: '',
@@ -656,7 +667,7 @@ export default function JobSeekerDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center text-gray-900 dark:text-white">
-          <div className="text-2xl mb-4">⏳</div>
+          <Loader2 size={32} className="mx-auto mb-4 text-brand-600 animate-spin" />
           <div>Loading your dashboard...</div>
         </div>
       </div>
@@ -674,7 +685,7 @@ export default function JobSeekerDashboard() {
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Dashboard</h1>
               <p className="text-gray-600 dark:text-gray-300">Welcome back, {profile.firstName}! Manage your job search here.</p>
             </div>
-            <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium">
+            <Link href="/" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-medium">
               Browse Jobs
             </Link>
           </div>
@@ -682,7 +693,7 @@ export default function JobSeekerDashboard() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-orange-500">{savedJobs.length}</div>
+              <div className="text-2xl font-bold text-brand-600">{savedJobs.length}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">Saved Jobs</div>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
@@ -705,23 +716,23 @@ export default function JobSeekerDashboard() {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-6 shadow">
           <div className="flex flex-wrap gap-2 md:gap-3">
             {[
-              { key: 'overview', label: 'Overview', icon: '📊' },
-              { key: 'saved', label: 'Saved Jobs', icon: '❤️' },
-              { key: 'applied', label: 'Applied Jobs', icon: '📝' },
-              { key: 'alerts', label: 'Job Alerts', icon: '🔔' },
-              { key: 'profile', label: 'Profile', icon: '👤' }
+              { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+              { key: 'saved', label: 'Saved Jobs', icon: Heart },
+              { key: 'applied', label: 'Applied Jobs', icon: FileText },
+              { key: 'alerts', label: 'Job Alerts', icon: Bell },
+              { key: 'profile', label: 'Profile', icon: User }
             ].map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 className={`px-2 py-2 md:px-4 md:py-2 rounded-lg font-medium transition-colors text-sm md:text-base ${
                   activeTab === tab.key
-                    ? 'bg-orange-500 text-white'
+                    ? 'bg-brand-600 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                <span className="md:hidden">{tab.icon}</span>
-                <span className="hidden md:inline">{tab.icon} {tab.label}</span>
+                <span className="md:hidden"><tab.icon size={18} /></span>
+                <span className="hidden md:inline-flex items-center gap-1.5"><tab.icon size={16} /> {tab.label}</span>
                 <span className="md:hidden ml-1 text-xs">{tab.label}</span>
               </button>
             ))}
@@ -747,7 +758,7 @@ export default function JobSeekerDashboard() {
                   </div>
                 ))}
                 {savedJobs.length === 0 && (
-                  <p className="text-gray-500 dark:text-gray-400 italic">No saved jobs yet. <Link href="/" className="text-orange-500">Browse jobs</Link> to get started!</p>
+                  <p className="text-gray-500 dark:text-gray-400 italic">No saved jobs yet. <Link href="/" className="text-brand-600">Browse jobs</Link> to get started!</p>
                 )}
               </div>
               
@@ -775,7 +786,7 @@ export default function JobSeekerDashboard() {
                   </div>
                 ))}
                 {appliedJobs.length === 0 && (
-                  <p className="text-gray-500 dark:text-gray-400 italic">No applications yet. <Link href="/" className="text-orange-500">Find jobs</Link> to apply to!</p>
+                  <p className="text-gray-500 dark:text-gray-400 italic">No applications yet. <Link href="/" className="text-brand-600">Find jobs</Link> to apply to!</p>
                 )}
               </div>
               
@@ -790,7 +801,7 @@ export default function JobSeekerDashboard() {
                   </div>
                 ))}
                 {jobAlerts.filter((alert: any) => alert.active).length === 0 && (
-                  <p className="text-gray-500 dark:text-gray-400 italic">No active job alerts. <button onClick={() => setShowAlertModal(true)} className="text-orange-500 underline">Create one now</button>!</p>
+                  <p className="text-gray-500 dark:text-gray-400 italic">No active job alerts. <button onClick={() => setShowAlertModal(true)} className="text-brand-600 underline">Create one now</button>!</p>
                 )}
               </div>
             </div>
@@ -801,17 +812,17 @@ export default function JobSeekerDashboard() {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Saved Jobs</h2>
-                <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
+                <Link href="/" className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg">
                   Browse More Jobs
                 </Link>
               </div>
               
               {savedJobs.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-4xl mb-4">💼</div>
+                  <Briefcase size={40} className="mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No saved jobs yet</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">Save jobs you're interested in to keep track of them</p>
-                  <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg">
+                  <Link href="/" className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg">
                     Browse Jobs
                   </Link>
                 </div>
@@ -854,10 +865,10 @@ export default function JobSeekerDashboard() {
               
               {appliedJobs.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-4xl mb-4">📝</div>
+                  <FileText size={40} className="mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No applications yet</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">Start applying to jobs to track your applications here</p>
-                  <Link href="/" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg">
+                  <Link href="/" className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg">
                     Find Jobs to Apply
                   </Link>
                 </div>
@@ -904,7 +915,7 @@ export default function JobSeekerDashboard() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Job Alerts</h2>
                 <button
                   onClick={() => setShowAlertModal(true)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                  className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg"
                 >
                   Create New Alert
                 </button>
@@ -912,12 +923,12 @@ export default function JobSeekerDashboard() {
               
               {jobAlerts.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="text-4xl mb-4">🔔</div>
+                  <Bell size={40} className="mx-auto mb-4 text-gray-400" />
                   <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">No job alerts set up</h3>
                   <p className="text-gray-600 dark:text-gray-300 mb-4">Create job alerts to get notified when new matching jobs are posted</p>
                   <button
                     onClick={() => setShowAlertModal(true)}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-6 py-3 rounded-lg"
                   >
                     Create Your First Alert
                   </button>
@@ -982,7 +993,7 @@ export default function JobSeekerDashboard() {
                         type="text"
                         value={profile.firstName}
                         onChange={(e) => updateProfile('firstName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="Your first name"
                       />
                     </div>
@@ -992,7 +1003,7 @@ export default function JobSeekerDashboard() {
                         type="text"
                         value={profile.lastName}
                         onChange={(e) => updateProfile('lastName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="Your last name"
                       />
                     </div>
@@ -1011,7 +1022,7 @@ export default function JobSeekerDashboard() {
                         type="tel"
                         value={profile.phone}
                         onChange={(e) => updateProfile('phone', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="(555) 123-4567"
                       />
                     </div>
@@ -1021,7 +1032,7 @@ export default function JobSeekerDashboard() {
                         type="text"
                         value={profile.location}
                         onChange={(e) => updateProfile('location', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="City, State"
                       />
                     </div>
@@ -1036,7 +1047,7 @@ export default function JobSeekerDashboard() {
                       <select
                         value={profile.experienceLevel}
                         onChange={(e) => updateProfile('experienceLevel', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       >
                         <option value="">Select Experience Level</option>
                         <option value="0-5 years">0-5 years</option>
@@ -1052,7 +1063,7 @@ export default function JobSeekerDashboard() {
                         type="text"
                         value={profile.specialization}
                         onChange={(e) => updateProfile('specialization', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="e.g., Nuclear Engineering, Drilling Operations"
                       />
                     </div>
@@ -1061,12 +1072,12 @@ export default function JobSeekerDashboard() {
                       <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
                         {profile.resumeUploaded ? (
                           <div>
-                            <div className="text-2xl mb-2">📄</div>
+                            <FileText size={28} className="mx-auto mb-2 text-green-600 dark:text-green-400" />
                             <div className="mb-4 text-green-600 dark:text-green-400 font-medium">
                               {profile.resumeFileName || 'Resume uploaded successfully'}
                             </div>
                             <div className="mb-4">
-                              <label className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg cursor-pointer inline-block">
+                              <label className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg cursor-pointer inline-block">
                                 {isUploading ? 'Uploading...' : 'Replace Resume'}
                                 <input
                                   type="file"
@@ -1081,10 +1092,10 @@ export default function JobSeekerDashboard() {
                           </div>
                         ) : (
                           <div>
-                            <div className="text-2xl mb-2">📤</div>
+                            <Upload size={28} className="mx-auto mb-2 text-gray-400" />
                             <div className="mb-4 text-red-600 dark:text-red-400 font-medium">Resume required for job applications</div>
                             <div className="mb-4">
-                              <label className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg cursor-pointer inline-block">
+                              <label className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg cursor-pointer inline-block">
                                 {isUploading ? 'Uploading...' : 'Choose Resume File'}
                                 <input
                                   type="file"
@@ -1107,7 +1118,7 @@ export default function JobSeekerDashboard() {
               <div className="mt-8 text-center">
                 <button 
                   onClick={saveProfile}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-lg font-medium"
+                  className="bg-brand-600 hover:bg-brand-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
                 >
                   Save Profile
                 </button>
@@ -1124,9 +1135,9 @@ export default function JobSeekerDashboard() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create Job Alert</h2>
                 <button
                   onClick={() => setShowAlertModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  ×
+                  <X size={20} />
                 </button>
               </div>
               
@@ -1139,7 +1150,7 @@ export default function JobSeekerDashboard() {
                     onChange={(e) => setNewAlert((prev: any) => ({ ...prev, name: e.target.value }))}
                     placeholder="e.g., Senior Engineering Roles"
                     required
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 
@@ -1150,7 +1161,7 @@ export default function JobSeekerDashboard() {
                     value={newAlert.keywords}
                     onChange={(e) => setNewAlert((prev: any) => ({ ...prev, keywords: e.target.value }))}
                     placeholder="engineer, drilling, offshore"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 
@@ -1160,7 +1171,7 @@ export default function JobSeekerDashboard() {
                     <select
                       value={newAlert.region}
                       onChange={(e) => setNewAlert((prev: any) => ({ ...prev, region: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="">Any Region</option>
                       <option value="northeast">Northeast US</option>
@@ -1177,7 +1188,7 @@ export default function JobSeekerDashboard() {
                       value={newAlert.frequency}
                       onChange={(e) => setNewAlert((prev: any) => ({ ...prev, frequency: e.target.value }))}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
@@ -1196,7 +1207,7 @@ export default function JobSeekerDashboard() {
                   </button>
                   <button
                     type="submit"
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
+                    className="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg"
                   >
                     Create Alert
                   </button>
@@ -1211,14 +1222,14 @@ export default function JobSeekerDashboard() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md mx-4">
               <div className="text-center">
-                <div className="text-4xl mb-4">📄</div>
-                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Welcome! 🎉</h3>
+                <FileText size={40} className="mx-auto mb-4 text-brand-600" />
+                <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Welcome!</h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  We've auto-filled your profile with your account data! Complete your setup by uploading your resume. 
-                  This will help employers find you and enable you to apply for jobs with one click!
+                  We've auto-filled your profile with your account data. Complete your setup by uploading your resume —
+                  this helps employers find you and lets you apply for jobs with one click.
                 </p>
                 <div className="flex gap-3">
-                  <label className="flex-1 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium cursor-pointer text-center">
+                  <label className="flex-1 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg font-medium cursor-pointer text-center">
                     Upload Resume
                     <input
                       type="file"

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { ensureProfileRow } from '@/lib/profile'
+import { HardHat, Building2, Rocket, FileText, Loader2 } from 'lucide-react'
 
 // Only allow redirecting back to a relative, same-site path (e.g. "/employers").
 // This guards against open-redirect issues from a crafted `returnTo` query param.
@@ -182,7 +183,7 @@ function SignupPageContent() {
         setClassification('senior')
         setResumeParsing(false)
         
-        alert('✅ Resume parsed successfully! We\'ve auto-filled your information. Please review and update as needed.')
+        alert('Resume parsed. We\'ve auto-filled your information below — please review and update as needed.')
       }, 2000)
     } catch (err) {
       setError('Error parsing resume. Please fill in the information manually.')
@@ -354,7 +355,7 @@ function SignupPageContent() {
       }
       
       // Send verification email
-      alert('✅ Account created successfully! Please check your email to verify your account.')
+      alert('Account created. Please check your email to verify your account.')
       
       // Redirect back to where the user started (e.g. the /employers pricing
       // page, or the free-job posting flow) if we have one, otherwise fall
@@ -375,15 +376,15 @@ function SignupPageContent() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-orange-500 text-white' : 'bg-gray-300'}`}>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-brand-600 text-white' : 'bg-gray-300'}`}>
               1
             </div>
-            <div className={`w-24 h-1 ${step >= 2 ? 'bg-orange-500' : 'bg-gray-300'}`} />
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-orange-500 text-white' : 'bg-gray-300'}`}>
+            <div className={`w-24 h-1 ${step >= 2 ? 'bg-brand-600' : 'bg-gray-300'}`} />
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-brand-600 text-white' : 'bg-gray-300'}`}>
               2
             </div>
-            <div className={`w-24 h-1 ${step >= 3 ? 'bg-orange-500' : 'bg-gray-300'}`} />
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-orange-500 text-white' : 'bg-gray-300'}`}>
+            <div className={`w-24 h-1 ${step >= 3 ? 'bg-brand-600' : 'bg-gray-300'}`} />
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-brand-600 text-white' : 'bg-gray-300'}`}>
               3
             </div>
           </div>
@@ -422,9 +423,9 @@ function SignupPageContent() {
                     setAccountType('job_seeker')
                     setStep(2)
                   }}
-                  className="p-8 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:shadow-lg transition-all text-center"
+                  className="p-8 border-2 border-gray-200 rounded-lg hover:border-brand-600 hover:shadow-lg transition-all text-center"
                 >
-                  <div className="text-4xl mb-4">👷</div>
+                  <HardHat size={40} className="mx-auto mb-4 text-muted" />
                   <h3 className="text-xl font-semibold mb-2">I'm Looking for Work</h3>
                   <p className="text-gray-600">Find technical jobs, get alerts, and apply with one click</p>
                 </button>
@@ -434,16 +435,16 @@ function SignupPageContent() {
                     setAccountType('employer')
                     setStep(2)
                   }}
-                  className="p-8 border-2 border-gray-200 rounded-lg hover:border-orange-500 hover:shadow-lg transition-all text-center"
+                  className="p-8 border-2 border-gray-200 rounded-lg hover:border-brand-600 hover:shadow-lg transition-all text-center"
                 >
-                  <div className="text-4xl mb-4">🏢</div>
+                  <Building2 size={40} className="mx-auto mb-4 text-muted" />
                   <h3 className="text-xl font-semibold mb-2">I'm an Employer</h3>
                   <p className="text-gray-600">Post jobs, search resumes, and find qualified candidates</p>
                 </button>
               </div>
               
               <p className="text-center mt-8 text-gray-600">
-                Already have an account? <Link href="/auth/login" className="text-orange-500 hover:underline">Log in</Link>
+                Already have an account? <Link href="/auth/login" className="text-brand-600 hover:underline">Log in</Link>
               </p>
             </div>
           )}
@@ -457,7 +458,10 @@ function SignupPageContent() {
 
               {/* Quick OAuth Signup Options */}
               <div className="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="text-lg font-semibold text-center mb-4">🚀 Quick Signup as {accountType === 'job_seeker' ? 'Job Seeker' : 'Employer'}</h3>
+                <h3 className="text-lg font-semibold text-center mb-4 flex items-center justify-center gap-2">
+                  <Rocket size={18} className="text-brand-600" />
+                  Quick Signup as {accountType === 'job_seeker' ? 'Job Seeker' : 'Employer'}
+                </h3>
                 
                 {/* Google Signup */}
                 <div className="mb-4">
@@ -502,7 +506,10 @@ function SignupPageContent() {
                 <>
                   {/* Resume Upload Section */}
                   <div className="mb-6 p-6 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300">
-                    <h3 className="text-lg font-semibold mb-2">📄 Quick Setup with Resume</h3>
+                    <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                      <FileText size={18} className="text-brand-600" />
+                      Quick Setup with Resume
+                    </h3>
                     <p className="text-gray-600 mb-4">Upload your resume and we'll auto-fill your information</p>
                     <input
                       type="file"
@@ -512,8 +519,9 @@ function SignupPageContent() {
                       className="w-full"
                     />
                     {resumeParsing && (
-                      <div className="mt-2 text-blue-600">
-                        ⏳ Parsing your resume...
+                      <div className="mt-2 text-blue-600 flex items-center gap-2">
+                        <Loader2 size={16} className="animate-spin" />
+                        Parsing your resume...
                       </div>
                     )}
                   </div>
@@ -527,7 +535,7 @@ function SignupPageContent() {
                         type="text"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         required
                       />
                     </div>
@@ -539,7 +547,7 @@ function SignupPageContent() {
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         required
                       />
                     </div>
@@ -555,7 +563,7 @@ function SignupPageContent() {
                       type="text"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                       required
                     />
                   </div>
@@ -567,7 +575,7 @@ function SignupPageContent() {
                       type="text"
                       value={contactName}
                       onChange={(e) => setContactName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                       placeholder="Hiring Manager Name"
                       required
                     />
@@ -583,7 +591,7 @@ function SignupPageContent() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                   required
                 />
               </div>
@@ -596,7 +604,7 @@ function SignupPageContent() {
                   type="tel"
                   value={accountType === 'job_seeker' ? phone : companyPhone}
                   onChange={(e) => accountType === 'job_seeker' ? setPhone(e.target.value) : setCompanyPhone(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="(555) 123-4567"
                   required
                 />
@@ -611,7 +619,7 @@ function SignupPageContent() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="City, State"
                     required
                   />
@@ -627,7 +635,7 @@ function SignupPageContent() {
                     type="url"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                     placeholder="https://yourcompany.com"
                     required
                   />
@@ -643,7 +651,7 @@ function SignupPageContent() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">At least 8 characters</p>
@@ -656,7 +664,7 @@ function SignupPageContent() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                     required
                   />
                 </div>
@@ -675,7 +683,7 @@ function SignupPageContent() {
                       setStep(3)
                     }
                   }}
-                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                  className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700"
                 >
                   Continue
                 </button>
@@ -702,7 +710,7 @@ function SignupPageContent() {
                         <select
                           value={classification}
                           onChange={(e) => setClassification(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                           required
                         >
                           <option value="">Select Classification</option>
@@ -721,7 +729,7 @@ function SignupPageContent() {
                           type="number"
                           value={yearsExperience}
                           onChange={(e) => setYearsExperience(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                           min="0"
                           required
                         />
@@ -737,7 +745,7 @@ function SignupPageContent() {
                           type="text"
                           value={desiredRate}
                           onChange={(e) => setDesiredRate(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                           placeholder="$45-55/hr"
                         />
                       </div>
@@ -749,7 +757,7 @@ function SignupPageContent() {
                           type="date"
                           value={availabilityDate}
                           onChange={(e) => setAvailabilityDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         />
                       </div>
                     </div>
@@ -761,7 +769,7 @@ function SignupPageContent() {
                       <select
                         value={willingToTravel}
                         onChange={(e) => setWillingToTravel(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         required
                       >
                         <option value="">Select Option</option>
@@ -781,7 +789,7 @@ function SignupPageContent() {
                           setHasSecurityClearance(e.target.value)
                           if (e.target.value === 'no') setClearanceLevel('')
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                       >
                         <option value="no">No security clearance</option>
                         <option value="yes">Yes - I have clearance</option>
@@ -796,7 +804,7 @@ function SignupPageContent() {
                         <select
                           value={clearanceLevel}
                           onChange={(e) => setClearanceLevel(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         >
                           <option value="">Select Level</option>
                           <option value="confidential">Confidential</option>
@@ -815,7 +823,7 @@ function SignupPageContent() {
                         type="url"
                         value={linkedinUrl}
                         onChange={(e) => setLinkedinUrl(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         placeholder="https://linkedin.com/in/yourprofile"
                       />
                     </div>
@@ -827,7 +835,7 @@ function SignupPageContent() {
                       <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto">
                         <div className="space-y-4">
                           <div>
-                            <div className="font-semibold text-orange-500 mb-2">Energy & Power</div>
+                            <div className="font-semibold text-brand-600 mb-2">Energy & Power</div>
                             <div className="grid grid-cols-2 gap-2 ml-4">
                               {['nuclear', 'power-generation', 'alt-energy', 'electric-td'].map(ind => (
                                 <label key={ind} className="flex items-center">
@@ -844,7 +852,7 @@ function SignupPageContent() {
                           </div>
                           
                           <div>
-                            <div className="font-semibold text-orange-500 mb-2">Defense & Government</div>
+                            <div className="font-semibold text-brand-600 mb-2">Defense & Government</div>
                             <div className="grid grid-cols-2 gap-2 ml-4">
                               {['homeland', 'aerospace'].map(ind => (
                                 <label key={ind} className="flex items-center">
@@ -861,7 +869,7 @@ function SignupPageContent() {
                           </div>
                           
                           <div>
-                            <div className="font-semibold text-orange-500 mb-2">Industrial</div>
+                            <div className="font-semibold text-brand-600 mb-2">Industrial</div>
                             <div className="grid grid-cols-2 gap-2 ml-4">
                               {['construction', 'manufacturing', 'shipyard', 'petrochem'].map(ind => (
                                 <label key={ind} className="flex items-center">
@@ -888,7 +896,7 @@ function SignupPageContent() {
                         type="text"
                         value={skills.join(', ')}
                         onChange={(e) => setSkills(e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         placeholder="Welding, AutoCAD, Project Management"
                       />
                     </div>
@@ -908,7 +916,7 @@ function SignupPageContent() {
                         <select
                           value={companySize}
                           onChange={(e) => setCompanySize(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         >
                           <option value="">Select Size</option>
                           <option value="1-10">1-10 employees</option>
@@ -927,7 +935,7 @@ function SignupPageContent() {
                           type="number"
                           value={yearEstablished}
                           onChange={(e) => setYearEstablished(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                           min="1900"
                           max={new Date().getFullYear()}
                           placeholder="2010"
@@ -943,7 +951,7 @@ function SignupPageContent() {
                         type="text"
                         value={ein}
                         onChange={(e) => setEin(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         placeholder="12-3456789"
                       />
                     </div>
@@ -956,7 +964,7 @@ function SignupPageContent() {
                         type="url"
                         value={companyLinkedin}
                         onChange={(e) => setCompanyLinkedin(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         placeholder="https://linkedin.com/company/yourcompany"
                       />
                     </div>
@@ -993,7 +1001,7 @@ function SignupPageContent() {
                       <textarea
                         value={companyDescription}
                         onChange={(e) => setCompanyDescription(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
                         rows={3}
                         placeholder="Brief description of your company..."
                       />
@@ -1060,8 +1068,8 @@ function SignupPageContent() {
                       required
                     />
                     <span>
-                      I agree to the <Link href="/terms" className="text-orange-500 hover:underline">Terms of Service</Link> and{' '}
-                      <Link href="/privacy" className="text-orange-500 hover:underline">Privacy Policy</Link> *
+                      I agree to the <Link href="/terms" className="text-brand-600 hover:underline">Terms of Service</Link> and{' '}
+                      <Link href="/privacy" className="text-brand-600 hover:underline">Privacy Policy</Link> *
                     </span>
                   </label>
                 </div>
@@ -1077,7 +1085,7 @@ function SignupPageContent() {
                 <button
                   onClick={handleSignup}
                   disabled={!agreeToTerms || isLoading || (accountType === 'job_seeker' ? industries.length === 0 : companyIndustries.length === 0)}
-                  className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>

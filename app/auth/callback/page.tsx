@@ -432,7 +432,7 @@ function AuthCallbackContent() {
                   Redirecting you now...
                 </p>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-orange-500 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
+                  <div className="bg-brand-600 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
                 </div>
               </>
             )}
@@ -453,7 +453,7 @@ function AuthCallbackContent() {
                 </p>
                 <a 
                   href="/auth/login"
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg transition-colors inline-block"
+                  className="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors inline-block"
                 >
                   Go to Login
                 </a>
