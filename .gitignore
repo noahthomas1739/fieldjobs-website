@@ -73,6 +73,9 @@ public
 .out
 .storybook-out
 
+# SDR exports (emails / phones)
+scripts/exports/
+
 # Temporary folders
 tmp/
 temp/
