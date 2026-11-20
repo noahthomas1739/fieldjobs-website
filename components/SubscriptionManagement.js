@@ -351,7 +351,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
               <div className="text-sm text-gray-600">Resume Credits</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-purple-500">
+              <div className="text-2xl font-bold text-tier2-500">
                 {subscription?.plan_type === 'free' ? '30 days' : '∞'}
               </div>
               <div className="text-sm text-gray-600">Job Duration</div>
@@ -493,10 +493,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
 
             {/* Enterprise Plan */}
-            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'enterprise' ? 'border-purple-500 bg-purple-50' : 'border-purple-200 bg-purple-50'}`}>
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'enterprise' ? 'border-tier2-500 bg-tier2-50' : 'border-tier2-200 bg-tier2-50'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Enterprise</div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">$208</div>
+                <div className="text-3xl font-bold text-tier2-600 mb-2">$208</div>
                 <div className="text-gray-600 mb-4 text-xs">per month<br/>Save $250/yr — $2,246/yr with annual billing</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Unlimited job postings</li>
@@ -505,14 +505,14 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 </ul>
                 
                 {subscription?.plan_type === 'enterprise' ? (
-                  <div className="bg-purple-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-tier2-500 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : (
                   <button
                     onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '', 'Enterprise')}
                     disabled={isLoading}
-                    className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-tier2-500 hover:bg-tier2-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Upgrade Now'}
                   </button>
@@ -521,10 +521,10 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             </div>
 
             {/* Unlimited Plan */}
-            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'unlimited' ? 'border-indigo-500 bg-indigo-50' : 'border-indigo-200 bg-indigo-50'}`}>
+            <div className={`border-2 rounded-lg p-6 ${subscription?.plan_type === 'unlimited' ? 'border-tier3-500 bg-tier3-50' : 'border-tier3-200 bg-tier3-50'}`}>
               <div className="text-center">
                 <div className="text-xl font-bold mb-2">Unlimited</div>
-                <div className="text-3xl font-bold text-indigo-600 mb-2">$329</div>
+                <div className="text-3xl font-bold text-tier3-600 mb-2">$329</div>
                 <div className="text-gray-600 mb-4 text-xs">per month<br/>Save $395/yr — $3,553/yr with annual billing</div>
                 <ul className="text-left space-y-2 mb-6 text-sm">
                   <li className="flex items-center gap-1.5"><Check size={14} className="text-green-600 shrink-0" /> Unlimited job postings</li>
@@ -534,14 +534,14 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                 </ul>
                 
                 {subscription?.plan_type === 'unlimited' ? (
-                  <div className="bg-indigo-500 text-white py-2 px-4 rounded-lg">
+                  <div className="bg-tier3-500 text-white py-2 px-4 rounded-lg">
                     Current Plan
                   </div>
                 ) : (
                   <button
                     onClick={() => handleUpgradeSubscription(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID || '', 'Unlimited')}
                     disabled={isLoading}
-                    className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-tier3-500 hover:bg-tier3-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Upgrade Now'}
                   </button>

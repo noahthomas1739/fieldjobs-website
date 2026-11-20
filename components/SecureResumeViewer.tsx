@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, FileText, Lightbulb } from 'lucide-react'
+import { theme } from '@/lib/theme'
 
 interface SecureResumeViewerProps {
   resumeUrl: string
@@ -84,7 +85,7 @@ export default function SecureResumeViewer({
             style={{
               width: '100%',
               height: '100%',
-              background: '#f1f5f9',
+              background: theme.colors.surfaceAlt,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -92,15 +93,15 @@ export default function SecureResumeViewer({
               gap: '1rem'
             }}
           >
-            <FileText size={44} color="#64748b" />
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0f172a' }}>
+            <FileText size={44} color={theme.colors.muted} />
+            <div style={{ fontSize: '18px', fontWeight: 'bold', color: theme.colors.ink }}>
               Resume Preview
             </div>
-            <div style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', maxWidth: '300px' }}>
+            <div style={{ fontSize: '14px', color: theme.colors.muted, textAlign: 'center', maxWidth: '300px' }}>
               Resume viewing is temporarily disabled for security reasons.<br/>
               Contact the applicant directly for resume access.
             </div>
-            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '1rem' }}>
+            <div style={{ fontSize: '12px', color: theme.colors.subtle, marginTop: '1rem' }}>
               Applicant: {applicantName}
             </div>
           </div>

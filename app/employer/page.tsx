@@ -1292,12 +1292,12 @@ function EmployerDashboardContent() {
               <h1 className="text-3xl font-bold text-gray-900">Employer Dashboard</h1>
               <p className="text-gray-600">Welcome back! Manage your job postings and applications.</p>
               {/* Debug info */}
-              <p className="text-xs text-blue-600 mt-1">
+              <p className="text-xs text-brand-600 mt-1">
                 Current Plan: {subscription.tier} | Credits: {subscription.credits} | Jobs Limit: {subscription.activeJobsLimit}
               </p>
               <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                 <Mail size={14} className="text-muted" />
-                Contact: <a href="mailto:Employers@field-jobs.co" className="text-blue-600 hover:text-blue-800 underline">Employers@field-jobs.co</a>
+                Contact: <a href="mailto:Employers@field-jobs.co" className="text-brand-600 hover:text-brand-800 underline">Employers@field-jobs.co</a>
               </p>
             </div>
             <div className="flex gap-3">
@@ -1352,11 +1352,11 @@ function EmployerDashboardContent() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-500">{jobs.length}</div>
+              <div className="text-2xl font-bold text-brand-500">{jobs.length}</div>
               <div className="text-sm text-gray-600">Active Jobs</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-indigo-500">
+              <div className="text-2xl font-bold text-tier3-500">
                 {(subscription.tier === 'enterprise' || subscription.tier === 'unlimited')
                   ? '∞'
                   : `${Math.max(0, (subscription.activeJobsLimit || 0) - jobs.length)}`
@@ -1372,7 +1372,7 @@ function EmployerDashboardContent() {
               <div className="text-sm text-gray-600">Total Applications</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-purple-500">
+              <div className="text-2xl font-bold text-tier2-500">
                 {userCredits}
               </div>
               <div className="text-sm text-gray-600">Resume Search Credits</div>
@@ -1437,10 +1437,10 @@ function EmployerDashboardContent() {
                             <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Gift size={12} />FREE</span>
                           )}
                           {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) && (
-                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Star size={12} fill="currentColor" />Featured</span>
+                            <span className="bg-accent-50 text-accent-700 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Star size={12} fill="currentColor" />Featured</span>
                           )}
                           {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) && (
-                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Zap size={12} fill="currentColor" />Urgent</span>
+                            <span className="bg-accent-50 text-accent-600 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Zap size={12} fill="currentColor" />Urgent</span>
                           )}
                         </div>
                       </div>
@@ -1462,9 +1462,9 @@ function EmployerDashboardContent() {
                           <div className="text-gray-500 text-xs">Applied: {new Date(app.created_at).toLocaleDateString()}</div>
                         </div>
                         <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          app.status === 'submitted' ? 'bg-blue-100 text-blue-800' : 
+                          app.status === 'submitted' ? 'bg-brand-100 text-brand-800' : 
                           app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                          app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
+                          app.status === 'interviewed' ? 'bg-tier2-200 text-tier2-700' :
                           app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                           'bg-gray-100 text-gray-800'
                         }`}>
@@ -1508,7 +1508,7 @@ function EmployerDashboardContent() {
                   </button>
                   <button
                     onClick={() => setActiveTab('applications')}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                    className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg"
                   >
                     Review Applications
                   </button>
@@ -1570,10 +1570,10 @@ function EmployerDashboardContent() {
                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Gift size={12} />FREE</span>
                               )}
                               {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) && (
-                                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Star size={12} fill="currentColor" />Featured</span>
+                                <span className="bg-accent-50 text-accent-700 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Star size={12} fill="currentColor" />Featured</span>
                               )}
                               {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) && (
-                                <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Zap size={12} fill="currentColor" />Urgent</span>
+                                <span className="bg-accent-50 text-accent-600 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Zap size={12} fill="currentColor" />Urgent</span>
                               )}
                             </div>
                           </div>
@@ -1584,7 +1584,7 @@ function EmployerDashboardContent() {
                         <div className="flex gap-2 ml-4">
                           <button
                             onClick={() => editJob(job)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                            className="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1 rounded text-sm"
                           >
                             Edit
                           </button>
@@ -1600,28 +1600,28 @@ function EmployerDashboardContent() {
                       <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                         <div className="flex gap-2">
                           {(job.is_featured || job.isFeatured) && !isFeatureExpired(job.featured_until || job.featuredUntil) ? (
-                            <span className="text-yellow-600 text-sm flex items-center gap-1 opacity-60">
+                            <span className="text-accent-700 text-sm flex items-center gap-1 opacity-60">
                               <Star size={14} fill="currentColor" />
                               Featured Active
                             </span>
                           ) : (
                           <button
                             onClick={() => openFeaturePurchase(job, 'featured')}
-                            className="text-yellow-600 hover:text-yellow-700 text-sm flex items-center gap-1"
+                            className="text-accent-600 hover:text-accent-700 text-sm flex items-center gap-1"
                           >
                             <Star size={14} />
                             Feature Job
                           </button>
                           )}
                           {(job.is_urgent || job.isUrgent) && !isFeatureExpired(job.urgent_until || job.urgentUntil) ? (
-                            <span className="text-red-600 text-sm flex items-center gap-1 opacity-60">
+                            <span className="text-accent-600 text-sm flex items-center gap-1 opacity-60">
                               <Zap size={14} fill="currentColor" />
                               Urgent Active
                             </span>
                           ) : (
                           <button
                             onClick={() => openFeaturePurchase(job, 'urgent')}
-                            className="text-red-600 hover:text-red-700 text-sm flex items-center gap-1"
+                            className="text-accent-600 hover:text-accent-700 text-sm flex items-center gap-1"
                           >
                             <Zap size={14} />
                             Mark Urgent
@@ -1722,9 +1722,9 @@ function EmployerDashboardContent() {
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="text-lg font-semibold">{app.first_name} {app.last_name}</h3>
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              app.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
+                              app.status === 'submitted' ? 'bg-brand-100 text-brand-800' :
                               app.status === 'shortlisted' ? 'bg-green-100 text-green-800' :
-                              app.status === 'interviewed' ? 'bg-purple-100 text-purple-800' :
+                              app.status === 'interviewed' ? 'bg-tier2-200 text-tier2-700' :
                               app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
@@ -1740,7 +1740,7 @@ function EmployerDashboardContent() {
                         <div className="flex gap-2 ml-4">
                           <button
                             onClick={() => openApplicationModal(app)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                            className="bg-brand-500 hover:bg-brand-600 text-white px-3 py-1 rounded text-sm"
                           >
                             View Details
                           </button>
@@ -1932,7 +1932,7 @@ function EmployerDashboardContent() {
                             <p className="text-gray-700 mb-2">{profile.summary}</p>
                             <div className="flex flex-wrap gap-2 mb-2">
                               {profile.skills?.split(',').slice(0, 5).map((skill: string, index: number) => (
-                                <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                <span key={index} className="bg-brand-100 text-brand-800 px-2 py-1 rounded-full text-xs">
                                   {skill.trim()}
                                 </span>
                               ))}
@@ -1972,16 +1972,16 @@ function EmployerDashboardContent() {
               <h2 className="text-xl font-bold mb-6">Analytics & Insights</h2>
               
               <div className="grid md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{analytics.totalViews || 0}</div>
+                <div className="bg-brand-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-brand-600">{analytics.totalViews || 0}</div>
                   <div className="text-sm text-gray-600">Total Job Views</div>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">{applications.length}</div>
                   <div className="text-sm text-gray-600">Total Applications</div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
+                <div className="bg-tier2-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-tier2-600">
                     {applications.length > 0 && analytics.totalViews > 0
                       ? Math.round((applications.length / analytics.totalViews) * 100)
                       : applications.length > 0 ? 'N/A' : 0
@@ -2088,15 +2088,15 @@ function EmployerDashboardContent() {
                   </button>
                 </div>
 
-                <div className="border border-purple-300 rounded-lg p-6 bg-purple-50 relative flex flex-col">
+                <div className="border border-tier2-300 rounded-lg p-6 bg-tier2-50 relative flex flex-col">
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-tier2-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                       BEST VALUE
                     </span>
                   </div>
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Enterprise</h3>
-                    <div className="text-3xl font-bold text-purple-600 my-2">$208</div>
+                    <div className="text-3xl font-bold text-tier2-600 my-2">$208</div>
                     <div className="text-gray-600 text-xs">per month</div>
                     <div className="text-green-600 text-xs font-semibold mt-1">Save $250/yr — $2,246/yr with annual billing</div>
                   </div>
@@ -2110,10 +2110,10 @@ function EmployerDashboardContent() {
                   </div>
                 </div>
 
-                <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50 flex flex-col">
+                <div className="border border-tier3-200 rounded-lg p-6 bg-tier3-50 flex flex-col">
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-semibold">Unlimited</h3>
-                    <div className="text-3xl font-bold text-indigo-600 my-2">$329</div>
+                    <div className="text-3xl font-bold text-tier3-600 my-2">$329</div>
                     <div className="text-gray-600 text-xs">per month</div>
                     <div className="text-green-600 text-xs font-semibold mt-1">Save $395/yr — $3,553/yr with annual billing</div>
                   </div>
@@ -2181,7 +2181,7 @@ function EmployerDashboardContent() {
                     <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
                     <button 
                       onClick={() => setActiveTab('jobs')}
-                      className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded flex items-center justify-center gap-2"
+                      className="w-full bg-accent-600 hover:bg-accent-700 text-white py-2 rounded flex items-center justify-center gap-2"
                     >
                       <Star size={16} />
                       Manage Featured Jobs
@@ -2195,7 +2195,7 @@ function EmployerDashboardContent() {
                     <p className="text-xs text-gray-500 mb-3">Apply to individual jobs in the Job Postings tab</p>
                     <button 
                       onClick={() => setActiveTab('jobs')}
-                      className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded flex items-center justify-center gap-2"
+                      className="w-full bg-accent-600 hover:bg-accent-700 text-white py-2 rounded flex items-center justify-center gap-2"
                     >
                       <Zap size={16} />
                       Manage Urgent Jobs
@@ -2905,7 +2905,7 @@ function EmployerDashboardContent() {
                         const viewerUrl = `/api/view-resume-secure?url=${encodeURIComponent(selectedApplication.resume_url)}`
                         window.open(viewerUrl, '_blank', 'noopener,noreferrer')
                       }}
-                      className="text-blue-600 hover:text-blue-800 underline font-medium inline-flex items-center gap-1"
+                      className="text-brand-600 hover:text-brand-800 underline font-medium inline-flex items-center gap-1"
                     >
                       <FileText size={14} />
                       {selectedApplication.resume_filename || 'View Resume'}
@@ -2966,7 +2966,7 @@ function EmployerDashboardContent() {
                 <p className="text-gray-600 text-sm">{selectedJobForFeature.company}</p>
               </div>
               
-              <div className="bg-yellow-50 p-4 rounded-lg mb-4">
+              <div className="bg-accent-50 p-4 rounded-lg mb-4">
                 <h4 className="font-semibold mb-2 flex items-center gap-2">
                   {featureType === 'featured' ? <><Star size={16} />Featured Job Listing</> : <><Zap size={16} />Urgent Job Badge</>}
                 </h4>

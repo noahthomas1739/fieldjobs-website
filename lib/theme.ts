@@ -1,13 +1,12 @@
 /**
  * FieldJobs shared design tokens.
  *
- * Source of truth for the site's palette: the original FieldJobs brand —
- * a warm orange primary (#ff6b35) with neutral slates for text/surfaces,
- * and a gold/amber accent used sparingly for "featured" highlights.
- * Restored to the original orange/purple-era palette at the site owner's
- * request after a brief blue/slate experiment; only the color VALUES
- * changed back — the token names/structure stay the same so the rest of
- * the app keeps reading from a single source of truth.
+ * Palette (color-psychology pass, replacing the orange/purple-era values
+ * restored in e126f9fc): a confident BLUE primary ("brand") paired with a
+ * WARM ORANGE accent — the classic "trust + action" pairing (Indeed's
+ * apply buttons, Amazon's buy buttons) that lets CTAs pop against a
+ * credible, trustworthy base. See the matching comment block in
+ * `app/globals.css` for the full rationale behind each color.
  *
  * These values MUST stay in sync with the CSS custom properties defined in
  * `app/globals.css` (`:root` block). Components that render with Tailwind
@@ -21,22 +20,42 @@
 export const theme = {
   colors: {
     brand: {
-      50: '#fff5f0',
-      100: '#ffe8dc',
-      200: '#ffd0b5',
-      300: '#ffb088',
-      400: '#ff8f5c',
-      500: '#ff7a42',
-      600: '#ff6b35',
-      700: '#e55a2b',
-      800: '#c2410c',
-      900: '#9a3412',
+      50: '#ebf5ff',
+      100: '#e1effe',
+      200: '#c3ddfd',
+      300: '#a4cafe',
+      400: '#76a9fa',
+      500: '#3f83f8',
+      600: '#1c64f2',
+      700: '#1a56db',
+      800: '#1e429f',
+      900: '#233876',
     },
     accent: {
-      50: '#fffbeb',
-      200: '#ffed4e',
-      500: '#ffd700',
-      600: '#b8860b',
+      50: '#fff7ed',
+      200: '#fed7aa',
+      500: '#fb923c',
+      600: '#c2410c',
+      700: '#9a3412',
+    },
+    // Tier-differentiation colors for pricing tiers (e.g. Enterprise vs
+    // Unlimited) — kept distinct from brand/accent so paid tiers read as
+    // deliberate upgrades rather than competing for the same CTA attention.
+    tier2: {
+      50: '#f5f3ff',
+      200: '#ddd6fe',
+      300: '#c4b5fd',
+      500: '#8b5cf6',
+      600: '#7c3aed',
+      700: '#6d28d9',
+    },
+    tier3: {
+      50: '#eef2ff',
+      200: '#c7d2fe',
+      300: '#a5b4fc',
+      500: '#6366f1',
+      600: '#4f46e5',
+      700: '#4338ca',
     },
     ink: '#0f172a',
     body: '#334155',

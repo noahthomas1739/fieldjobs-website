@@ -6,30 +6,60 @@
    Mirrored in lib/theme.ts for components that use inline styles instead
    of Tailwind utility classes. Keep both in sync.
 
-   Palette intent: FieldJobs' original brand palette — a confident warm
-   orange primary (the long-standing FieldJobs brand color, #ff6b35) with
-   neutral slates for text/surfaces, and a gold/amber accent used sparingly
-   for "featured" highlights. Restored to the original orange/purple-era
-   palette at the site owner's request; only the color VALUES changed back
-   here — the token names/structure from the palette refactor are unchanged
-   so the rest of the app keeps reading from a single source of truth.
+   Palette intent (color-psychology pass, replacing the orange/purple-era
+   values restored in e126f9fc): a confident BLUE primary paired with a
+   WARM ORANGE accent — i.e. the "trust + action" combination used
+   deliberately by Indeed's apply buttons, Amazon's buy buttons, etc.
+
+     - brand (blue, anchored at brand-600, #1c64f2): blue is the
+       best-documented trust/competence/stability color and is the
+       convention nearly every B2B recruiting platform (LinkedIn, Indeed,
+       ZipRecruiter) converges on for exactly the reason this product needs
+       it — employers are B2B buyers evaluating credibility before paying
+       $199-$329+/month, and job seekers need to trust the platform enough
+       to hand over resumes/contact info. This is a more saturated
+       "azure/cobalt" blue than a flat navy/slate blue specifically to
+       avoid the coldness of the earlier blue/slate-only attempt (e126f9fc)
+       — vivid hue, not just a duller trust signal.
+     - accent (warm orange, anchored at accent-600, #c2410c): orange is
+       blue's complement on the color wheel, so pairing it with the blue
+       primary creates deliberate, eye-catching contrast for CTAs/urgent
+       badges without competing with the trust signal. Orange also carries
+       an authentic hi-vis/safety-equipment undertone (vests, hard hats,
+       cones) for the skilled-trades audience, and signals energy/urgency
+       — countering any "too sterile/corporate" feeling blue alone can
+       create for a physical, hands-on audience. It also preserves
+       continuity with the site's long-standing orange brand identity
+       rather than discarding it outright.
+     - tier2 / tier3 (violet + indigo): purple/violet is the near-universal
+       SaaS convention for a "premium/upgraded" tier, so Enterprise reads
+       as "more" without competing with the blue trust signal or the
+       orange action signal. Indigo sits one step further toward violet,
+       so Unlimited reads as a deliberate step above Enterprise rather
+       than an arbitrary color swap.
+
+   Neutrals (ink/body/muted/subtle/surface/border) are unchanged — they are
+   genuinely hue-neutral slates that already clear WCAG AA by a wide margin
+   against white and work equally well under either brand hue.
    ========================================================================== */
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
 
-  /* Brand orange scale — primary actions, links, headers (the original
-     FieldJobs brand orange, #ff6b35, anchored at brand-600) */
-  --color-brand-50: #fff5f0;
-  --color-brand-100: #ffe8dc;
-  --color-brand-200: #ffd0b5;
-  --color-brand-300: #ffb088;
-  --color-brand-400: #ff8f5c;
-  --color-brand-500: #ff7a42;
-  --color-brand-600: #ff6b35;
-  --color-brand-700: #e55a2b;
-  --color-brand-800: #c2410c;
-  --color-brand-900: #9a3412;
+  /* Brand blue scale — primary actions, nav, headers, links (confident
+     "azure/cobalt" blue, anchored at brand-600, #1c64f2 — chosen for
+     trust/competence signaling without the flatness of a plain
+     navy/slate blue) */
+  --color-brand-50: #ebf5ff;
+  --color-brand-100: #e1effe;
+  --color-brand-200: #c3ddfd;
+  --color-brand-300: #a4cafe;
+  --color-brand-400: #76a9fa;
+  --color-brand-500: #3f83f8;
+  --color-brand-600: #1c64f2;
+  --color-brand-700: #1a56db;
+  --color-brand-800: #1e429f;
+  --color-brand-900: #233876;
 
   /* Neutral slate scale — text, surfaces, borders */
   --color-ink: #0f172a;      /* headings */
@@ -40,13 +70,34 @@
   --color-surface-alt: #f1f5f9;
   --color-border: #e2e8f0;
 
-  /* Single warm accent — used sparingly (featured highlight only); matches
-     the original gold "FEATURED" badge gradient (#ffd700 -> #ffed4e) with
-     the original dark-goldenrod text color (#b8860b) */
-  --color-accent-50: #fffbeb;
-  --color-accent-200: #ffed4e;
-  --color-accent-500: #ffd700;
-  --color-accent-600: #b8860b;
+  /* Warm orange accent — secondary CTAs, "urgent"/"featured" badges, and
+     the complementary pop against the blue brand color. accent-700 is a
+     hover/active-darken shade (brand already carries 700-900 for the same
+     purpose; accent needed one once its role grew beyond a single sparing
+     highlight). */
+  --color-accent-50: #fff7ed;
+  --color-accent-200: #fed7aa;
+  --color-accent-500: #fb923c;
+  --color-accent-600: #c2410c;
+  --color-accent-700: #9a3412;
+
+  /* Tier-differentiation colors (pricing tiers, e.g. Enterprise vs
+     Unlimited) — violet for the mid/"best value" tier, indigo for the top
+     tier, so each paid step up reads as a deliberate upgrade without
+     competing with brand blue or accent orange for attention. */
+  --color-tier2-50: #f5f3ff;
+  --color-tier2-200: #ddd6fe;
+  --color-tier2-300: #c4b5fd;
+  --color-tier2-500: #8b5cf6;
+  --color-tier2-600: #7c3aed;
+  --color-tier2-700: #6d28d9;
+
+  --color-tier3-50: #eef2ff;
+  --color-tier3-200: #c7d2fe;
+  --color-tier3-300: #a5b4fc;
+  --color-tier3-500: #6366f1;
+  --color-tier3-600: #4f46e5;
+  --color-tier3-700: #4338ca;
 
   /* Semantic status colors */
   --color-success: #16a34a;
@@ -78,6 +129,21 @@
   --color-accent-200: var(--color-accent-200);
   --color-accent-500: var(--color-accent-500);
   --color-accent-600: var(--color-accent-600);
+  --color-accent-700: var(--color-accent-700);
+
+  --color-tier2-50: var(--color-tier2-50);
+  --color-tier2-200: var(--color-tier2-200);
+  --color-tier2-300: var(--color-tier2-300);
+  --color-tier2-500: var(--color-tier2-500);
+  --color-tier2-600: var(--color-tier2-600);
+  --color-tier2-700: var(--color-tier2-700);
+
+  --color-tier3-50: var(--color-tier3-50);
+  --color-tier3-200: var(--color-tier3-200);
+  --color-tier3-300: var(--color-tier3-300);
+  --color-tier3-500: var(--color-tier3-500);
+  --color-tier3-600: var(--color-tier3-600);
+  --color-tier3-700: var(--color-tier3-700);
 
   --color-ink: var(--color-ink);
   --color-body: var(--color-body);

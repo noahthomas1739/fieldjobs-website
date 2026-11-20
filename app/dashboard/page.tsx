@@ -706,7 +706,7 @@ export default function JobSeekerDashboard() {
               )}
             </div>
             <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-500">{jobAlerts.length}</div>
+              <div className="text-2xl font-bold text-brand-500">{jobAlerts.length}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">Job Alerts</div>
             </div>
           </div>
@@ -774,9 +774,9 @@ export default function JobSeekerDashboard() {
                         <div className="text-gray-500 dark:text-gray-400 text-xs">Applied on {job.appliedDate}</div>
                       </div>
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        job.applicationStatus === 'Under Review' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' : 
+                        job.applicationStatus === 'Under Review' ? 'bg-accent-50 dark:bg-accent-700 text-accent-700 dark:text-accent-200' : 
                         job.applicationStatus === 'Shortlisted' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' :
-                        job.applicationStatus === 'Interview Scheduled' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' :
+                        job.applicationStatus === 'Interview Scheduled' ? 'bg-brand-100 dark:bg-brand-900 text-brand-800 dark:text-brand-200' :
                         job.applicationStatus === 'Not Selected' ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' :
                         'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                       }`}>
@@ -886,11 +886,11 @@ export default function JobSeekerDashboard() {
                         </div>
                         <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                           job.applicationStatus === 'Under Review' 
-                            ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200' 
+                            ? 'bg-accent-50 dark:bg-accent-700 text-accent-700 dark:text-accent-200' 
                             : job.applicationStatus === 'Shortlisted'
                             ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                             : job.applicationStatus === 'Interview Scheduled'
-                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                            ? 'bg-brand-100 dark:bg-brand-900 text-brand-800 dark:text-brand-200'
                             : job.applicationStatus === 'Not Selected'
                             ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
@@ -958,7 +958,7 @@ export default function JobSeekerDashboard() {
                           onClick={() => toggleJobAlert(alert.id, alert.active)}
                           className={`px-4 py-2 rounded text-sm font-medium ${
                             alert.active 
-                              ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                              ? 'bg-accent-600 hover:bg-accent-700 text-white' 
                               : 'bg-green-500 hover:bg-green-600 text-white'
                           }`}
                         >

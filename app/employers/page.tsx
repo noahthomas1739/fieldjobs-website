@@ -479,15 +479,15 @@ export default function EmployersPage() {
           </div>
 
           {/* Enterprise Plan */}
-          <div className="border-2 border-purple-500 rounded-lg p-6 bg-purple-50 text-center flex flex-col relative shadow-sm">
+          <div className="border-2 border-tier2-500 rounded-lg p-6 bg-tier2-50 text-center flex flex-col relative shadow-sm">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1">
+              <span className="bg-tier2-500 text-white px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1">
                 <Star size={12} fill="white" />
                 BEST VALUE
               </span>
             </div>
             <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
-            <div className="text-3xl font-bold text-purple-600 mb-2">$208</div>
+            <div className="text-3xl font-bold text-tier2-600 mb-2">$208</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
             <div className="text-green-600 text-xs font-semibold mb-4">Save $250/yr — $2,246/yr with annual billing</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
@@ -501,16 +501,16 @@ export default function EmployersPage() {
                 setSelectedPlanForModal('enterprise')
                 setShowAnnualSavingsModal(true)
               }}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
+              className="w-full bg-tier2-600 hover:bg-tier2-700 text-white py-3 rounded-lg font-semibold"
             >
               Choose Plan
             </button>
           </div>
 
           {/* Unlimited Plan */}
-          <div className="border-2 border-indigo-500 rounded-lg p-6 bg-indigo-50 text-center flex flex-col shadow-sm">
+          <div className="border-2 border-tier3-500 rounded-lg p-6 bg-tier3-50 text-center flex flex-col shadow-sm">
             <h3 className="text-xl font-semibold mb-4">Unlimited</h3>
-            <div className="text-3xl font-bold text-indigo-600 mb-2">$329</div>
+            <div className="text-3xl font-bold text-tier3-600 mb-2">$329</div>
             <div className="text-gray-600 text-sm mb-1">per month</div>
             <div className="text-green-600 text-xs font-semibold mb-4">Save $395/yr — $3,553/yr with annual billing</div>
             <ul className="space-y-2 text-sm mb-6 text-left flex-grow">
@@ -524,7 +524,7 @@ export default function EmployersPage() {
                 setSelectedPlanForModal('unlimited')
                 setShowAnnualSavingsModal(true)
               }}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold"
+              className="w-full bg-tier3-600 hover:bg-tier3-700 text-white py-3 rounded-lg font-semibold"
             >
               Choose Plan
             </button>
