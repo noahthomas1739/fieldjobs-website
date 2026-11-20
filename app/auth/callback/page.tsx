@@ -402,8 +402,8 @@ function AuthCallbackContent() {
             {/* Loading State */}
             {status === 'verifying' && (
               <>
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                <div className="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-4">
                   Authenticating
@@ -494,8 +494,8 @@ export default function AuthCallback() {
         <div className="flex items-center justify-center px-4 py-12">
           <div className="max-w-md w-full">
             <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+              <div className="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-4">
                 Loading...

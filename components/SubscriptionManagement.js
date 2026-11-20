@@ -322,13 +322,13 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
 
           {/* Scheduled Changes Alert */}
           {scheduledChanges.length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-1.5">
+            <div className="bg-brand-50 border border-brand-200 rounded-lg p-4">
+              <h4 className="font-semibold text-brand-800 mb-2 flex items-center gap-1.5">
                 <Calendar size={16} />
                 Upcoming Changes
               </h4>
               {scheduledChanges.map((change, index) => (
-                <div key={change.id || index} className="text-blue-700">
+                <div key={change.id || index} className="text-brand-700">
                   Your plan will change from <strong>{change.currentPlan}</strong> to <strong>{change.newPlan}</strong> on{' '}
                   <strong>{formatDate(change.effectiveDate)}</strong>
                 </div>
@@ -345,7 +345,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
               <div className="text-sm text-gray-600">Active Job Limit</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-500">
+              <div className="text-2xl font-bold text-brand-500">
                 {subscription?.credits === 999999 ? '∞' : (subscription?.credits || 0)}
               </div>
               <div className="text-sm text-gray-600">Resume Credits</div>
@@ -413,7 +413,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                   <button
                     onClick={() => handleDowngradeSubscription(process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID || '', 'Starter')}
                     disabled={isLoading}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+                    className="w-full bg-brand-500 hover:bg-brand-600 text-white py-2 px-4 rounded-lg disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Downgrade'}
                   </button>
@@ -582,7 +582,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
             <button
               onClick={loadBillingHistory}
               disabled={isLoading}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
             >
               {isLoading ? 'Loading...' : 'Refresh'}
             </button>
@@ -632,7 +632,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                             href={invoice.hosted_invoice_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+                            className="text-brand-500 hover:text-brand-700 font-medium inline-flex items-center gap-1"
                           >
                             View Invoice
                             <ExternalLink size={12} />
@@ -643,7 +643,7 @@ const SubscriptionManagement = ({ user, subscription, onSubscriptionUpdate }) =>
                             href={invoice.invoice_pdf}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-500 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+                            className="text-brand-500 hover:text-brand-700 font-medium inline-flex items-center gap-1"
                           >
                             Download PDF
                             <ExternalLink size={12} />

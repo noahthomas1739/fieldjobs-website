@@ -176,7 +176,7 @@ setFormData({
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800'
-      case 'paused': return 'bg-yellow-100 text-yellow-800'
+      case 'paused': return 'bg-accent-50 text-accent-700'
       case 'expired': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
@@ -233,7 +233,7 @@ setFormData({
             <button
               onClick={() => handleStatusChange('paused')}
               disabled={isLoading || formData.status === 'paused'}
-              className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg disabled:cursor-not-allowed"
+              className="bg-accent-600 hover:bg-accent-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg disabled:cursor-not-allowed"
             >
               {isLoading ? 'Updating...' : 'Pause'}
             </button>

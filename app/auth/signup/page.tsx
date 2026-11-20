@@ -457,7 +457,7 @@ function SignupPageContent() {
               </h2>
 
               {/* Quick OAuth Signup Options */}
-              <div className="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="mb-8 p-6 bg-brand-50 rounded-lg border border-brand-200">
                 <h3 className="text-lg font-semibold text-center mb-4 flex items-center justify-center gap-2">
                   <Rocket size={18} className="text-brand-600" />
                   Quick Signup as {accountType === 'job_seeker' ? 'Job Seeker' : 'Employer'}
@@ -497,7 +497,7 @@ function SignupPageContent() {
                     <div className="w-full border-t border-gray-300"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-blue-50 text-gray-500">Or continue with email</span>
+                    <span className="px-2 bg-brand-50 text-gray-500">Or continue with email</span>
                   </div>
                 </div>
               </div>
@@ -505,7 +505,7 @@ function SignupPageContent() {
               {accountType === 'job_seeker' ? (
                 <>
                   {/* Resume Upload Section */}
-                  <div className="mb-6 p-6 bg-blue-50 rounded-lg border-2 border-dashed border-blue-300">
+                  <div className="mb-6 p-6 bg-brand-50 rounded-lg border-2 border-dashed border-brand-300">
                     <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                       <FileText size={18} className="text-brand-600" />
                       Quick Setup with Resume
@@ -519,7 +519,7 @@ function SignupPageContent() {
                       className="w-full"
                     />
                     {resumeParsing && (
-                      <div className="mt-2 text-blue-600 flex items-center gap-2">
+                      <div className="mt-2 text-brand-600 flex items-center gap-2">
                         <Loader2 size={16} className="animate-spin" />
                         Parsing your resume...
                       </div>
