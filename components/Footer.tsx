@@ -31,7 +31,7 @@ export default function Footer() {
 
           {/* For Job Seekers */}
           <div>
-            <h4 className="font-semibold mb-4">For Job Seekers</h4>
+            <h4 className="font-semibold mb-4 text-white">For Job Seekers</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li><Link href="/dashboard" className="hover:text-white transition-colors">Browse Jobs</Link></li>
               <li><Link href="/dashboard?tab=profile" className="hover:text-white transition-colors">Create Profile</Link></li>
@@ -42,7 +42,7 @@ export default function Footer() {
 
           {/* For Employers */}
           <div>
-            <h4 className="font-semibold mb-4">For Employers</h4>
+            <h4 className="font-semibold mb-4 text-white">For Employers</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li><Link href="/employers" className="hover:text-white transition-colors">Post Jobs</Link></li>
               <li><Link href="/employer" className="hover:text-white transition-colors">Employer Dashboard</Link></li>
@@ -53,7 +53,7 @@ export default function Footer() {
 
           {/* Legal & Support */}
           <div>
-            <h4 className="font-semibold mb-4">Legal & Support</h4>
+            <h4 className="font-semibold mb-4 text-white">Legal & Support</h4>
             <ul className="space-y-2 text-sm text-gray-300">
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>

@@ -879,7 +879,7 @@ export default function HomePage() {
 
       {/* Search Hero */}
       <div style={{ background: '#1a1a1a', color: 'white', padding: '4rem 2rem', textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', margin: 0 }}>Find Your Next Technical Opportunity</h1>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', margin: 0, color: 'white' }}>Find Your Next Technical Opportunity</h1>
         <p style={{ margin: '1rem 0 2rem 0' }}>Connect with top employers in nuclear, energy, aerospace, defense, AI data centers, and technical industries</p>
         
         {/* Simplified Search - One Line */}

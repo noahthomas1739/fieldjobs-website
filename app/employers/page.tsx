@@ -416,7 +416,7 @@ export default function EmployersPage() {
       )}
 
       <div className="bg-gray-900 text-white py-16 rounded-lg mb-8 text-center">
-        <h1 className="text-4xl font-bold mb-4">Why Choose FieldJobs?</h1>
+        <h1 className="text-4xl font-bold mb-4 text-white">Why Choose FieldJobs?</h1>
         <p className="text-xl">The premier destination for technical industry hiring</p>
       </div>
 

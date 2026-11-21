@@ -77,7 +77,7 @@ function ResumeViewerContent() {
         <div className="flex items-center gap-3">
           <FileText size={24} />
           <div>
-            <h1 className="font-semibold">Resume Viewer</h1>
+            <h1 className="font-semibold text-white">Resume Viewer</h1>
             <p className="text-xs text-gray-400">Confidential - View Only</p>
           </div>
         </div>
